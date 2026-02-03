@@ -3,12 +3,18 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { apiFetch } from '@/lib/api';
+
+const LocationPicker = dynamic(
+  () => import('@/components/ui/location-picker').then((mod) => mod.LocationPicker),
+  { ssr: false, loading: () => <div className="h-64 w-full rounded-lg border border-input bg-muted animate-pulse" /> }
+);
 
 function RegisterForm() {
   const router = useRouter();
@@ -34,27 +40,16 @@ function RegisterForm() {
     if (ref) {
       setFormData(prev => ({ ...prev, referralCode: ref }));
     }
+  }, [searchParams]);
 
-    // Demander la géolocalisation
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFormData(prev => ({
-            ...prev,
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          }));
-        },
-        () => {
-          toast({
-            title: 'Géolocalisation',
-            description: 'Veuillez autoriser la géolocalisation pour continuer',
-            variant: 'destructive',
-          });
-        }
-      );
-    }
-  }, [searchParams, toast]);
+  const handleLocationSelect = (location: { address: string; latitude: number; longitude: number }) => {
+    setFormData(prev => ({
+      ...prev,
+      address: location.address,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +58,7 @@ function RegisterForm() {
     if (formData.latitude === 0 && formData.longitude === 0) {
       toast({
         title: 'Erreur',
-        description: 'Veuillez autoriser la géolocalisation',
+        description: 'Veuillez sélectionner l\'emplacement de votre restaurant sur la carte',
         variant: 'destructive',
       });
       setLoading(false);
@@ -159,14 +154,11 @@ function RegisterForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="address">Adresse</Label>
-              <Input
-                id="address"
-                name="address"
-                placeholder="123 rue de la Paix, Paris"
-                value={formData.address}
-                onChange={handleChange}
-                required
+              <Label>Emplacement du restaurant</Label>
+              <LocationPicker
+                onLocationSelect={handleLocationSelect}
+                initialLatitude={48.8566}
+                initialLongitude={2.3522}
               />
             </div>
             <div className="space-y-2">
