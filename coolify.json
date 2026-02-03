@@ -1,0 +1,82 @@
+{
+  "project": {
+    "name": "FoodBack",
+    "description": "Système de feedback restaurant avec machine à sous"
+  },
+  "services": [
+    {
+      "name": "foodback-postgres",
+      "type": "postgresql",
+      "version": "16",
+      "environment": {
+        "POSTGRES_USER": "foodback",
+        "POSTGRES_PASSWORD": "CHANGE_ME",
+        "POSTGRES_DB": "foodback"
+      },
+      "volumes": [
+        {
+          "source": "postgres_data",
+          "target": "/var/lib/postgresql/data"
+        }
+      ]
+    },
+    {
+      "name": "foodback-api",
+      "type": "docker",
+      "repository": "https://github.com/BillyBob36/foodback-fevrier.git",
+      "branch": "master",
+      "dockerfile": "apps/api/Dockerfile",
+      "context": "apps/api",
+      "port": 3001,
+      "healthcheck": "/health",
+      "environment": {
+        "DATABASE_URL": "postgresql://foodback:CHANGE_ME@foodback-postgres:5432/foodback",
+        "JWT_SECRET": "CHANGE_ME",
+        "JWT_REFRESH_SECRET": "CHANGE_ME",
+        "NODE_ENV": "production",
+        "PORT": "3001",
+        "API_URL": "https://api.VOTRE_DOMAINE.com",
+        "WEB_URL": "https://app.VOTRE_DOMAINE.com",
+        "CLIENT_URL": "https://client.VOTRE_DOMAINE.com",
+        "STRIPE_SECRET_KEY": "",
+        "STRIPE_WEBHOOK_SECRET": "",
+        "STRIPE_COMMISSION_PRODUCT_ID": "",
+        "SMTP_HOST": "",
+        "SMTP_PORT": "587",
+        "SMTP_USER": "",
+        "SMTP_PASSWORD": "",
+        "SMTP_FROM": ""
+      },
+      "depends_on": ["foodback-postgres"]
+    },
+    {
+      "name": "foodback-web",
+      "type": "docker",
+      "repository": "https://github.com/BillyBob36/foodback-fevrier.git",
+      "branch": "master",
+      "dockerfile": "apps/web/Dockerfile",
+      "context": "apps/web",
+      "port": 3000,
+      "environment": {
+        "NEXT_PUBLIC_API_URL": "https://api.VOTRE_DOMAINE.com",
+        "NODE_ENV": "production"
+      },
+      "depends_on": ["foodback-api"]
+    },
+    {
+      "name": "foodback-client",
+      "type": "docker",
+      "repository": "https://github.com/BillyBob36/foodback-fevrier.git",
+      "branch": "master",
+      "dockerfile": "apps/client/Dockerfile",
+      "context": "apps/client",
+      "port": 80,
+      "depends_on": ["foodback-api"]
+    }
+  ],
+  "domains": {
+    "api": "api.VOTRE_DOMAINE.com",
+    "web": "app.VOTRE_DOMAINE.com",
+    "client": "client.VOTRE_DOMAINE.com"
+  }
+}
