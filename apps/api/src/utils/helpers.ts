@@ -54,7 +54,8 @@ export function parseTime(timeStr: string): { hours: number; minutes: number } {
 
 export function isWithinTimeRange(start: string, end: string): boolean {
   const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const parisTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  const currentMinutes = parisTime.getHours() * 60 + parisTime.getMinutes();
   
   const startParsed = parseTime(start);
   const endParsed = parseTime(end);
