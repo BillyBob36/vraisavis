@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="description" content="Laissez votre avis et tentez de gagner un cadeau !">
+  <title>FoodBack - Votre avis compte</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/images/icon-192.png">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Loading -->
+    <div id="loading" class="screen active">
+      <div class="loader"></div>
+      <p>Chargement...</p>
+    </div>
+
+    <!-- Error -->
+    <div id="error" class="screen">
+      <div class="error-icon">❌</div>
+      <h2 id="error-title">Erreur</h2>
+      <p id="error-message">Une erreur est survenue</p>
+      <button onclick="location.reload()" class="btn">Réessayer</button>
+    </div>
+
+    <!-- Geolocation -->
+    <div id="geolocation" class="screen">
+      <div class="geo-icon">📍</div>
+      <h2>Autorisation requise</h2>
+      <p>Pour participer, nous devons vérifier que vous êtes dans le restaurant.</p>
+      <button id="geo-btn" class="btn btn-primary">Autoriser la localisation</button>
+    </div>
+
+    <!-- Welcome -->
+    <div id="welcome" class="screen">
+      <div class="welcome-icon">🍽️</div>
+      <h1 id="restaurant-name">Restaurant</h1>
+      <p id="welcome-message">Donnez-nous votre avis et tentez de gagner un cadeau !</p>
+      <button id="start-btn" class="btn btn-primary">Commencer</button>
+    </div>
+
+    <!-- Feedback Form -->
+    <div id="feedback" class="screen">
+      <h2>Votre avis</h2>
+      <form id="feedback-form">
+        <div class="form-group">
+          <label for="positive">Ce que vous avez aimé *</label>
+          <textarea id="positive" name="positive" required minlength="10" placeholder="La qualité des plats, le service..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="negative">Ce qui pourrait être amélioré</label>
+          <textarea id="negative" name="negative" placeholder="Optionnel"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Envoyer et jouer</button>
+      </form>
+    </div>
+
+    <!-- Slot Machine -->
+    <div id="slot-machine" class="screen">
+      <h2>Tentez votre chance !</h2>
+      <div class="slots-container">
+        <div class="slot" id="slot1">🍕</div>
+        <div class="slot" id="slot2">🍔</div>
+        <div class="slot" id="slot3">🍰</div>
+      </div>
+      <button id="spin-btn" class="btn btn-primary btn-large">JOUER</button>
+    </div>
+
+    <!-- Result Win -->
+    <div id="result-win" class="screen">
+      <div class="confetti"></div>
+      <div class="win-icon">🎉</div>
+      <h2>Félicitations !</h2>
+      <p>Vous avez gagné :</p>
+      <div class="prize-card">
+        <h3 id="prize-name">Café offert</h3>
+        <p id="prize-description"></p>
+        <div class="prize-code">
+          <span id="prize-code">FB-XXXX-XXXX</span>
+        </div>
+        <p class="prize-expires">Valable jusqu'au <span id="prize-expires"></span></p>
+      </div>
+      <p class="claim-instructions">Présentez ce code au serveur pour récupérer votre cadeau.</p>
+      <button id="claim-btn" class="btn btn-success btn-large">
+        Valider le cadeau (maintenir 2s)
+      </button>
+    </div>
+
+    <!-- Result Lose -->
+    <div id="result-lose" class="screen">
+      <div class="lose-icon">😔</div>
+      <h2>Pas cette fois...</h2>
+      <p id="thank-you-message">Merci pour votre participation ! À bientôt.</p>
+    </div>
+
+    <!-- Claimed -->
+    <div id="claimed" class="screen">
+      <div class="claimed-icon">✅</div>
+      <h2>Cadeau validé !</h2>
+      <p>Bonne dégustation et à bientôt !</p>
+    </div>
+
+    <!-- Already Played -->
+    <div id="already-played" class="screen">
+      <div class="played-icon">⏰</div>
+      <h2>Vous avez déjà participé</h2>
+      <p>Revenez au prochain service pour tenter votre chance à nouveau !</p>
+    </div>
+  </div>
+
+  <script src="/js/app.js" type="module"></script>
+</body>
+</html>

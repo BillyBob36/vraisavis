@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// GESTION UTILISATEURS ET MULTI-TENANT
+// ============================================
+
+enum UserRole {
+  SUPER_ADMIN
+  VENDOR
+  MANAGER
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum RestaurantStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
+
+enum PrizeClaimStatus {
+  PENDING
+  CLAIMED
+  EXPIRED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          UserRole
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+  
+  // Relations
+  managedRestaurants Restaurant[] @relation("RestaurantManager")
+  
+  @@map("users")
+}
+
+model Vendor {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String
+  name             String
+  phone            String?
+  referralCode     String   @unique
+  commissionAmount Int      @default(5000)
+  stripeAccountId  String?
+  stripeOnboarded  Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Relations
+  restaurants      Restaurant[]
+  commissions      Commission[]
+  
+  @@map("vendors")
+}
+
+model Plan {
+  id                   String   @id @default(cuid())
+  name                 String
+  priceMonthly         Int
+  priceYearly          Int
+  maxRestaurants       Int
+  maxFeedbacksPerMonth Int?
+  features             Json
+  stripePriceIdMonthly String?
+  stripePriceIdYearly  String?
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  
+  // Relations
+  subscriptions Subscription[]
+  
+  @@map("plans")
+}
+
+model Restaurant {
+  id              String           @id @default(cuid())
+  name            String
+  address         String
+  latitude        Float
+  longitude       Float
+  geoRadius       Int              @default(100)
+  phone           String?
+  qrCodeUrl       String?
+  status          RestaurantStatus @default(PENDING)
+  
+  serviceHours    Json
+  
+  welcomeMessage  String?
+  thankYouMessage String?
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  // Relations
+  managerId       String
+  manager         User             @relation("RestaurantManager", fields: [managerId], references: [id])
+  vendorId        String?
+  vendor          Vendor?          @relation(fields: [vendorId], references: [id])
+  subscription    Subscription?
+  feedbacks       Feedback[]
+  prizes          Prize[]
+  prizeClaims     PrizeClaim[]
+  fingerprints    Fingerprint[]
+  dailyPrizePools DailyPrizePool[]
+  
+  @@map("restaurants")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  status               SubscriptionStatus @default(TRIAL)
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  trialEndsAt          DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  
+  // Relations
+  restaurantId         String             @unique
+  restaurant           Restaurant         @relation(fields: [restaurantId], references: [id])
+  planId               String
+  plan                 Plan               @relation(fields: [planId], references: [id])
+  payments             Payment[]
+  
+  @@map("subscriptions")
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  amount          Int
+  currency        String   @default("eur")
+  status          String
+  stripePaymentId String?
+  invoiceUrl      String?
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  subscriptionId  String
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id])
+  
+  @@map("payments")
+}
+
+model Commission {
+  id               String           @id @default(cuid())
+  amount           Int
+  status           CommissionStatus @default(PENDING)
+  triggeredAt      DateTime         @default(now())
+  paidAt           DateTime?
+  stripeTransferId String?
+  
+  // Relations
+  vendorId     String
+  vendor       Vendor @relation(fields: [vendorId], references: [id])
+  restaurantId String
+  
+  @@map("commissions")
+}
+
+// ============================================
+// FONCTIONNEL : FEEDBACKS ET JEU
+// ============================================
+
+model Feedback {
+  id            String   @id @default(cuid())
+  positiveText  String
+  negativeText  String?
+  serviceType   String
+  isRead        Boolean  @default(false)
+  isProcessed   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  restaurantId  String
+  restaurant    Restaurant   @relation(fields: [restaurantId], references: [id])
+  fingerprintId String
+  fingerprint   Fingerprint  @relation(fields: [fingerprintId], references: [id])
+  
+  @@map("feedbacks")
+}
+
+model Fingerprint {
+  id              String    @id @default(cuid())
+  hash            String
+  lastPlayedAt    DateTime?
+  lastServiceType String?
+  createdAt       DateTime  @default(now())
+  expiresAt       DateTime
+  
+  // Relations
+  restaurantId    String
+  restaurant      Restaurant  @relation(fields: [restaurantId], references: [id])
+  feedbacks       Feedback[]
+  prizeClaims     PrizeClaim[]
+  
+  @@unique([hash, restaurantId])
+  @@map("fingerprints")
+}
+
+model Prize {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  probability  Float
+  isActive     Boolean  @default(true)
+  maxPerDay    Int?
+  maxPerWeek   Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  restaurantId String
+  restaurant   Restaurant   @relation(fields: [restaurantId], references: [id])
+  claims       PrizeClaim[]
+  dailyPools   DailyPrizePool[]
+  
+  @@map("prizes")
+}
+
+model DailyPrizePool {
+  id           String   @id @default(cuid())
+  date         DateTime @db.Date
+  allocated    Int
+  claimed      Int      @default(0)
+  
+  // Relations
+  prizeId      String
+  prize        Prize      @relation(fields: [prizeId], references: [id])
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  
+  @@unique([prizeId, date])
+  @@map("daily_prize_pools")
+}
+
+model PrizeClaim {
+  id            String           @id @default(cuid())
+  code          String           @unique
+  status        PrizeClaimStatus @default(PENDING)
+  claimedAt     DateTime?
+  expiresAt     DateTime
+  createdAt     DateTime         @default(now())
+  
+  // Relations
+  prizeId       String
+  prize         Prize        @relation(fields: [prizeId], references: [id])
+  restaurantId  String
+  restaurant    Restaurant   @relation(fields: [restaurantId], references: [id])
+  fingerprintId String
+  fingerprint   Fingerprint  @relation(fields: [fingerprintId], references: [id])
+  
+  @@map("prize_claims")
+}
