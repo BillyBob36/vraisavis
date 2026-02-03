@@ -23,7 +23,7 @@
     {
       "name": "vraisavis-api",
       "type": "docker",
-      "repository": "https://github.com/BillyBob36/foodback-fevrier.git",
+      "repository": "https://github.com/BillyBob36/vraisavis.git",
       "branch": "master",
       "dockerfile": "apps/api/Dockerfile",
       "context": "apps/api",
@@ -52,7 +52,7 @@
     {
       "name": "vraisavis-web",
       "type": "docker",
-      "repository": "https://github.com/BillyBob36/foodback-fevrier.git",
+      "repository": "https://github.com/BillyBob36/vraisavis.git",
       "branch": "master",
       "dockerfile": "apps/web/Dockerfile",
       "context": "apps/web",
@@ -66,7 +66,7 @@
     {
       "name": "vraisavis-client",
       "type": "docker",
-      "repository": "https://github.com/BillyBob36/foodback-fevrier.git",
+      "repository": "https://github.com/BillyBob36/vraisavis.git",
       "branch": "master",
       "dockerfile": "apps/client/Dockerfile",
       "context": "apps/client",

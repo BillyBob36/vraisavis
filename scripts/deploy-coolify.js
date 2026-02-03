@@ -11,7 +11,7 @@ const JWT_SECRET = '8bb0b09f49d92fcabe6f80d737cb921c28727f629ce3298a5048d0978bb1
 const JWT_REFRESH_SECRET = '2611d0bddc3cda831493c12b393ce4c1ede1c7c972f57d3c8b70b6716f0531912732d8438779ff1f5f4b6b48cb87ca9bf5f6a8582d3047b4a451a72c96c954b5';
 const POSTGRES_PASSWORD = 'lhjFnHpspV6goKnHDp7H2yuuPuTF3igmUBeWVnu12Q';
 
-const GITHUB_REPO = 'https://github.com/BillyBob36/foodback-fevrier';
+const GITHUB_REPO = 'https://github.com/BillyBob36/vraisavis';
 const BRANCH = 'master';
 
 function makeRequest(path, method = 'GET', data = null) {
