@@ -4,11 +4,7 @@ import { config } from '../config/env.js';
 
 export async function webhookRoutes(fastify: FastifyInstance) {
   // Stripe webhooks - placeholder
-  fastify.post('/stripe', {
-    config: {
-      rawBody: true,
-    },
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/stripe', async (request: FastifyRequest, reply: FastifyReply) => {
     // TODO: Implémenter la vérification de signature Stripe
     // const sig = request.headers['stripe-signature'];
     
