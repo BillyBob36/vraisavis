@@ -24,7 +24,7 @@ export default function StatsPage() {
 
   const loadStats = async () => {
     try {
-      const data = await apiFetch('/api/v1/manager/stats');
+      const data = await apiFetch('/api/v1/manager/stats') as Stats;
       setStats(data);
     } catch (error) {
       console.error('Erreur chargement stats:', error);

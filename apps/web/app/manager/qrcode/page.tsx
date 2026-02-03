@@ -20,7 +20,7 @@ export default function QRCodePage() {
 
   const loadQRCode = async () => {
     try {
-      const data = await apiFetch('/api/v1/manager/restaurant');
+      const data = await apiFetch('/api/v1/manager/restaurant') as { restaurant: { id: string; qrCodeUrl: string | null } };
       setQrCodeUrl(data.restaurant?.qrCodeUrl || null);
       if (data.restaurant?.id) {
         setClientUrl(`${window.location.origin.replace('app.', 'client.')}/${data.restaurant.id}`);
@@ -35,7 +35,7 @@ export default function QRCodePage() {
   const generateQRCode = async () => {
     setGenerating(true);
     try {
-      const data = await apiFetch('/api/v1/manager/restaurant/qrcode', { method: 'POST' });
+      const data = await apiFetch('/api/v1/manager/restaurant/qrcode', { method: 'POST' }) as { qrCodeUrl: string; url: string };
       setQrCodeUrl(data.qrCodeUrl);
       setClientUrl(data.url);
       toast({ title: 'QR Code généré !' });

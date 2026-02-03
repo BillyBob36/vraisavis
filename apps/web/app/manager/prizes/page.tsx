@@ -45,7 +45,7 @@ export default function PrizesPage() {
 
   const loadPrizes = async () => {
     try {
-      const data = await apiFetch('/api/v1/manager/prizes');
+      const data = await apiFetch('/api/v1/manager/prizes') as { prizes: Prize[] };
       setPrizes(data.prizes || []);
     } catch (error) {
       console.error('Erreur chargement lots:', error);

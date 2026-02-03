@@ -24,7 +24,7 @@ export default function FeedbacksPage() {
 
   const loadFeedbacks = async () => {
     try {
-      const data = await apiFetch('/api/v1/manager/feedbacks');
+      const data = await apiFetch('/api/v1/manager/feedbacks') as { feedbacks: Feedback[] };
       setFeedbacks(data.feedbacks || []);
     } catch (error) {
       console.error('Erreur chargement feedbacks:', error);

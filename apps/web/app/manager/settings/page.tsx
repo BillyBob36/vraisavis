@@ -36,7 +36,7 @@ export default function SettingsPage() {
 
   const loadRestaurant = async () => {
     try {
-      const data = await apiFetch('/api/v1/manager/restaurant');
+      const data = await apiFetch('/api/v1/manager/restaurant') as { restaurant: Restaurant };
       setRestaurant(data.restaurant);
     } catch (error) {
       console.error('Erreur chargement restaurant:', error);
