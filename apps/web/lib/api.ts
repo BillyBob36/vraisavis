@@ -8,7 +8,8 @@ export async function apiFetch<T>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const { token, ...fetchOptions } = options;
+  const { token: providedToken, ...fetchOptions } = options;
+  const token = providedToken || getToken();
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',

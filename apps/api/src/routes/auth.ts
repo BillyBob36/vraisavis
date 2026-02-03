@@ -1,8 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
+import QRCode from 'qrcode';
 import { prisma } from '../lib/prisma.js';
 import { authenticate } from '../middleware/auth.js';
+import { config } from '../config.js';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -154,7 +156,8 @@ export async function authRoutes(fastify: FastifyInstance) {
             latitude,
             longitude,
             vendorId,
-            status: 'PENDING',
+            status: 'ACTIVE',
+            geoRadius: 100,
             serviceHours: {
               lunch: { start: '12:00', end: '14:30' },
               dinner: { start: '19:00', end: '22:30' },
@@ -175,6 +178,21 @@ export async function authRoutes(fastify: FastifyInstance) {
         managedRestaurants: true,
       },
     });
+
+    // Générer le QR code automatiquement
+    const restaurant = user.managedRestaurants[0];
+    if (restaurant) {
+      const clientUrl = `${config.CLIENT_URL}/${restaurant.id}`;
+      const qrCodeUrl = await QRCode.toDataURL(clientUrl, {
+        width: 512,
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' },
+      });
+      await prisma.restaurant.update({
+        where: { id: restaurant.id },
+        data: { qrCodeUrl },
+      });
+    }
 
     return reply.status(201).send({
       message: 'Compte créé avec succès',
