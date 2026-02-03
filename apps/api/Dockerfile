@@ -26,5 +26,7 @@ COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/apps/api/prisma ./prisma
 COPY --from=builder /app/apps/api/package.json ./
 
+RUN npm install -g prisma@5.22.0
+
 EXPOSE 3001
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "prisma migrate deploy && node dist/index.js"]
