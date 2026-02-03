@@ -8,14 +8,14 @@ import { config } from '../../config/env.js';
 const updateRestaurantSchema = z.object({
   name: z.string().min(2).optional(),
   address: z.string().min(5).optional(),
-  phone: z.string().optional(),
-  geoRadius: z.number().int().min(50).max(500).optional(),
+  phone: z.string().nullable().optional(),
+  geoRadius: z.number().int().min(10).max(1000).optional(),
   serviceHours: z.object({
     lunch: z.object({ start: z.string(), end: z.string() }),
     dinner: z.object({ start: z.string(), end: z.string() }),
   }).optional(),
-  welcomeMessage: z.string().optional(),
-  thankYouMessage: z.string().optional(),
+  welcomeMessage: z.string().nullable().optional(),
+  thankYouMessage: z.string().nullable().optional(),
 });
 
 const createPrizeSchema = z.object({
@@ -370,15 +370,15 @@ export async function managerRoutes(fastify: FastifyInstance) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Feedbacks par jour
-    const feedbacksByDay = await prisma.$queryRaw`
-      SELECT DATE(created_at) as date, COUNT(*) as count
-      FROM feedbacks
-      WHERE restaurant_id = ${restaurant.id}
-        AND created_at >= ${thirtyDaysAgo}
-      GROUP BY DATE(created_at)
-      ORDER BY date ASC
-    `;
+    // Feedbacks par jour (utiliser Prisma au lieu de raw query)
+    const feedbacksByDay = await prisma.feedback.groupBy({
+      by: ['createdAt'],
+      where: {
+        restaurantId: restaurant.id,
+        createdAt: { gte: thirtyDaysAgo },
+      },
+      _count: true,
+    });
 
     // Feedbacks par service
     const feedbacksByService = await prisma.feedback.groupBy({
@@ -396,7 +396,46 @@ export async function managerRoutes(fastify: FastifyInstance) {
       take: 5,
     });
 
+    // Totaux
+    const totalFeedbacks = await prisma.feedback.count({
+      where: { restaurantId: restaurant.id },
+    });
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayFeedbacks = await prisma.feedback.count({
+      where: {
+        restaurantId: restaurant.id,
+        createdAt: { gte: todayStart },
+      },
+    });
+
+    const totalPrizesClaimed = await prisma.prizeClaim.count({
+      where: { restaurantId: restaurant.id, status: 'CLAIMED' },
+    });
+
+    const todayPrizesClaimed = await prisma.prizeClaim.count({
+      where: {
+        restaurantId: restaurant.id,
+        status: 'CLAIMED',
+        claimedAt: { gte: todayStart },
+      },
+    });
+
+    const uniqueVisitors = await prisma.fingerprint.count({
+      where: { restaurantId: restaurant.id },
+    });
+
+    const daysActive = Math.max(1, Math.ceil((Date.now() - restaurant.createdAt.getTime()) / (1000 * 60 * 60 * 24)));
+    const averageFeedbacksPerDay = totalFeedbacks / daysActive;
+
     return reply.send({
+      totalFeedbacks,
+      todayFeedbacks,
+      totalPrizesClaimed,
+      todayPrizesClaimed,
+      uniqueVisitors,
+      averageFeedbacksPerDay,
       feedbacksByDay,
       feedbacksByService,
       topPrizes,
