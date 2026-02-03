@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'FoodBack - Gestion de feedback restaurant',
+  title: 'VraisAvis - Gestion de feedback restaurant',
   description: 'Plateforme de gestion de feedback restaurant avec gamification',
 };
 

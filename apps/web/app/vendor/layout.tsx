@@ -45,7 +45,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-        <span className="font-bold text-lg">🍽️ FoodBack</span>
+        <span className="font-bold text-lg">🍽️ VraisAvis</span>
         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X /> : <Menu />}
         </Button>
@@ -57,7 +57,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
           <div className="p-6 border-b hidden lg:block">
-            <h1 className="font-bold text-xl">🍽️ FoodBack</h1>
+            <h1 className="font-bold text-xl">🍽️ VraisAvis</h1>
             <p className="text-sm text-muted-foreground">Vendeur</p>
           </div>
           

@@ -4,13 +4,13 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Seeding VraisAvis database...');
 
   // Créer le super admin
   const passwordHash = await bcrypt.hash('admin123', 10);
   
   const superAdmin = await prisma.user.upsert({
-    where: { email: 'admin@foodback.fr' },
+    where: { email: 'admin@vraisavis.fr' },
     update: {},
     create: {
       email: 'admin@foodback.fr',

@@ -1,4 +1,4 @@
-export const APP_NAME = 'FoodBack';
+export const APP_NAME = 'VraisAvis';
 
 export const USER_ROLES = {
   SUPER_ADMIN: 'SUPER_ADMIN',

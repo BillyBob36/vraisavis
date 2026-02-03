@@ -1,17 +1,17 @@
 {
   "project": {
-    "name": "FoodBack",
+    "name": "VraisAvis",
     "description": "Système de feedback restaurant avec machine à sous"
   },
   "services": [
     {
-      "name": "foodback-postgres",
+      "name": "vraisavis-postgres",
       "type": "postgresql",
       "version": "16",
       "environment": {
-        "POSTGRES_USER": "foodback",
+        "POSTGRES_USER": "vraisavis",
         "POSTGRES_PASSWORD": "CHANGE_ME",
-        "POSTGRES_DB": "foodback"
+        "POSTGRES_DB": "vraisavis"
       },
       "volumes": [
         {
@@ -21,7 +21,7 @@
       ]
     },
     {
-      "name": "foodback-api",
+      "name": "vraisavis-api",
       "type": "docker",
       "repository": "https://github.com/BillyBob36/foodback-fevrier.git",
       "branch": "master",
@@ -30,7 +30,7 @@
       "port": 3001,
       "healthcheck": "/health",
       "environment": {
-        "DATABASE_URL": "postgresql://foodback:CHANGE_ME@foodback-postgres:5432/foodback",
+        "DATABASE_URL": "postgresql://vraisavis:CHANGE_ME@vraisavis-postgres:5432/vraisavis",
         "JWT_SECRET": "CHANGE_ME",
         "JWT_REFRESH_SECRET": "CHANGE_ME",
         "NODE_ENV": "production",
@@ -50,7 +50,7 @@
       "depends_on": ["foodback-postgres"]
     },
     {
-      "name": "foodback-web",
+      "name": "vraisavis-web",
       "type": "docker",
       "repository": "https://github.com/BillyBob36/foodback-fevrier.git",
       "branch": "master",
@@ -64,7 +64,7 @@
       "depends_on": ["foodback-api"]
     },
     {
-      "name": "foodback-client",
+      "name": "vraisavis-client",
       "type": "docker",
       "repository": "https://github.com/BillyBob36/foodback-fevrier.git",
       "branch": "master",

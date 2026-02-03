@@ -87,10 +87,10 @@ async function listProjects() {
 }
 
 async function createProject() {
-  console.log('\n🏗️  Création du projet FoodBack...');
+  console.log('\n🏗️  Création du projet VraisAvis...');
   try {
     const data = {
-      name: 'FoodBack',
+      name: 'VraisAvis',
       description: 'Restaurant feedback system with slot machine'
     };
     const response = await makeRequest('/api/v1/projects', 'POST', data);
@@ -110,8 +110,8 @@ async function createDatabase(projectUuid) {
       project_uuid: projectUuid,
       server_uuid: SERVER_ID,
       type: 'standalone-postgresql',
-      name: 'foodback-postgres',
-      description: 'FoodBack database',
+      name: 'vraisavis-postgres',
+      description: 'VraisAvis database',
       postgres_user: 'foodback',
       postgres_password: POSTGRES_PASSWORD,
       postgres_db: 'foodback',
@@ -156,7 +156,7 @@ async function createApplication(projectUuid, appConfig) {
 }
 
 async function main() {
-  console.log('🚀 Déploiement FoodBack sur Coolify\n');
+  console.log('🚀 Déploiement VraisAvis sur Coolify\n');
   console.log('Configuration:');
   console.log('  - Coolify:', COOLIFY_URL);
   console.log('  - Serveur:', SERVER_ID);
@@ -187,7 +187,7 @@ async function main() {
   } catch (error) {
     if (error.message.includes('already exists') || error.message.includes('unique')) {
       console.log('ℹ️  Le projet existe déjà, récupération...');
-      const existingProject = projects.find(p => p.name === 'FoodBack');
+      const existingProject = projects.find(p => p.name === 'VraisAvis');
       if (existingProject) {
         projectUuid = existingProject.uuid;
         console.log('   UUID:', projectUuid);
@@ -213,13 +213,13 @@ async function main() {
   // Création de l'API
   try {
     const apiConfig = {
-      name: 'foodback-api',
-      description: 'FoodBack API Backend',
+      name: 'vraisavis-api',
+      description: 'VraisAvis API Backend',
       dockerfile: 'apps/api/Dockerfile',
       context: 'apps/api',
       port: 3001,
       env: [
-        { key: 'DATABASE_URL', value: `postgresql://foodback:${POSTGRES_PASSWORD}@foodback-postgres:5432/foodback` },
+        { key: 'DATABASE_URL', value: `postgresql://vraisavis:${POSTGRES_PASSWORD}@vraisavis-postgres:5432/vraisavis` },
         { key: 'JWT_SECRET', value: JWT_SECRET },
         { key: 'JWT_REFRESH_SECRET', value: JWT_REFRESH_SECRET },
         { key: 'NODE_ENV', value: 'production' },
@@ -237,8 +237,8 @@ async function main() {
   // Création du Web
   try {
     const webConfig = {
-      name: 'foodback-web',
-      description: 'FoodBack Web Dashboard',
+      name: 'vraisavis-web',
+      description: 'VraisAvis Web Dashboard',
       dockerfile: 'apps/web/Dockerfile',
       context: 'apps/web',
       port: 3000,
@@ -255,8 +255,8 @@ async function main() {
   // Création du Client
   try {
     const clientConfig = {
-      name: 'foodback-client',
-      description: 'FoodBack Client PWA',
+      name: 'vraisavis-client',
+      description: 'VraisAvis Client PWA',
       dockerfile: 'apps/client/Dockerfile',
       context: 'apps/client',
       port: 80,

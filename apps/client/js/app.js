@@ -27,7 +27,7 @@ async function generateFingerprint() {
   const ctx = canvas.getContext('2d');
   ctx.textBaseline = 'top';
   ctx.font = '14px Arial';
-  ctx.fillText('FoodBack fingerprint', 2, 2);
+  ctx.fillText('// VraisAvis Client Application', 2, 2);
   const canvasData = canvas.toDataURL();
   
   const localId = localStorage.getItem('fb_uid') || crypto.randomUUID();

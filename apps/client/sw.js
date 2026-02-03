@@ -1,4 +1,4 @@
-const CACHE_NAME = 'foodback-v1';
+const CACHE_NAME = 'vraisavis-v1';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_ASSETS = [

@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-console.log('=== Secrets FoodBack ===\n');
+console.log('=== Secrets VraisAvis ===\n');
 
 console.log('JWT_SECRET=');
 console.log(crypto.randomBytes(64).toString('hex'));

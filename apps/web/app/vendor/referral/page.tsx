@@ -46,8 +46,8 @@ export default function ReferralPage() {
     if (navigator.share && data) {
       try {
         await navigator.share({
-          title: 'FoodBack - Inscription',
-          text: 'Inscrivez votre restaurant sur FoodBack !',
+          title: 'VraisAvis - Inscription',
+          text: 'Inscrivez votre restaurant sur VraisAvis !',
           url: data.referralLink,
         });
       } catch (error) {

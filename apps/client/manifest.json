@@ -1,6 +1,6 @@
 {
-  "name": "FoodBack - Votre avis compte",
-  "short_name": "FoodBack",
+  "name": "VraisAvis Client",
+  "short_name": "VraisAvis",
   "description": "Laissez votre avis et tentez de gagner un cadeau !",
   "start_url": "/",
   "display": "standalone",
