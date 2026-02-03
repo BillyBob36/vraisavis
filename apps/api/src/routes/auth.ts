@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import QRCode from 'qrcode';
 import { prisma } from '../lib/prisma.js';
 import { authenticate } from '../middleware/auth.js';
-import { config } from '../config.js';
+import { config } from '../config/env.js';
 
 const loginSchema = z.object({
   email: z.string().email(),
