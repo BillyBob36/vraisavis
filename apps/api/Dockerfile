@@ -20,10 +20,11 @@ RUN pnpm build
 FROM base AS runner
 ENV NODE_ENV=production
 WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/node_modules ./node_modules
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/apps/api/prisma ./prisma
 COPY --from=builder /app/apps/api/package.json ./
 
 EXPOSE 3001
-CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
