@@ -63,6 +63,12 @@ export function isWithinTimeRange(start: string, end: string): boolean {
   const startMinutes = startParsed.hours * 60 + startParsed.minutes;
   const endMinutes = endParsed.hours * 60 + endParsed.minutes;
   
+  // Gestion des horaires passant minuit (ex: 19:00 - 01:36)
+  if (endMinutes < startMinutes) {
+    // Si on est après le début OU avant la fin (le lendemain)
+    return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
+  }
+  
   return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
 }
 
