@@ -5,7 +5,8 @@ WORKDIR /app
 FROM base AS deps
 COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
-RUN pnpm install --frozen-lockfile --filter web
+COPY packages/shared/package.json ./packages/shared/
+RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
@@ -26,10 +27,10 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/apps/web/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone/node_modules ./node_modules
 
 USER nextjs
 EXPOSE 3000
 ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
 
 CMD ["node", "server.js"]
