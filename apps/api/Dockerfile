@@ -26,9 +26,8 @@ RUN apk add --no-cache openssl openssl-dev
 COPY --from=builder /app/apps/api/package.json ./
 COPY --from=builder /app/apps/api/prisma ./prisma
 COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/api/node_modules ./node_modules
 
+RUN npm install --omit=dev
 RUN npm install -g prisma@5.22.0
 
 EXPOSE 3001
