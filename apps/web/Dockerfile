@@ -3,12 +3,15 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 FROM base AS deps
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --frozen-lockfile
+COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+RUN pnpm install --frozen-lockfile --filter web
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY apps/web ./apps/web
+WORKDIR /app/apps/web
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN pnpm build
 
@@ -20,9 +23,9 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/apps/web/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 3000
