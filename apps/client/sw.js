@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vraisavis-v1';
+const CACHE_NAME = 'vraisavis-v2';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_ASSETS = [
@@ -28,13 +28,31 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Ne jamais cacher les requêtes API
+  if (url.pathname.startsWith('/api/') || url.hostname.includes('api.')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(OFFLINE_URL))
     );
   } else {
+    // Network first, puis cache
     event.respondWith(
-      caches.match(event.request).then((response) => response || fetch(event.request))
+      fetch(event.request)
+        .then((response) => {
+          // Mettre à jour le cache avec la nouvelle réponse
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
     );
   }
 });
