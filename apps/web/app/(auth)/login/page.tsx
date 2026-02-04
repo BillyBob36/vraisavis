@@ -30,8 +30,8 @@ export default function LoginPage() {
         }
       );
 
-      setToken(data.token);
-      setUser(data.user);
+      setToken(data.token, data.user.role);
+      setUser(data.user, data.user.role);
 
       toast({
         title: 'Connexion réussie',

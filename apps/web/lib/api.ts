@@ -30,35 +30,50 @@ export async function apiFetch<T>(
   return response.json();
 }
 
-export function getToken(): string | null {
+function getCurrentRole(): string {
+  if (typeof window === 'undefined') return '';
+  const path = window.location.pathname;
+  if (path.startsWith('/admin')) return 'SUPER_ADMIN';
+  if (path.startsWith('/vendor')) return 'VENDOR';
+  if (path.startsWith('/manager')) return 'MANAGER';
+  return '';
+}
+
+function getStorageKey(key: string, role?: string): string {
+  const currentRole = role || getCurrentRole();
+  return currentRole ? `${currentRole}_${key}` : key;
+}
+
+export function getToken(role?: string): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
+  return localStorage.getItem(getStorageKey('token', role));
 }
 
-export function setToken(token: string): void {
-  localStorage.setItem('token', token);
+export function setToken(token: string, role?: string): void {
+  localStorage.setItem(getStorageKey('token', role), token);
 }
 
-export function removeToken(): void {
-  localStorage.removeItem('token');
+export function removeToken(role?: string): void {
+  localStorage.removeItem(getStorageKey('token', role));
 }
 
-export function getUser(): { id: string; email: string; name: string; role: string } | null {
+export function getUser(role?: string): { id: string; email: string; name: string; role: string } | null {
   if (typeof window === 'undefined') return null;
-  const user = localStorage.getItem('user');
+  const user = localStorage.getItem(getStorageKey('user', role));
   return user ? JSON.parse(user) : null;
 }
 
-export function setUser(user: { id: string; email: string; name: string; role: string }): void {
-  localStorage.setItem('user', JSON.stringify(user));
+export function setUser(user: { id: string; email: string; name: string; role: string }, role?: string): void {
+  localStorage.setItem(getStorageKey('user', role), JSON.stringify(user));
 }
 
-export function removeUser(): void {
-  localStorage.removeItem('user');
+export function removeUser(role?: string): void {
+  localStorage.removeItem(getStorageKey('user', role));
 }
 
 export function logout(): void {
-  removeToken();
-  removeUser();
+  const currentRole = getCurrentRole();
+  removeToken(currentRole);
+  removeUser(currentRole);
   window.location.href = '/login';
 }
