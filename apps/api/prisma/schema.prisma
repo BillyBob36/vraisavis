@@ -42,6 +42,18 @@ enum PrizeClaimStatus {
   EXPIRED
 }
 
+enum ContractType {
+  CGU_CGV
+  VENDOR_CONTRACT
+}
+
+enum ContractStatus {
+  DRAFT
+  SENT
+  SIGNED
+  REJECTED
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -75,6 +87,7 @@ model Vendor {
   // Relations
   restaurants      Restaurant[]
   commissions      Commission[]
+  contracts        VendorContract[]
   
   @@map("vendors")
 }
@@ -280,4 +293,94 @@ model PrizeClaim {
   fingerprint   Fingerprint  @relation(fields: [fingerprintId], references: [id])
   
   @@map("prize_claims")
+}
+
+// ============================================
+// GESTION DES CONTRATS
+// ============================================
+
+model ContractTemplate {
+  id                String   @id @default(cuid())
+  type              ContractType
+  version           String   @default("1.0")
+  
+  // Informations légales société
+  companyName       String
+  companyLegalForm  String
+  companyCapital    String
+  companyAddress    String
+  companyRCS        String
+  companySIRET      String
+  companyVAT        String
+  companyPhone      String
+  companyEmail      String
+  companyDirector   String
+  
+  // Hébergeur
+  hostingProvider   String
+  hostingAddress    String
+  
+  // DPO
+  dpoEmail          String?
+  
+  // Médiateur
+  mediatorName      String
+  mediatorAddress   String
+  mediatorWebsite   String
+  
+  // Juridiction
+  jurisdiction      String
+  
+  // Tarifs (pour CGU)
+  monthlyPrice      Int?
+  
+  // Commission (pour contrat vendeur)
+  commissionRate    Float?
+  commissionDuration Int?
+  
+  // Contenu du contrat
+  contractContent   String   @db.Text
+  
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  vendorContracts   VendorContract[]
+  
+  @@map("contract_templates")
+}
+
+model VendorContract {
+  id                String         @id @default(cuid())
+  status            ContractStatus @default(DRAFT)
+  
+  // Signature électronique
+  signedAt          DateTime?
+  signatureIP       String?
+  signatureData     String?        @db.Text
+  
+  // Informations vendeur au moment de la signature
+  vendorName        String
+  vendorEmail       String
+  vendorAddress     String?
+  vendorSIRET       String?
+  vendorIBAN        String?
+  
+  // Suivi
+  sentAt            DateTime?
+  viewedAt          DateTime?
+  rejectedAt        DateTime?
+  rejectionReason   String?
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  
+  // Relations
+  vendorId          String
+  vendor            Vendor         @relation(fields: [vendorId], references: [id])
+  templateId        String
+  template          ContractTemplate @relation(fields: [templateId], references: [id])
+  
+  @@map("vendor_contracts")
 }
