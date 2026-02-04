@@ -197,44 +197,53 @@ export async function adminRoutes(fastify: FastifyInstance) {
   fastify.delete('/vendors/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const { id } = request.params;
 
-    // Vérifier les dépendances
-    const vendor = await prisma.vendor.findUnique({
-      where: { id },
-      include: { 
-        _count: { 
-          select: { 
-            restaurants: true,
-            contracts: true,
-          } 
-        } 
-      },
-    });
-
-    if (!vendor) {
-      return reply.status(404).send({ error: true, message: 'Vendeur non trouvé' });
-    }
-
-    // Si le vendeur a des restaurants référés, on ne peut pas le supprimer complètement
-    if (vendor._count.restaurants > 0) {
-      await prisma.vendor.update({
+    try {
+      // Vérifier les dépendances
+      const vendor = await prisma.vendor.findUnique({
         where: { id },
-        data: { isActive: false },
+        include: { 
+          _count: { 
+            select: { 
+              restaurants: true,
+              contracts: true,
+              commissions: true,
+            } 
+          } 
+        },
       });
-      return reply.send({ 
-        message: `Vendeur désactivé (${vendor._count.restaurants} restaurant(s) référé(s))` 
+
+      if (!vendor) {
+        return reply.status(404).send({ error: true, message: 'Vendeur non trouvé' });
+      }
+
+      // Si le vendeur a des restaurants référés, on ne peut pas le supprimer complètement
+      if (vendor._count.restaurants > 0) {
+        await prisma.vendor.update({
+          where: { id },
+          data: { isActive: false },
+        });
+        return reply.send({ 
+          message: `Vendeur désactivé (${vendor._count.restaurants} restaurant(s) référé(s)). L'email reste réservé.` 
+        });
+      }
+
+      // Supprimer les commissions associées
+      await prisma.commission.deleteMany({ where: { vendorId: id } });
+
+      // Supprimer les contrats associés
+      await prisma.vendorContract.deleteMany({ where: { vendorId: id } });
+
+      // Suppression complète du vendeur (libère l'email)
+      await prisma.vendor.delete({ where: { id } });
+      return reply.send({ message: 'Vendeur et email supprimés définitivement' });
+    } catch (error) {
+      console.error('Erreur lors de la suppression du vendeur:', error);
+      return reply.status(500).send({ 
+        error: true, 
+        message: 'Erreur lors de la suppression',
+        details: error instanceof Error ? error.message : 'Erreur inconnue'
       });
     }
-
-    // Supprimer les contrats associés d'abord
-    if (vendor._count.contracts > 0) {
-      await prisma.vendorContract.deleteMany({
-        where: { vendorId: id },
-      });
-    }
-
-    // Suppression complète
-    await prisma.vendor.delete({ where: { id } });
-    return reply.send({ message: 'Vendeur supprimé définitivement' });
   });
 
   // Valider un vendeur (après signature du contrat) - génère le referralCode
@@ -322,25 +331,16 @@ export async function adminRoutes(fastify: FastifyInstance) {
     return reply.send({ restaurant });
   });
 
-  fastify.delete('/restaurants/:id', async (request: FastifyRequest<{ Params: { id: string }; Querystring: { force?: string } }>, reply: FastifyReply) => {
+  fastify.delete('/restaurants/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const { id } = request.params;
-    const { force } = request.query;
 
     try {
-      // Vérifier les dépendances
+      // Récupérer le restaurant avec son manager
       const restaurant = await prisma.restaurant.findUnique({
         where: { id },
         include: { 
-          _count: { 
-            select: { 
-              feedbacks: true,
-              prizes: true,
-              prizeClaims: true,
-              fingerprints: true,
-              dailyPrizePools: true,
-            } 
-          },
           subscription: true,
+          manager: true,
         },
       });
 
@@ -348,29 +348,9 @@ export async function adminRoutes(fastify: FastifyInstance) {
         return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
       }
 
-      const totalDependencies = restaurant._count.feedbacks + 
-                                restaurant._count.prizes + 
-                                restaurant._count.prizeClaims + 
-                                restaurant._count.fingerprints + 
-                                restaurant._count.dailyPrizePools;
+      const managerId = restaurant.managerId;
 
-      // Si des données existent et force n'est pas activé, retourner les infos
-      if (totalDependencies > 0 && force !== 'true') {
-        return reply.status(400).send({ 
-          error: true, 
-          message: 'Des données existent pour ce restaurant',
-          data: {
-            feedbacks: restaurant._count.feedbacks,
-            prizes: restaurant._count.prizes,
-            prizeClaims: restaurant._count.prizeClaims,
-            fingerprints: restaurant._count.fingerprints,
-            dailyPrizePools: restaurant._count.dailyPrizePools,
-          }
-        });
-      }
-
-      // Toujours supprimer les dépendances avant le restaurant
-      // Ordre important : feedbacks avant fingerprints (FK feedbacks -> fingerprints)
+      // Supprimer toutes les dépendances dans le bon ordre
       await prisma.prizeClaim.deleteMany({ where: { restaurantId: id } });
       await prisma.prize.deleteMany({ where: { restaurantId: id } });
       await prisma.dailyPrizePool.deleteMany({ where: { restaurantId: id } });
@@ -384,11 +364,14 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
       // Suppression du restaurant
       await prisma.restaurant.delete({ where: { id } });
-      return reply.send({ 
-        message: totalDependencies > 0 
-          ? `Restaurant et ${totalDependencies} donnée(s) associée(s) supprimés` 
-          : 'Restaurant supprimé' 
-      });
+
+      // Supprimer le manager (utilisateur) si il n'a plus d'autres restaurants
+      const otherRestaurants = await prisma.restaurant.count({ where: { managerId } });
+      if (otherRestaurants === 0) {
+        await prisma.user.delete({ where: { id: managerId } });
+      }
+
+      return reply.send({ message: 'Restaurant et compte manager supprimés' });
     } catch (error) {
       console.error('Erreur lors de la suppression du restaurant:', error);
       return reply.status(500).send({ 

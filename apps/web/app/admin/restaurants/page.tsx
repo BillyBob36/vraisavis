@@ -60,48 +60,20 @@ export default function RestaurantsPage() {
     }
   };
 
-  const deleteRestaurant = async (id: string, name: string) => {
+  const deleteRestaurant = async (id: string, name: string, managerEmail: string) => {
+    // Première confirmation
+    if (!confirm(`Supprimer le restaurant "${name}" ?\n\nLe compte manager (${managerEmail}) sera également supprimé.`)) {
+      return;
+    }
+
     try {
       const token = getToken();
-      
-      // Première tentative sans force pour voir s'il y a des dépendances
-      const firstAttempt = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.vraisavis.fr'}/api/v1/admin/restaurants/${id}`, {
+      const result = await apiFetch<{ message: string }>(`/api/v1/admin/restaurants/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        token: token || '',
       });
-
-      if (firstAttempt.status === 400) {
-        const errorData = await firstAttempt.json();
-        const data = errorData.data;
-        
-        let message = `Le restaurant "${name}" contient :\n\n`;
-        if (data.feedbacks > 0) message += `• ${data.feedbacks} feedback(s)\n`;
-        if (data.prizes > 0) message += `• ${data.prizes} lot(s)\n`;
-        if (data.prizeClaims > 0) message += `• ${data.prizeClaims} réclamation(s) de lots\n`;
-        if (data.fingerprints > 0) message += `• ${data.fingerprints} empreinte(s)\n`;
-        if (data.dailyPrizePools > 0) message += `• ${data.dailyPrizePools} pool(s) de lots\n`;
-        message += `\nToutes ces données seront DÉFINITIVEMENT supprimées.\n\nConfirmer la suppression ?`;
-
-        if (!confirm(message)) {
-          return;
-        }
-
-        // Suppression forcée
-        const result = await apiFetch<{ message: string }>(`/api/v1/admin/restaurants/${id}?force=true`, {
-          method: 'DELETE',
-          token: token || '',
-        });
-        toast({ title: 'Succès', description: result.message });
-        fetchRestaurants();
-      } else if (firstAttempt.ok) {
-        const result = await firstAttempt.json();
-        toast({ title: 'Succès', description: result.message });
-        fetchRestaurants();
-      } else {
-        throw new Error('Erreur lors de la suppression');
-      }
+      toast({ title: 'Succès', description: result.message });
+      fetchRestaurants();
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -186,7 +158,7 @@ export default function RestaurantsPage() {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => deleteRestaurant(restaurant.id, restaurant.name)}
+                  onClick={() => deleteRestaurant(restaurant.id, restaurant.name, restaurant.manager?.email || '')}
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Supprimer

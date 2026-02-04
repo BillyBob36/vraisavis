@@ -153,22 +153,22 @@ export default function VendorsPage() {
     }
   };
 
-  const deleteVendor = async (id: string, name: string) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer le vendeur "${name}" ?\n\nLe vendeur sera désactivé et ne pourra plus se connecter.`)) {
+  const deleteVendor = async (id: string, name: string, email: string) => {
+    if (!confirm(`Supprimer le vendeur "${name}" ?\n\nEmail: ${email}\n\nSi le vendeur a des restaurants référés, il sera seulement désactivé.\nSinon, son compte et email seront supprimés définitivement.`)) {
       return;
     }
     try {
       const token = getToken();
-      await apiFetch(`/api/v1/admin/vendors/${id}`, {
+      const result = await apiFetch<{ message: string }>(`/api/v1/admin/vendors/${id}`, {
         method: 'DELETE',
         token: token || '',
       });
-      toast({ title: 'Succès', description: 'Vendeur supprimé' });
+      toast({ title: 'Succès', description: result.message });
       fetchVendors();
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer le vendeur',
+        description: error instanceof Error ? error.message : 'Impossible de supprimer le vendeur',
         variant: 'destructive',
       });
     }
@@ -361,7 +361,7 @@ export default function VendorsPage() {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => deleteVendor(vendor.id, vendor.name)}
+                  onClick={() => deleteVendor(vendor.id, vendor.name, vendor.email)}
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Supprimer
