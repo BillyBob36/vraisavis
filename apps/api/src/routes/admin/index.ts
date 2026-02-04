@@ -203,7 +203,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
       include: { 
         _count: { 
           select: { 
-            referredRestaurants: true,
+            restaurants: true,
             contracts: true,
           } 
         } 
@@ -215,19 +215,19 @@ export async function adminRoutes(fastify: FastifyInstance) {
     }
 
     // Si le vendeur a des restaurants référés, on ne peut pas le supprimer complètement
-    if (vendor._count.referredRestaurants > 0) {
+    if (vendor._count.restaurants > 0) {
       await prisma.vendor.update({
         where: { id },
         data: { isActive: false },
       });
       return reply.send({ 
-        message: `Vendeur désactivé (${vendor._count.referredRestaurants} restaurant(s) référé(s))` 
+        message: `Vendeur désactivé (${vendor._count.restaurants} restaurant(s) référé(s))` 
       });
     }
 
     // Supprimer les contrats associés d'abord
     if (vendor._count.contracts > 0) {
-      await prisma.contract.deleteMany({
+      await prisma.vendorContract.deleteMany({
         where: { vendorId: id },
       });
     }
