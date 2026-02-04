@@ -78,7 +78,7 @@ export default function ContractsPage() {
 
   const loadTemplates = async () => {
     try {
-      const response = await apiFetch('/admin/contracts/templates') as { templates: ContractTemplate[] };
+      const response = await apiFetch('/api/v1/admin/contracts/templates') as { templates: ContractTemplate[] };
       setTemplates(response.templates);
     } catch (error) {
       toast({
@@ -103,13 +103,13 @@ export default function ContractsPage() {
       };
 
       if (editingTemplate) {
-        await apiFetch(`/admin/contracts/templates/${editingTemplate.id}`, {
+        await apiFetch(`/api/v1/admin/contracts/templates/${editingTemplate.id}`, {
           method: 'PATCH',
           body: JSON.stringify(data),
         });
         toast({ title: 'Template modifié avec succès' });
       } else {
-        await apiFetch('/admin/contracts/templates', {
+        await apiFetch('/api/v1/admin/contracts/templates', {
           method: 'POST',
           body: JSON.stringify(data),
         });
@@ -162,7 +162,7 @@ export default function ContractsPage() {
     if (!confirm('Êtes-vous sûr de vouloir désactiver ce template ?')) return;
 
     try {
-      await apiFetch(`/admin/contracts/templates/${id}`, { method: 'DELETE' });
+      await apiFetch(`/api/v1/admin/contracts/templates/${id}`, { method: 'DELETE' });
       toast({ title: 'Template désactivé' });
       loadTemplates();
     } catch (error) {

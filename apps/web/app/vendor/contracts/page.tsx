@@ -53,7 +53,7 @@ export default function VendorContractsPage() {
 
   const loadContracts = async () => {
     try {
-      const response = await apiFetch('/vendor/contracts') as { contracts: VendorContract[] };
+      const response = await apiFetch('/api/v1/vendor/contracts') as { contracts: VendorContract[] };
       setContracts(response.contracts);
     } catch (error) {
       toast({
@@ -68,7 +68,7 @@ export default function VendorContractsPage() {
 
   const handleViewContract = async (contract: VendorContract) => {
     try {
-      const response = await apiFetch(`/vendor/contracts/${contract.id}`) as { contract: VendorContract };
+      const response = await apiFetch(`/api/v1/vendor/contracts/${contract.id}`) as { contract: VendorContract };
       setSelectedContract(response.contract);
       setSignatureData({
         vendorAddress: response.contract.vendorAddress || '',
@@ -105,7 +105,7 @@ export default function VendorContractsPage() {
     try {
       const signatureString = `Lu et approuvé, bon pour accord\n${signatureData.fullName}\n${new Date().toLocaleString('fr-FR')}`;
       
-      await apiFetch('/vendor/contracts/sign', {
+      await apiFetch('/api/v1/vendor/contracts/sign', {
         method: 'POST',
         body: JSON.stringify({
           contractId: selectedContract.id,
@@ -139,7 +139,7 @@ export default function VendorContractsPage() {
     const reason = prompt('Raison du rejet (optionnel):');
     
     try {
-      await apiFetch(`/vendor/contracts/${contractId}/reject`, {
+      await apiFetch(`/api/v1/vendor/contracts/${contractId}/reject`, {
         method: 'POST',
         body: JSON.stringify({ reason }),
       });
