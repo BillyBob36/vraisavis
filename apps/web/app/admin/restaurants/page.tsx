@@ -113,6 +113,9 @@ export default function RestaurantsPage() {
               </div>
 
               <div className="mt-4 flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => window.location.href = `/admin/restaurants/edit/${restaurant.id}`}>
+                  Modifier
+                </Button>
                 {restaurant.status === 'PENDING' && (
                   <Button size="sm" onClick={() => updateStatus(restaurant.id, 'ACTIVE')}>
                     Activer

@@ -26,13 +26,14 @@ export default function VendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
     phone: '',
-    commissionAmount: 5000,
+    commissionAmount: 50,
   });
   const { toast } = useToast();
 
@@ -58,25 +59,52 @@ export default function VendorsPage() {
 
     try {
       const token = getToken();
-      await apiFetch('/api/v1/admin/vendors', {
-        method: 'POST',
-        token: token || '',
-        body: JSON.stringify(formData),
-      });
+      const dataToSend = {
+        ...formData,
+        commissionAmount: Math.round(formData.commissionAmount * 100),
+      };
 
-      toast({ title: 'Vendeur créé', description: 'Le compte a été créé avec succès' });
+      if (editingVendor) {
+        await apiFetch(`/api/v1/admin/vendors/${editingVendor.id}`, {
+          method: 'PATCH',
+          token: token || '',
+          body: JSON.stringify(dataToSend),
+        });
+        toast({ title: 'Vendeur modifié', description: 'Le profil a été mis à jour' });
+      } else {
+        await apiFetch('/api/v1/admin/vendors', {
+          method: 'POST',
+          token: token || '',
+          body: JSON.stringify(dataToSend),
+        });
+        toast({ title: 'Vendeur créé', description: 'Le compte a été créé avec succès' });
+      }
+
       setShowForm(false);
-      setFormData({ email: '', password: '', name: '', phone: '', commissionAmount: 5000 });
+      setEditingVendor(null);
+      setFormData({ email: '', password: '', name: '', phone: '', commissionAmount: 50 });
       fetchVendors();
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Erreur lors de la création',
+        description: error instanceof Error ? error.message : 'Erreur lors de la sauvegarde',
         variant: 'destructive',
       });
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleEdit = (vendor: Vendor) => {
+    setEditingVendor(vendor);
+    setFormData({
+      email: vendor.email,
+      password: '',
+      name: vendor.name,
+      phone: vendor.phone || '',
+      commissionAmount: vendor.commissionAmount / 100,
+    });
+    setShowForm(true);
   };
 
   const toggleVendorStatus = async (id: string, isActive: boolean) => {
@@ -105,7 +133,11 @@ export default function VendorsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Vendeurs</h1>
-        <Button onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => {
+          setShowForm(!showForm);
+          setEditingVendor(null);
+          setFormData({ email: '', password: '', name: '', phone: '', commissionAmount: 50 });
+        }}>
           {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
           {showForm ? 'Annuler' : 'Nouveau vendeur'}
         </Button>
@@ -114,7 +146,7 @@ export default function VendorsPage() {
       {showForm && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Créer un vendeur</CardTitle>
+            <CardTitle>{editingVendor ? 'Modifier le vendeur' : 'Créer un vendeur'}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4">
@@ -138,13 +170,13 @@ export default function VendorsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
+                <Label htmlFor="password">Mot de passe {editingVendor && '(laisser vide pour ne pas changer)'}</Label>
                 <Input
                   id="password"
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  required
+                  required={!editingVendor}
                   minLength={6}
                 />
               </div>
@@ -157,17 +189,19 @@ export default function VendorsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="commission">Commission (centimes)</Label>
+                <Label htmlFor="commission">Commission (€)</Label>
                 <Input
                   id="commission"
                   type="number"
+                  step="0.01"
+                  min="0"
                   value={formData.commissionAmount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, commissionAmount: parseInt(e.target.value) }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, commissionAmount: parseFloat(e.target.value) }))}
                 />
               </div>
               <div className="flex items-end">
                 <Button type="submit" disabled={saving}>
-                  {saving ? 'Création...' : 'Créer'}
+                  {saving ? 'Enregistrement...' : (editingVendor ? 'Modifier' : 'Créer')}
                 </Button>
               </div>
             </form>
@@ -209,6 +243,13 @@ export default function VendorsPage() {
                 </div>
               </div>
               <div className="mt-4 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEdit(vendor)}
+                >
+                  Modifier
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"

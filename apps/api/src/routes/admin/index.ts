@@ -15,6 +15,8 @@ const createVendorSchema = z.object({
 
 const updateVendorSchema = z.object({
   name: z.string().min(2).optional(),
+  email: z.string().email().optional(),
+  password: z.string().min(6).optional(),
   phone: z.string().optional(),
   commissionAmount: z.number().int().min(0).optional(),
   isActive: z.boolean().optional(),
@@ -23,6 +25,11 @@ const updateVendorSchema = z.object({
 const updateRestaurantSchema = z.object({
   status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']).optional(),
   name: z.string().min(2).optional(),
+  address: z.string().min(5).optional(),
+  phone: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  geoRadius: z.number().int().min(10).max(1000).optional(),
 });
 
 const createPlanSchema = z.object({
@@ -138,9 +145,17 @@ export async function adminRoutes(fastify: FastifyInstance) {
       return reply.status(400).send({ error: true, message: 'Données invalides' });
     }
 
+    const updateData: any = { ...body.data };
+    
+    // Si un mot de passe est fourni, le hasher
+    if (body.data.password) {
+      updateData.passwordHash = await bcrypt.hash(body.data.password, 10);
+      delete updateData.password;
+    }
+
     const vendor = await prisma.vendor.update({
       where: { id },
-      data: body.data,
+      data: updateData,
     });
 
     return reply.send({ vendor });
