@@ -254,8 +254,8 @@ export async function contractRoutes(fastify: FastifyInstance) {
       .replace(/\[ADRESSE APPORTEUR\]/g, contract.vendorAddress || 'Non renseigné')
       .replace(/\[VILLE\]/g, 'Paris')
       .replace(/\[DATE\]/g, contractDate)
-      .replace(/\[CODE_UNIQUE_APPORTEUR\]/g, contract.vendor.referralCode)
-      .replace(/\[CODE_UNIQUE\]/g, contract.vendor.referralCode);
+      .replace(/\[CODE_UNIQUE_APPORTEUR\]/g, contract.vendor.referralCode || 'NON_GENERE')
+      .replace(/\[CODE_UNIQUE\]/g, contract.vendor.referralCode || 'NON_GENERE');
 
     // Créer les pages
     let page = pdfDoc.addPage([pageWidth, pageHeight]);
