@@ -13,12 +13,14 @@ import {
   User,
   LogOut,
   Menu,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 
 const navItems = [
   { href: '/vendor', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/vendor/restaurants', label: 'Restaurants', icon: Store },
+  { href: '/vendor/contracts', label: 'Contrats', icon: FileText },
   { href: '/vendor/commissions', label: 'Commissions', icon: Wallet },
   { href: '/vendor/referral', label: 'Lien parrainage', icon: Link2 },
   { href: '/vendor/profile', label: 'Profil', icon: User },
