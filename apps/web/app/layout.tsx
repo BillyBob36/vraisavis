@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'VraisAvis - Gestion de feedback restaurant',
   description: 'Plateforme de gestion de feedback restaurant avec gamification',
+  other: {
+    'google': 'notranslate',
+  },
 };
 
 export default function RootLayout({
@@ -17,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
+    <html lang="fr" translate="no">
       <body className={inter.className}>
         <Providers>
           {children}
