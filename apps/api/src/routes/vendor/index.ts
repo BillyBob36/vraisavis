@@ -275,6 +275,29 @@ export async function vendorRoutes(fastify: FastifyInstance) {
     return reply.send({ vendor });
   });
 
+  // Soft delete d'un restaurant (visible admin uniquement)
+  fastify.delete('/restaurants/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    const { id } = request.params;
+    const vendorId = request.user.id;
+
+    // Vérifier que le restaurant appartient au vendeur
+    const restaurant = await prisma.restaurant.findFirst({
+      where: { id, vendorId },
+    });
+
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
+
+    // Soft delete : marquer comme SUSPENDED
+    await prisma.restaurant.update({
+      where: { id },
+      data: { status: 'SUSPENDED' },
+    });
+
+    return reply.send({ message: 'Restaurant désactivé (visible admin)' });
+  });
+
   // Stripe Connect onboarding - placeholder
   fastify.post('/stripe/connect', async (request: FastifyRequest, reply: FastifyReply) => {
     // TODO: Implémenter Stripe Connect onboarding

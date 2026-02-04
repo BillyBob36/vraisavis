@@ -322,30 +322,74 @@ export async function adminRoutes(fastify: FastifyInstance) {
     return reply.send({ restaurant });
   });
 
-  fastify.delete('/restaurants/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  fastify.delete('/restaurants/:id', async (request: FastifyRequest<{ Params: { id: string }; Querystring: { force?: string } }>, reply: FastifyReply) => {
     const { id } = request.params;
+    const { force } = request.query;
 
     // Vérifier les dépendances
     const restaurant = await prisma.restaurant.findUnique({
       where: { id },
-      include: { _count: { select: { feedbacks: true } } },
+      include: { 
+        _count: { 
+          select: { 
+            feedbacks: true,
+            prizes: true,
+            prizeClaims: true,
+            fingerprints: true,
+            dailyPrizePools: true,
+          } 
+        },
+        subscription: true,
+      },
     });
 
     if (!restaurant) {
       return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
     }
 
-    // Suspendre plutôt que supprimer si des feedbacks existent
-    if (restaurant._count.feedbacks > 0) {
-      await prisma.restaurant.update({
-        where: { id },
-        data: { status: 'SUSPENDED' },
+    const totalDependencies = restaurant._count.feedbacks + 
+                              restaurant._count.prizes + 
+                              restaurant._count.prizeClaims + 
+                              restaurant._count.fingerprints + 
+                              restaurant._count.dailyPrizePools;
+
+    // Si des données existent et force n'est pas activé, retourner les infos
+    if (totalDependencies > 0 && force !== 'true') {
+      return reply.status(400).send({ 
+        error: true, 
+        message: 'Des données existent pour ce restaurant',
+        data: {
+          feedbacks: restaurant._count.feedbacks,
+          prizes: restaurant._count.prizes,
+          prizeClaims: restaurant._count.prizeClaims,
+          fingerprints: restaurant._count.fingerprints,
+          dailyPrizePools: restaurant._count.dailyPrizePools,
+        }
       });
-      return reply.send({ message: 'Restaurant suspendu (données existantes)' });
     }
 
+    // Suppression forcée : supprimer toutes les dépendances
+    if (force === 'true') {
+      // Supprimer dans l'ordre inverse des dépendances
+      await prisma.prizeClaim.deleteMany({ where: { restaurantId: id } });
+      await prisma.prize.deleteMany({ where: { restaurantId: id } });
+      await prisma.dailyPrizePool.deleteMany({ where: { restaurantId: id } });
+      await prisma.fingerprint.deleteMany({ where: { restaurantId: id } });
+      await prisma.feedback.deleteMany({ where: { restaurantId: id } });
+      
+      // Supprimer la subscription si elle existe
+      if (restaurant.subscription) {
+        await prisma.subscription.delete({ where: { id: restaurant.subscription.id } });
+      }
+    }
+
+    // Suppression du restaurant
     await prisma.restaurant.delete({ where: { id } });
-    return reply.send({ message: 'Restaurant supprimé' });
+    return reply.send({ 
+      message: force === 'true' 
+        ? `Restaurant et ${totalDependencies} donnée(s) associée(s) supprimés` 
+        : 'Restaurant supprimé' 
+    });
   });
 
   // === USERS ===
