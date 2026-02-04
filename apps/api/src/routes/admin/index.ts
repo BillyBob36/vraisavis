@@ -197,13 +197,44 @@ export async function adminRoutes(fastify: FastifyInstance) {
   fastify.delete('/vendors/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const { id } = request.params;
 
-    // Soft delete - juste désactiver
-    await prisma.vendor.update({
+    // Vérifier les dépendances
+    const vendor = await prisma.vendor.findUnique({
       where: { id },
-      data: { isActive: false },
+      include: { 
+        _count: { 
+          select: { 
+            referredRestaurants: true,
+            contracts: true,
+          } 
+        } 
+      },
     });
 
-    return reply.send({ message: 'Vendeur désactivé' });
+    if (!vendor) {
+      return reply.status(404).send({ error: true, message: 'Vendeur non trouvé' });
+    }
+
+    // Si le vendeur a des restaurants référés, on ne peut pas le supprimer complètement
+    if (vendor._count.referredRestaurants > 0) {
+      await prisma.vendor.update({
+        where: { id },
+        data: { isActive: false },
+      });
+      return reply.send({ 
+        message: `Vendeur désactivé (${vendor._count.referredRestaurants} restaurant(s) référé(s))` 
+      });
+    }
+
+    // Supprimer les contrats associés d'abord
+    if (vendor._count.contracts > 0) {
+      await prisma.contract.deleteMany({
+        where: { vendorId: id },
+      });
+    }
+
+    // Suppression complète
+    await prisma.vendor.delete({ where: { id } });
+    return reply.send({ message: 'Vendeur supprimé définitivement' });
   });
 
   // Valider un vendeur (après signature du contrat) - génère le referralCode
