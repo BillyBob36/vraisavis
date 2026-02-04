@@ -302,6 +302,14 @@ export default function VendorContractsPage() {
                     </p>
                   )}
                 </div>
+                <Button
+                  className="mt-4"
+                  onClick={() => {
+                    window.open(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.vraisavis.fr'}/api/v1/vendor/contracts/${selectedContract.id}/pdf`, '_blank');
+                  }}
+                >
+                  Télécharger le PDF signé
+                </Button>
               </div>
             )}
 

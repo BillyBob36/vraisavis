@@ -95,6 +95,16 @@ export async function adminRoutes(fastify: FastifyInstance) {
         _count: {
           select: { restaurants: true, commissions: true },
         },
+        contracts: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            status: true,
+            sentAt: true,
+            signedAt: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -129,6 +139,26 @@ export async function adminRoutes(fastify: FastifyInstance) {
       },
     });
 
+    // Envoi automatique du contrat vendeur si un template actif existe
+    const activeTemplate = await prisma.contractTemplate.findFirst({
+      where: { type: 'VENDOR_CONTRACT', isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    let contract = null;
+    if (activeTemplate) {
+      contract = await prisma.vendorContract.create({
+        data: {
+          vendorId: vendor.id,
+          templateId: activeTemplate.id,
+          vendorName: vendor.name,
+          vendorEmail: vendor.email,
+          status: 'SENT',
+          sentAt: new Date(),
+        },
+      });
+    }
+
     return reply.status(201).send({
       vendor: {
         id: vendor.id,
@@ -136,6 +166,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         name: vendor.name,
         referralCode: vendor.referralCode,
       },
+      contractSent: !!contract,
     });
   });
 

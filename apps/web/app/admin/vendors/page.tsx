@@ -8,7 +8,14 @@ import { Label } from '@/components/ui/label';
 import { apiFetch, getToken } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, FileText, Download } from 'lucide-react';
+
+interface VendorContract {
+  id: string;
+  status: 'DRAFT' | 'SENT' | 'SIGNED' | 'REJECTED';
+  sentAt?: string;
+  signedAt?: string;
+}
 
 interface Vendor {
   id: string;
@@ -20,6 +27,7 @@ interface Vendor {
   isActive: boolean;
   createdAt: string;
   _count: { restaurants: number; commissions: number };
+  contracts?: VendorContract[];
 }
 
 export default function VendorsPage() {
@@ -224,7 +232,7 @@ export default function VendorsPage() {
                   {vendor.isActive ? 'Actif' : 'Inactif'}
                 </span>
               </div>
-              <div className="grid md:grid-cols-4 gap-4 mt-4 text-sm">
+              <div className="grid md:grid-cols-5 gap-4 mt-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Code parrainage</p>
                   <p className="font-mono">{vendor.referralCode}</p>
@@ -238,11 +246,28 @@ export default function VendorsPage() {
                   <p>{vendor._count.restaurants}</p>
                 </div>
                 <div>
+                  <p className="text-muted-foreground">Contrat</p>
+                  {vendor.contracts && vendor.contracts.length > 0 ? (
+                    <span className={`px-2 py-0.5 text-xs rounded ${
+                      vendor.contracts[0].status === 'SIGNED' ? 'bg-green-100 text-green-700' :
+                      vendor.contracts[0].status === 'SENT' ? 'bg-blue-100 text-blue-700' :
+                      vendor.contracts[0].status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {vendor.contracts[0].status === 'SIGNED' ? '✓ Signé' :
+                       vendor.contracts[0].status === 'SENT' ? '⏳ En attente' :
+                       vendor.contracts[0].status === 'REJECTED' ? '✗ Rejeté' : 'Brouillon'}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">Aucun</span>
+                  )}
+                </div>
+                <div>
                   <p className="text-muted-foreground">Inscrit le</p>
                   <p>{formatDate(vendor.createdAt)}</p>
                 </div>
               </div>
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex gap-2 flex-wrap">
                 <Button
                   variant="outline"
                   size="sm"
@@ -257,6 +282,19 @@ export default function VendorsPage() {
                 >
                   {vendor.isActive ? 'Désactiver' : 'Activer'}
                 </Button>
+                {vendor.contracts && vendor.contracts.length > 0 && vendor.contracts[0].status === 'SIGNED' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const token = getToken();
+                      window.open(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.vraisavis.fr'}/api/v1/admin/contracts/${vendor.contracts![0].id}/pdf?token=${token}`, '_blank');
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    PDF Contrat
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
