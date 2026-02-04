@@ -21,6 +21,10 @@ const registerSchema = z.object({
   referralCode: z.string().optional(),
   latitude: z.number(),
   longitude: z.number(),
+  acceptCGU: z.boolean().refine(val => val === true, {
+    message: 'Vous devez accepter les CGU/CGV',
+  }),
+  cguVersion: z.string().optional(),
 });
 
 const updatePasswordSchema = z.object({
@@ -112,7 +116,10 @@ export async function authRoutes(fastify: FastifyInstance) {
       return reply.status(400).send({ error: true, message: 'Données invalides', details: body.error.errors });
     }
 
-    const { email, password, name, restaurantName, address, phone, referralCode, latitude, longitude } = body.data;
+    const { email, password, name, restaurantName, address, phone, referralCode, latitude, longitude, cguVersion } = body.data;
+    
+    // Récupérer l'IP du client pour l'acceptation CGU
+    const clientIP = request.ip;
 
     // Vérifier si l'email existe déjà
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -158,6 +165,9 @@ export async function authRoutes(fastify: FastifyInstance) {
             vendorId,
             status: 'ACTIVE',
             geoRadius: 100,
+            cguAcceptedAt: new Date(),
+            cguAcceptedIP: clientIP,
+            cguVersion: cguVersion || '1.0',
             serviceHours: {
               lunch: { start: '12:00', end: '14:30' },
               dinner: { start: '19:00', end: '22:30' },
@@ -202,6 +212,27 @@ export async function authRoutes(fastify: FastifyInstance) {
         name: user.name,
       },
     });
+  });
+
+  // Get CGU/CGV content (public route)
+  fastify.get('/cgu', async (request: FastifyRequest, reply: FastifyReply) => {
+    const template = await prisma.contractTemplate.findFirst({
+      where: { type: 'CGU_CGV', isActive: true },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        version: true,
+        contractContent: true,
+        companyName: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!template) {
+      return reply.status(404).send({ error: true, message: 'CGU/CGV non disponibles' });
+    }
+
+    return reply.send({ cgu: template });
   });
 
   // Me - Get current user

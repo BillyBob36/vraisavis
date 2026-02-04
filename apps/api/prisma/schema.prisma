@@ -127,6 +127,11 @@ model Restaurant {
   welcomeMessage  String?
   thankYouMessage String?
   
+  // Acceptation CGU/CGV
+  cguAcceptedAt   DateTime?
+  cguAcceptedIP   String?
+  cguVersion      String?
+  
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   
