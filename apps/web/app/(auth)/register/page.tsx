@@ -24,6 +24,17 @@ interface CGUData {
   companyName: string;
 }
 
+// Fonction pour formater le texte en gras (** **)
+const formatBoldText = (text: string): React.ReactNode => {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+};
+
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -188,28 +199,49 @@ function RegisterForm() {
                 <div
                   ref={cguContainerRef}
                   onScroll={handleCGUScroll}
-                  className="h-96 overflow-y-auto border rounded-lg p-4 bg-white text-sm prose prose-sm max-w-none"
+                  className="h-96 overflow-y-auto border rounded-lg p-4 bg-white text-sm"
                   style={{ scrollBehavior: 'smooth' }}
                 >
-                  <div className="whitespace-pre-wrap">
+                  <div className="space-y-2">
                     {cguData.contractContent.split('\n').map((line, index) => {
-                      if (line.startsWith('# ')) {
-                        return <h1 key={index} className="text-xl font-bold mt-4 mb-2">{line.replace('# ', '')}</h1>;
-                      } else if (line.startsWith('## ')) {
-                        return <h2 key={index} className="text-lg font-bold mt-4 mb-2">{line.replace('## ', '')}</h2>;
-                      } else if (line.startsWith('### ')) {
-                        return <h3 key={index} className="text-base font-semibold mt-3 mb-1">{line.replace('### ', '')}</h3>;
-                      } else if (line.startsWith('**') && line.endsWith('**')) {
-                        return <p key={index} className="font-bold my-1">{line.replace(/\*\*/g, '')}</p>;
-                      } else if (line.startsWith('- ')) {
-                        return <li key={index} className="ml-4">{line.replace('- ', '')}</li>;
-                      } else if (line.startsWith('---')) {
-                        return <hr key={index} className="my-4" />;
-                      } else if (line.trim() === '') {
-                        return <br key={index} />;
-                      } else {
-                        return <p key={index} className="my-1">{line.replace(/\*\*/g, '')}</p>;
+                      const trimmedLine = line.trim();
+                      
+                      // Séparateurs
+                      if (trimmedLine === '***' || trimmedLine === '---') {
+                        return <hr key={index} className="my-4 border-gray-300" />;
                       }
+                      // Titres
+                      if (line.startsWith('#### ')) {
+                        return <h4 key={index} className="text-sm font-semibold mt-3 mb-1">{line.replace('#### ', '')}</h4>;
+                      }
+                      if (line.startsWith('### ')) {
+                        return <h3 key={index} className="text-base font-semibold mt-4 mb-2 text-gray-800">{line.replace('### ', '')}</h3>;
+                      }
+                      if (line.startsWith('## ')) {
+                        return <h2 key={index} className="text-lg font-bold mt-6 mb-3 text-gray-900 border-b pb-1">{line.replace('## ', '')}</h2>;
+                      }
+                      if (line.startsWith('# ')) {
+                        return <h1 key={index} className="text-xl font-bold mt-4 mb-3 text-center">{line.replace('# ', '')}</h1>;
+                      }
+                      // Listes numérotées
+                      if (/^\d+\.\s/.test(trimmedLine)) {
+                        const content = trimmedLine.replace(/^\d+\.\s/, '');
+                        return <p key={index} className="ml-4 my-1">{trimmedLine.match(/^\d+/)?.[0]}. {formatBoldText(content)}</p>;
+                      }
+                      // Listes avec tirets (sous-listes indentées)
+                      if (line.startsWith('    - ')) {
+                        return <p key={index} className="ml-8 my-0.5">• {formatBoldText(line.replace('    - ', ''))}</p>;
+                      }
+                      // Listes avec tirets
+                      if (line.startsWith('- ')) {
+                        return <p key={index} className="ml-4 my-0.5">• {formatBoldText(line.replace('- ', ''))}</p>;
+                      }
+                      // Ligne vide
+                      if (trimmedLine === '') {
+                        return <div key={index} className="h-2" />;
+                      }
+                      // Paragraphe normal avec gras inline
+                      return <p key={index} className="my-1 text-gray-700">{formatBoldText(line)}</p>;
                     })}
                   </div>
                 </div>

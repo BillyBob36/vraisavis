@@ -1,5 +1,3 @@
-<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" style="height:64px;margin-right:32px"/>
-
 # CONDITIONS GÉNÉRALES D'UTILISATION ET DE VENTE (CGU/CGV)
 
 **Plateforme VraisAvis - Service SaaS pour Restaurateurs**
@@ -715,8 +713,7 @@ Les données peuvent être communiquées aux catégories de destinataires suivan
 **Prestataires techniques** :
 
 - Hébergeur : Hetzner Online GmbH (Allemagne - Union Européenne)
-- Prestataire de paiement : [NOM] (traitement des paiements sécurisés)
-- Prestataire d'emailing : [NOM si applicable] (envoi des emails transactionnels)
+- Prestataire de paiement : Stripe, Inc. (traitement des paiements sécurisés, certifié PCI-DSS)
 
 **Autorités compétentes** :
 
@@ -873,20 +870,7 @@ La Plateforme utilise uniquement des **cookies techniques strictement nécessair
 
 **Aucun cookie publicitaire, de tracking tiers ou de réseaux sociaux n'est utilisé.**
 
-### 12.2 Cookies de mesure d'audience (si applicable)
-
-[Si vous utilisez Google Analytics ou équivalent, ajouter :]
-
-La Plateforme utilise un outil de mesure d'audience (Google Analytics) configuré en mode "exempté de consentement" selon les recommandations de la CNIL :
-
-- Anonymisation des adresses IP
-- Pas de recoupement avec d'autres traitements
-- Pas de transfert de données vers des pays tiers
-- Durée de conservation : 13 mois maximum
-
-[Sinon, ne pas inclure ce paragraphe]
-
-### 12.3 Gestion des cookies
+### 12.2 Gestion des cookies
 
 Le Client peut paramétrer ses préférences cookies via les paramètres de son navigateur :
 
@@ -897,12 +881,11 @@ Le Client peut paramétrer ses préférences cookies via les paramètres de son 
 
 **Attention** : Le blocage des cookies techniques peut affecter le bon fonctionnement de la Plateforme et empêcher l'authentification.
 
-### 12.4 Information complémentaire
+### 12.3 Information complémentaire
 
 Pour plus d'informations sur la gestion des cookies :
 
 - Site de la CNIL : https://www.cnil.fr/fr/cookies-et-autres-traceurs
-- Politique de Cookies complète : [Lien vers page dédiée si applicable]
 
 ***
 
@@ -1074,13 +1057,9 @@ Site web : https://www.hetzner.com
 
 ### Prestataire de paiement
 
-[NOM DU PRESTATAIRE]
-[ADRESSE]
+Stripe, Inc.
+354 Oyster Point Blvd, South San Francisco, CA 94080, USA
 Certifié PCI-DSS pour la sécurité des transactions
-
-### Capital social
-
-[MONTANT si applicable pour micro-entreprise, sinon supprimer cette ligne]
 
 ### Numéro de déclaration CNIL
 
@@ -1089,8 +1068,6 @@ Dispense de déclaration (conformité RGPD par défaut depuis le 25 mai 2018)
 ### Crédits
 
 Conception et développement : KAISER JOHANN (KAISER CO)
-Design : [Si applicable]
-Photos : [Si applicable]
 
 ***
 
@@ -1100,28 +1077,8 @@ Photos : [Si applicable]
 
 ***
 
-## ✅ CONFIRMATION D'ACCEPTATION
-
-En créant mon compte sur la Plateforme VraisAvis, je certifie :
-
-- Avoir lu et compris les présentes Conditions Générales d'Utilisation et de Vente
-- Les accepter sans réserve
-- Être habilité(e) à engager l'établissement que je représente
-- Avoir pris connaissance de la Politique de Protection des Données Personnelles
-
-☐ **J'ai lu et j'accepte les Conditions Générales d'Utilisation et de Vente**
-
-☐ **Je certifie être habilité(e) à engager l'établissement [NOM DU RESTAURANT] et dispose du pouvoir de signer ce contrat au nom de cette entreprise**
-
-***
-
-*Version 1.0 - Document généré et accepté électroniquement le [DATE] à [HEURE]*
-*Adresse IP : [IP]*
-*Identifiant du compte : [ID]*
-
-***
-
 **Pour toute question concernant les présentes CGU/CGV :**
+
 Email : contact@vraisavis.fr
 Téléphone : +33 7 83 82 61 30
 Courrier : 61 RUE DE LYON, 75012 PARIS
