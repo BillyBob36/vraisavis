@@ -1,10 +1,13 @@
 import { PrismaClient } from '@prisma/client';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 const prisma = new PrismaClient();
 
-// Contenu des CGU/CGV importé depuis newsCGU.md
-import * as fs from 'fs';
-import * as path from 'path';
+// Support ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Lire le contenu du fichier cgu-cgv-content.md
 const cguFilePath = path.join(__dirname, './cgu-cgv-content.md');
