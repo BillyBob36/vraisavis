@@ -130,9 +130,9 @@ model Restaurant {
   thankYouMessage String?
   
   // Acceptation CGU/CGV
-  cguAcceptedAt   DateTime?
-  cguAcceptedIP   String?
-  cguVersion      String?
+  cguAcceptedAt   DateTime? @map("cgu_accepted_at")
+  cguAcceptedIP   String?   @map("cgu_accepted_ip")
+  cguVersion      String?   @map("cgu_version")
   
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
