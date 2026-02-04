@@ -141,6 +141,7 @@ export default function VendorsPage() {
       await apiFetch(`/api/v1/admin/vendors/${id}/validate`, {
         method: 'POST',
         token: token || '',
+        body: JSON.stringify({}),
       });
       toast({ title: 'Vendeur validé', description: 'Le code de parrainage a été généré' });
       fetchVendors();
