@@ -369,25 +369,23 @@ export async function adminRoutes(fastify: FastifyInstance) {
         });
       }
 
-      // Suppression forcée : supprimer toutes les dépendances
-      if (force === 'true') {
-        // Supprimer dans l'ordre inverse des dépendances
-        await prisma.prizeClaim.deleteMany({ where: { restaurantId: id } });
-        await prisma.prize.deleteMany({ where: { restaurantId: id } });
-        await prisma.dailyPrizePool.deleteMany({ where: { restaurantId: id } });
-        await prisma.fingerprint.deleteMany({ where: { restaurantId: id } });
-        await prisma.feedback.deleteMany({ where: { restaurantId: id } });
-        
-        // Supprimer la subscription si elle existe
-        if (restaurant.subscription) {
-          await prisma.subscription.delete({ where: { id: restaurant.subscription.id } });
-        }
+      // Toujours supprimer les dépendances avant le restaurant
+      // Ordre important : feedbacks avant fingerprints (FK feedbacks -> fingerprints)
+      await prisma.prizeClaim.deleteMany({ where: { restaurantId: id } });
+      await prisma.prize.deleteMany({ where: { restaurantId: id } });
+      await prisma.dailyPrizePool.deleteMany({ where: { restaurantId: id } });
+      await prisma.feedback.deleteMany({ where: { restaurantId: id } });
+      await prisma.fingerprint.deleteMany({ where: { restaurantId: id } });
+      
+      // Supprimer la subscription si elle existe
+      if (restaurant.subscription) {
+        await prisma.subscription.delete({ where: { id: restaurant.subscription.id } });
       }
 
       // Suppression du restaurant
       await prisma.restaurant.delete({ where: { id } });
       return reply.send({ 
-        message: force === 'true' 
+        message: totalDependencies > 0 
           ? `Restaurant et ${totalDependencies} donnée(s) associée(s) supprimés` 
           : 'Restaurant supprimé' 
       });
