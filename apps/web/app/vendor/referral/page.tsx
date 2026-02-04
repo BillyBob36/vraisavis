@@ -46,7 +46,7 @@ export default function ReferralPage() {
   };
 
   const shareLink = async () => {
-    if (navigator.share && data) {
+    if (navigator.share && data && data.referralLink) {
       try {
         await navigator.share({
           title: 'VraisAvis - Inscription',
