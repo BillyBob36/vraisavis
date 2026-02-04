@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { apiFetch, getToken } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 import { formatDate } from '@/lib/utils';
+import { Trash2 } from 'lucide-react';
 
 interface Restaurant {
   id: string;
@@ -54,6 +55,27 @@ export default function RestaurantsPage() {
       toast({
         title: 'Erreur',
         description: 'Impossible de modifier le statut',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const deleteRestaurant = async (id: string, name: string) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le restaurant "${name}" ?\n\nSi des feedbacks existent, le restaurant sera suspendu au lieu d'être supprimé.`)) {
+      return;
+    }
+    try {
+      const token = getToken();
+      const result = await apiFetch<{ message: string }>(`/api/v1/admin/restaurants/${id}`, {
+        method: 'DELETE',
+        token: token || '',
+      });
+      toast({ title: 'Succès', description: result.message });
+      fetchRestaurants();
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer le restaurant',
         variant: 'destructive',
       });
     }
@@ -131,6 +153,14 @@ export default function RestaurantsPage() {
                     Réactiver
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => deleteRestaurant(restaurant.id, restaurant.name)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Supprimer
+                </Button>
               </div>
             </CardContent>
           </Card>

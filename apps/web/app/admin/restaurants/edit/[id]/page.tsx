@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiFetch, getToken } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
+import { LocationPicker } from '@/components/ui/location-picker';
 
 interface Restaurant {
   id: string;
@@ -144,14 +145,23 @@ export default function EditRestaurantPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Adresse</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                required
+              <Label>Adresse et localisation</Label>
+              <LocationPicker
+                initialAddress={formData.address}
+                initialLatitude={formData.latitude}
+                initialLongitude={formData.longitude}
+                onLocationSelect={(location) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    address: location.address,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                  }));
+                }}
               />
-              <p className="text-sm text-gray-500">Note: La carte interactive sera ajoutée prochainement</p>
+              <p className="text-sm text-muted-foreground">
+                Cliquez sur la carte ou faites glisser le marqueur pour ajuster la position
+              </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -164,6 +174,8 @@ export default function EditRestaurantPage() {
                   value={formData.latitude}
                   onChange={(e) => setFormData(prev => ({ ...prev, latitude: parseFloat(e.target.value) }))}
                   required
+                  readOnly
+                  className="bg-muted"
                 />
               </div>
               <div className="space-y-2">
@@ -175,6 +187,8 @@ export default function EditRestaurantPage() {
                   value={formData.longitude}
                   onChange={(e) => setFormData(prev => ({ ...prev, longitude: parseFloat(e.target.value) }))}
                   required
+                  readOnly
+                  className="bg-muted"
                 />
               </div>
             </div>

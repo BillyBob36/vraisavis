@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { apiFetch, getToken } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Plus, X, FileText, Download } from 'lucide-react';
+import { Plus, X, FileText, Download, Trash2 } from 'lucide-react';
 
 interface VendorContract {
   id: string;
@@ -148,6 +148,27 @@ export default function VendorsPage() {
       toast({
         title: 'Erreur',
         description: error instanceof Error ? error.message : 'Impossible de valider le vendeur',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const deleteVendor = async (id: string, name: string) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le vendeur "${name}" ?\n\nLe vendeur sera désactivé et ne pourra plus se connecter.`)) {
+      return;
+    }
+    try {
+      const token = getToken();
+      await apiFetch(`/api/v1/admin/vendors/${id}`, {
+        method: 'DELETE',
+        token: token || '',
+      });
+      toast({ title: 'Succès', description: 'Vendeur supprimé' });
+      fetchVendors();
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer le vendeur',
         variant: 'destructive',
       });
     }
@@ -337,6 +358,14 @@ export default function VendorsPage() {
                     PDF Contrat
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => deleteVendor(vendor.id, vendor.name)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Supprimer
+                </Button>
               </div>
             </CardContent>
           </Card>
