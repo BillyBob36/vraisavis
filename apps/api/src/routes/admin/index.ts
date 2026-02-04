@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { prisma } from '../../lib/prisma.js';
 import { requireSuperAdmin } from '../../middleware/auth.js';
 import { generateReferralCode } from '../../utils/helpers.js';
+import { contractRoutes } from './contracts.js';
 
 const createVendorSchema = z.object({
   email: z.string().email(),
@@ -323,4 +324,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
     return reply.send({ subscriptions });
   });
+
+  // Enregistrer les routes contracts
+  await fastify.register(contractRoutes, { prefix: '/contracts' });
 }

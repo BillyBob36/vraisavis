@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../../lib/prisma.js';
 import { requireVendor } from '../../middleware/auth.js';
 import { config } from '../../config/env.js';
+import { vendorContractRoutes } from './contracts.js';
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
@@ -254,4 +255,7 @@ export async function vendorRoutes(fastify: FastifyInstance) {
     // TODO: Implémenter Stripe Connect onboarding
     return reply.status(501).send({ error: true, message: 'Stripe non configuré' });
   });
+
+  // Enregistrer les routes contracts
+  await fastify.register(vendorContractRoutes);
 }
