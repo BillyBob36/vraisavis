@@ -53,7 +53,7 @@ export default function VendorContractsPage() {
 
   const loadContracts = async () => {
     try {
-      const response = await apiFetch('/vendor/contracts');
+      const response = await apiFetch('/vendor/contracts') as { contracts: VendorContract[] };
       setContracts(response.contracts);
     } catch (error) {
       toast({
@@ -68,7 +68,7 @@ export default function VendorContractsPage() {
 
   const handleViewContract = async (contract: VendorContract) => {
     try {
-      const response = await apiFetch(`/vendor/contracts/${contract.id}`);
+      const response = await apiFetch(`/vendor/contracts/${contract.id}`) as { contract: VendorContract };
       setSelectedContract(response.contract);
       setSignatureData({
         vendorAddress: response.contract.vendorAddress || '',

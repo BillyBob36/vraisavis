@@ -78,7 +78,7 @@ export default function ContractsPage() {
 
   const loadTemplates = async () => {
     try {
-      const response = await apiFetch('/admin/contracts/templates');
+      const response = await apiFetch('/admin/contracts/templates') as { templates: ContractTemplate[] };
       setTemplates(response.templates);
     } catch (error) {
       toast({
