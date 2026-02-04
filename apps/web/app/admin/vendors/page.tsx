@@ -22,9 +22,11 @@ interface Vendor {
   email: string;
   name: string;
   phone: string | null;
-  referralCode: string;
+  referralCode: string | null;
   commissionAmount: number;
   isActive: boolean;
+  isValidated: boolean;
+  validatedAt: string | null;
   createdAt: string;
   _count: { restaurants: number; commissions: number };
   contracts?: VendorContract[];
@@ -133,6 +135,24 @@ export default function VendorsPage() {
     }
   };
 
+  const validateVendor = async (id: string) => {
+    try {
+      const token = getToken();
+      await apiFetch(`/api/v1/admin/vendors/${id}/validate`, {
+        method: 'POST',
+        token: token || '',
+      });
+      toast({ title: 'Vendeur validé', description: 'Le code de parrainage a été généré' });
+      fetchVendors();
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Impossible de valider le vendeur',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-64">Chargement...</div>;
   }
@@ -232,10 +252,14 @@ export default function VendorsPage() {
                   {vendor.isActive ? 'Actif' : 'Inactif'}
                 </span>
               </div>
-              <div className="grid md:grid-cols-5 gap-4 mt-4 text-sm">
+              <div className="grid md:grid-cols-6 gap-4 mt-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Code parrainage</p>
-                  <p className="font-mono">{vendor.referralCode}</p>
+                  {vendor.referralCode ? (
+                    <p className="font-mono">{vendor.referralCode}</p>
+                  ) : (
+                    <span className="text-gray-400 italic">Non généré</span>
+                  )}
                 </div>
                 <div>
                   <p className="text-muted-foreground">Commission</p>
@@ -263,6 +287,14 @@ export default function VendorsPage() {
                   )}
                 </div>
                 <div>
+                  <p className="text-muted-foreground">Validation</p>
+                  {vendor.isValidated ? (
+                    <span className="px-2 py-0.5 text-xs rounded bg-green-100 text-green-700">✓ Validé</span>
+                  ) : (
+                    <span className="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-700">⏳ En attente</span>
+                  )}
+                </div>
+                <div>
                   <p className="text-muted-foreground">Inscrit le</p>
                   <p>{formatDate(vendor.createdAt)}</p>
                 </div>
@@ -282,6 +314,16 @@ export default function VendorsPage() {
                 >
                   {vendor.isActive ? 'Désactiver' : 'Activer'}
                 </Button>
+                {/* Bouton Valider - visible uniquement si contrat signé et pas encore validé */}
+                {!vendor.isValidated && vendor.contracts && vendor.contracts.length > 0 && vendor.contracts[0].status === 'SIGNED' && (
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => validateVendor(vendor.id)}
+                  >
+                    ✓ Valider le vendeur
+                  </Button>
+                )}
                 {vendor.contracts && vendor.contracts.length > 0 && vendor.contracts[0].status === 'SIGNED' && (
                   <Button
                     variant="outline"

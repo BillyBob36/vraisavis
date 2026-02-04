@@ -6,11 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { apiFetch, getToken } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
-import { Copy, Share2 } from 'lucide-react';
+import { Copy, Share2, AlertCircle, Clock, FileText } from 'lucide-react';
+import Link from 'next/link';
 
 interface ReferralData {
-  referralCode: string;
-  referralLink: string;
+  referralCode: string | null;
+  referralLink: string | null;
+  isValidated: boolean;
+  contractStatus: 'NONE' | 'SENT' | 'SIGNED' | 'REJECTED';
 }
 
 export default function ReferralPage() {
@@ -60,6 +63,71 @@ export default function ReferralPage() {
     return <div className="flex items-center justify-center h-64">Chargement...</div>;
   }
 
+  // Si le vendeur n'est pas validé, afficher un message d'attente
+  if (!data?.isValidated) {
+    return (
+      <div>
+        <h1 className="text-3xl font-bold mb-8">Lien de parrainage</h1>
+
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-full bg-amber-100">
+                <Clock className="h-6 w-6 text-amber-600" />
+              </div>
+              <div>
+                <CardTitle>Lien de parrainage non disponible</CardTitle>
+                <CardDescription>
+                  Votre compte doit être validé pour accéder à votre lien de parrainage
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <h3 className="font-semibold text-amber-800 mb-2 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Étapes requises
+              </h3>
+              <ol className="list-decimal list-inside space-y-2 text-amber-700">
+                {data?.contractStatus === 'SIGNED' ? (
+                  <>
+                    <li className="line-through text-green-600">✓ Contrat signé</li>
+                    <li className="font-semibold">Attendre la validation par l&apos;administrateur</li>
+                  </>
+                ) : data?.contractStatus === 'REJECTED' ? (
+                  <li className="text-red-600">Votre contrat a été rejeté. Veuillez contacter l&apos;administrateur.</li>
+                ) : (
+                  <>
+                    <li className="font-semibold">
+                      Signer votre contrat de partenariat
+                      {data?.contractStatus === 'SENT' && (
+                        <Link href="/vendor/contracts" className="ml-2 text-blue-600 underline">
+                          → Voir le contrat
+                        </Link>
+                      )}
+                    </li>
+                    <li>Attendre la validation par l&apos;administrateur</li>
+                  </>
+                )}
+              </ol>
+            </div>
+
+            {data?.contractStatus === 'SENT' && (
+              <Link href="/vendor/contracts">
+                <Button className="w-full">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Signer mon contrat
+                </Button>
+              </Link>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Vendeur validé - afficher le lien de parrainage
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">Lien de parrainage</h1>

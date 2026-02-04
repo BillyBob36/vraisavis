@@ -76,11 +76,13 @@ model Vendor {
   passwordHash     String
   name             String
   phone            String?
-  referralCode     String   @unique
+  referralCode     String?  @unique
   commissionAmount Int      @default(5000)
   stripeAccountId  String?
   stripeOnboarded  Boolean  @default(false)
   isActive         Boolean  @default(true)
+  isValidated      Boolean  @default(false)
+  validatedAt      DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   

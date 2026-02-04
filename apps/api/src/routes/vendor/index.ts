@@ -191,11 +191,34 @@ export async function vendorRoutes(fastify: FastifyInstance) {
   fastify.get('/referral-link', async (request: FastifyRequest, reply: FastifyReply) => {
     const vendor = await prisma.vendor.findUnique({
       where: { id: request.user.id },
-      select: { referralCode: true },
+      select: { 
+        referralCode: true,
+        isValidated: true,
+      },
+      
     });
 
     if (!vendor) {
       return reply.status(404).send({ error: true, message: 'Vendeur non trouvé' });
+    }
+
+    // Récupérer le statut du contrat
+    const latestContract = await prisma.vendorContract.findFirst({
+      where: { vendorId: request.user.id },
+      orderBy: { createdAt: 'desc' },
+      select: { status: true },
+    });
+
+    const contractStatus = latestContract?.status || 'NONE';
+
+    // Si pas validé, ne pas retourner le lien
+    if (!vendor.isValidated || !vendor.referralCode) {
+      return reply.send({
+        referralCode: null,
+        referralLink: null,
+        isValidated: false,
+        contractStatus,
+      });
     }
 
     const referralLink = `${config.WEB_URL}/register?ref=${vendor.referralCode}`;
@@ -203,6 +226,8 @@ export async function vendorRoutes(fastify: FastifyInstance) {
     return reply.send({
       referralCode: vendor.referralCode,
       referralLink,
+      isValidated: true,
+      contractStatus,
     });
   });
 

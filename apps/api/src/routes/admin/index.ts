@@ -126,16 +126,17 @@ export async function adminRoutes(fastify: FastifyInstance) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const referralCode = generateReferralCode(name);
 
+    // Ne pas générer le referralCode à la création - il sera généré lors de la validation
     const vendor = await prisma.vendor.create({
       data: {
         email,
         passwordHash,
         name,
         phone,
-        referralCode,
+        referralCode: null,
         commissionAmount,
+        isValidated: false,
       },
     });
 
@@ -203,6 +204,61 @@ export async function adminRoutes(fastify: FastifyInstance) {
     });
 
     return reply.send({ message: 'Vendeur désactivé' });
+  });
+
+  // Valider un vendeur (après signature du contrat) - génère le referralCode
+  fastify.post('/vendors/:id/validate', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    const { id } = request.params;
+
+    const vendor = await prisma.vendor.findUnique({
+      where: { id },
+      include: {
+        contracts: {
+          where: { status: 'SIGNED' },
+          orderBy: { signedAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!vendor) {
+      return reply.status(404).send({ error: true, message: 'Vendeur non trouvé' });
+    }
+
+    if (vendor.isValidated) {
+      return reply.status(400).send({ error: true, message: 'Ce vendeur est déjà validé' });
+    }
+
+    // Vérifier que le contrat est signé
+    if (vendor.contracts.length === 0) {
+      return reply.status(400).send({ 
+        error: true, 
+        message: 'Le vendeur doit d\'abord signer son contrat avant d\'être validé' 
+      });
+    }
+
+    // Générer le referralCode et valider
+    const referralCode = generateReferralCode(vendor.name);
+
+    const updatedVendor = await prisma.vendor.update({
+      where: { id },
+      data: {
+        referralCode,
+        isValidated: true,
+        validatedAt: new Date(),
+      },
+    });
+
+    return reply.send({ 
+      message: 'Vendeur validé avec succès',
+      vendor: {
+        id: updatedVendor.id,
+        name: updatedVendor.name,
+        referralCode: updatedVendor.referralCode,
+        isValidated: updatedVendor.isValidated,
+        validatedAt: updatedVendor.validatedAt,
+      },
+    });
   });
 
   // === RESTAURANTS ===
