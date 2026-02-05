@@ -169,12 +169,11 @@ export default function ClientExperiencePage() {
 
   const handleReelsFinished = useCallback(() => {
     setReelsFinished(true);
-    // Wait 2.5s after reels stop so user can see the final symbols
-    setTimeout(() => {
-      setSpinResult(spinResultRef.current);
-      setIsSpinning(false);
-      setStep('result');
-    }, 2500);
+    // SlotMachine already handles the win/lose delay internally
+    // Just transition to result screen
+    setSpinResult(spinResultRef.current);
+    setIsSpinning(false);
+    setStep('result');
   }, []);
 
   // Loading state
@@ -217,6 +216,7 @@ export default function ClientExperiencePage() {
     spinResult,
     reelsFinished,
     onReelsFinished: handleReelsFinished,
+    isWin: !!(spinResultRef.current?.won),
     prizeSymbolMap,
     assignedSymbols,
   };

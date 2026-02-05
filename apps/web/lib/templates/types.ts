@@ -59,6 +59,7 @@ export interface TemplateProps {
   spinResult: SpinResult | null;
   reelsFinished: boolean;
   onReelsFinished: () => void;
+  isWin: boolean;
   // Prize mapping for slot machine display
   prizeSymbolMap: Map<string, [SlotSymbol, SlotSymbol, SlotSymbol]>;
   assignedSymbols: [SlotSymbol, SlotSymbol, SlotSymbol] | null;
