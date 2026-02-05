@@ -16,6 +16,7 @@ const updateRestaurantSchema = z.object({
   }).optional(),
   welcomeMessage: z.string().nullable().optional(),
   thankYouMessage: z.string().nullable().optional(),
+  clientTemplate: z.enum(['classic', 'glass']).optional(),
 });
 
 const createPrizeSchema = z.object({
@@ -315,7 +316,7 @@ export async function managerRoutes(fastify: FastifyInstance) {
       return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
     }
 
-    const url = `${config.CLIENT_URL}/${restaurant.id}`;
+    const url = `${config.CLIENT_URL}/r/${restaurant.id}`;
     const qrDataUrl = await QRCode.toDataURL(url, {
       width: 512,
       margin: 2,

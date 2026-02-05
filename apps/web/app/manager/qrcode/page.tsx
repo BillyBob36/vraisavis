@@ -23,7 +23,7 @@ export default function QRCodePage() {
       const data = await apiFetch('/api/v1/manager/restaurant') as { restaurant: { id: string; qrCodeUrl: string | null } };
       setQrCodeUrl(data.restaurant?.qrCodeUrl || null);
       if (data.restaurant?.id) {
-        setClientUrl(`${window.location.origin.replace('app.', 'client.')}/${data.restaurant.id}`);
+        setClientUrl(`${window.location.origin}/r/${data.restaurant.id}`);
       }
     } catch (error) {
       console.error('Erreur chargement QR:', error);

@@ -17,6 +17,7 @@ interface Restaurant {
   phone: string | null;
   welcomeMessage: string | null;
   thankYouMessage: string | null;
+  clientTemplate: string;
   geoRadius: number;
   serviceHours: {
     lunch: { start: string; end: string };
@@ -59,6 +60,7 @@ export default function SettingsPage() {
           phone: restaurant.phone,
           welcomeMessage: restaurant.welcomeMessage,
           thankYouMessage: restaurant.thankYouMessage,
+          clientTemplate: restaurant.clientTemplate,
           geoRadius: restaurant.geoRadius,
           serviceHours: restaurant.serviceHours,
         }),
@@ -147,6 +149,47 @@ export default function SettingsPage() {
                 placeholder="Merci pour votre participation !"
                 rows={2}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Template expérience client</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Choisissez le style visuel de l'expérience proposée à vos clients
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div
+                onClick={() => setRestaurant({ ...restaurant, clientTemplate: 'classic' })}
+                className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${
+                  restaurant.clientTemplate === 'classic'
+                    ? 'border-orange-500 bg-orange-50 shadow-md'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="text-center space-y-2">
+                  <div className="text-3xl">🎨</div>
+                  <p className="font-semibold">Classique</p>
+                  <p className="text-xs text-muted-foreground">Design épuré et moderne, idéal pour tous types de restaurants</p>
+                </div>
+              </div>
+              <div
+                onClick={() => setRestaurant({ ...restaurant, clientTemplate: 'glass' })}
+                className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${
+                  restaurant.clientTemplate === 'glass'
+                    ? 'border-purple-500 bg-purple-50 shadow-md'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="text-center space-y-2">
+                  <div className="text-3xl">✨</div>
+                  <p className="font-semibold">Liquid Glass</p>
+                  <p className="text-xs text-muted-foreground">Effet glassmorphism élégant avec transparences et reflets</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

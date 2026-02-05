@@ -128,6 +128,7 @@ model Restaurant {
   
   welcomeMessage  String?
   thankYouMessage String?
+  clientTemplate  String   @default("classic") @map("client_template")
   
   // Acceptation CGU/CGV
   cguAcceptedAt   DateTime? @map("cgu_accepted_at")

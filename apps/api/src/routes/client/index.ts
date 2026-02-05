@@ -486,8 +486,19 @@ export async function clientRoutes(fastify: FastifyInstance) {
         id: true,
         name: true,
         welcomeMessage: true,
+        thankYouMessage: true,
         serviceHours: true,
         status: true,
+        clientTemplate: true,
+        prizes: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 
