@@ -208,22 +208,13 @@ export default function ClassicTemplate(props: TemplateProps) {
           <SlotMachine
             isSpinning={isSpinning}
             onSpinComplete={onReelsFinished}
+            onSpin={onSpin}
             targetSymbols={assignedSymbols}
             prizes={restaurant.prizes}
             prizeSymbolMap={prizeSymbolMap}
             variant="classic"
             isWin={isWin}
           />
-
-          {/* Spin Button */}
-          {!isSpinning && !spinResult && (
-            <button
-              onClick={onSpin}
-              className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black text-xl rounded-2xl shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-[0.95] transition-all animate-pulse"
-            >
-              🎰 LANCER ! 🎰
-            </button>
-          )}
 
           {isSpinning && !reelsFinished && (
             <div className="text-center">

@@ -224,22 +224,13 @@ export default function GlassTemplate(props: TemplateProps) {
           <SlotMachine
             isSpinning={isSpinning}
             onSpinComplete={onReelsFinished}
+            onSpin={onSpin}
             targetSymbols={assignedSymbols}
             prizes={restaurant.prizes}
             prizeSymbolMap={prizeSymbolMap}
             variant="glass"
             isWin={isWin}
           />
-
-          {/* Spin Button */}
-          {!isSpinning && !spinResult && (
-            <button
-              onClick={onSpin}
-              className="w-full py-4 bg-gradient-to-r from-violet-500 to-pink-500 text-white font-black text-xl rounded-2xl shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.95] transition-all animate-pulse border border-white/20"
-            >
-              🎰 LANCER ! 🎰
-            </button>
-          )}
 
           {isSpinning && !reelsFinished && (
             <div className="text-center">

@@ -6,6 +6,7 @@ import { SlotSymbol, SLOT_SYMBOLS, Prize } from '@/lib/templates/types';
 interface SlotMachineProps {
   isSpinning: boolean;
   onSpinComplete: () => void;
+  onSpin: () => void;
   targetSymbols: [SlotSymbol, SlotSymbol, SlotSymbol] | null;
   prizes: Prize[];
   prizeSymbolMap: Map<string, [SlotSymbol, SlotSymbol, SlotSymbol]>;
@@ -29,6 +30,7 @@ function generateReelStrip(targetSymbol: SlotSymbol): SlotSymbol[] {
 export default function SlotMachine({
   isSpinning,
   onSpinComplete,
+  onSpin,
   targetSymbols,
   prizes,
   prizeSymbolMap,
@@ -237,20 +239,13 @@ export default function SlotMachine({
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close hint */}
-            <p className={`text-center text-[10px] mb-3 ${
-              isGlass ? 'text-white/40' : 'text-gray-400'
-            }`}>
-              Touchez en dehors pour fermer
-            </p>
-
             <h4 className={`text-sm font-bold mb-3 text-center ${
               isGlass ? 'text-white/90' : 'text-gray-800'
             }`}>
               🏆 Lots à gagner
             </h4>
 
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+            <div className={`space-y-2 max-h-60 overflow-y-auto pr-1 ${isGlass ? 'custom-scrollbar-glass' : 'custom-scrollbar-classic'}`}>
               {prizes.map(prize => {
                 const symbols = prizeSymbolMap.get(prize.id);
                 if (!symbols) return null;
@@ -273,16 +268,16 @@ export default function SlotMachine({
               })}
             </div>
 
-            {/* Close button */}
+            {/* Play button */}
             <button
-              onClick={() => setShowLegend(false)}
-              className={`w-full mt-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+              onClick={() => { setShowLegend(false); onSpin(); }}
+              className={`w-full mt-4 py-3 rounded-xl text-base font-black transition-all active:scale-95 ${
                 isGlass
-                  ? 'bg-white/10 border border-white/20 text-white/80 hover:bg-white/15'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-gradient-to-r from-violet-500 to-pink-500 border border-white/20 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50'
+                  : 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg hover:shadow-2xl'
               }`}
             >
-              J'ai compris, fermer ✕
+              🎰 Jouer !
             </button>
           </div>
         </div>

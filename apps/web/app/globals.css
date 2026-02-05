@@ -57,3 +57,35 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom scrollbar - Glass variant */
+.custom-scrollbar-glass::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar-glass::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+.custom-scrollbar-glass::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+.custom-scrollbar-glass::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Custom scrollbar - Classic variant */
+.custom-scrollbar-classic::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar-classic::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+}
+.custom-scrollbar-classic::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+}
+.custom-scrollbar-classic::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
