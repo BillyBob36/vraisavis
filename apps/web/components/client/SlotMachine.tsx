@@ -15,8 +15,8 @@ interface SlotMachineProps {
 }
 
 const REEL_SIZE = 20;
-const SPIN_DURATION = 3000;
-const REEL_DELAYS = [0, 400, 800];
+const SPIN_DURATION = 3500;
+const REEL_DELAYS = [0, 600, 1200];
 
 function generateReelStrip(targetSymbol: SlotSymbol): SlotSymbol[] {
   const strip: SlotSymbol[] = [];
@@ -48,6 +48,8 @@ export default function SlotMachine({
   const animFrames = useRef<number[]>([0, 0, 0]);
   const spinStartTime = useRef<number[]>([0, 0, 0]);
   const hasCompleted = useRef(false);
+  const spinActive = useRef(false);
+  const stoppedRef = useRef([true, true, true]);
 
   const animateReel = useCallback((reelIdx: number, strip: SlotSymbol[], startTime: number) => {
     const elapsed = Date.now() - startTime;
@@ -73,11 +75,9 @@ export default function SlotMachine({
         next[reelIdx] = strip.length - 1;
         return next;
       });
-      setStopped(prev => {
-        const next = [...prev];
-        next[reelIdx] = true;
-        return next;
-      });
+      stoppedRef.current = [...stoppedRef.current];
+      stoppedRef.current[reelIdx] = true;
+      setStopped([...stoppedRef.current]);
       setSpinning(prev => {
         const next = [...prev];
         next[reelIdx] = false;
@@ -89,6 +89,8 @@ export default function SlotMachine({
   useEffect(() => {
     if (isSpinning && targetSymbols) {
       hasCompleted.current = false;
+      spinActive.current = true;
+      stoppedRef.current = [false, false, false];
       setWinFlash(false);
       setShowLegend(false);
       const strips = targetSymbols.map(sym => generateReelStrip(sym));
@@ -112,22 +114,22 @@ export default function SlotMachine({
   }, [isSpinning, targetSymbols, animateReel]);
 
   useEffect(() => {
-    if (stopped[0] && stopped[1] && stopped[2] && !hasCompleted.current && isSpinning) {
+    if (stopped[0] && stopped[1] && stopped[2] && !hasCompleted.current && spinActive.current) {
       hasCompleted.current = true;
+      spinActive.current = false;
 
       if (isWin) {
-        // Win animation: flash the reels for 2s before completing
         setWinFlash(true);
         setTimeout(() => {
           onSpinComplete();
-        }, 2000);
+        }, 2500);
       } else {
         setTimeout(() => {
           onSpinComplete();
-        }, 800);
+        }, 1500);
       }
     }
-  }, [stopped, isSpinning, isWin, onSpinComplete]);
+  }, [stopped, isWin, onSpinComplete]);
 
   const getCurrentSymbol = (reelIdx: number): SlotSymbol => {
     const strip = reels[reelIdx];
