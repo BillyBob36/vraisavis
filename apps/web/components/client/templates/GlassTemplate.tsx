@@ -9,6 +9,7 @@ export default function GlassTemplate(props: TemplateProps) {
     positiveText, onPositiveChange,
     negativeText, onNegativeChange,
     isSpinning, onSpin, spinResult,
+    reelsFinished, onReelsFinished,
     prizeSymbolMap, assignedSymbols,
   } = props;
 
@@ -222,7 +223,7 @@ export default function GlassTemplate(props: TemplateProps) {
           {/* Slot Machine */}
           <SlotMachine
             isSpinning={isSpinning}
-            onSpinComplete={() => {}}
+            onSpinComplete={onReelsFinished}
             targetSymbols={assignedSymbols}
             prizes={restaurant.prizes}
             prizeSymbolMap={prizeSymbolMap}
@@ -239,10 +240,18 @@ export default function GlassTemplate(props: TemplateProps) {
             </button>
           )}
 
-          {isSpinning && (
+          {isSpinning && !reelsFinished && (
             <div className="text-center">
               <p className="text-violet-300 font-bold animate-pulse text-lg">
                 La roue tourne... 🤞
+              </p>
+            </div>
+          )}
+
+          {reelsFinished && (
+            <div className="text-center space-y-2">
+              <p className="text-violet-300 font-bold text-xl animate-bounce">
+                🥁 Résultat...
               </p>
             </div>
           )}

@@ -57,6 +57,7 @@ export default function ClientExperiencePage() {
   const [spinResult, setSpinResult] = useState<SpinResult | null>(null);
   const [prizeSymbolMap, setPrizeSymbolMap] = useState<Map<string, [SlotSymbol, SlotSymbol, SlotSymbol]>>(new Map());
   const [assignedSymbols, setAssignedSymbols] = useState<[SlotSymbol, SlotSymbol, SlotSymbol] | null>(null);
+  const [reelsFinished, setReelsFinished] = useState(false);
   const spinResultRef = useRef<SpinResult | null>(null);
 
   // Load restaurant data and register fingerprint
@@ -158,18 +159,23 @@ export default function ClientExperiencePage() {
         setAssignedSymbols(NO_PRIZE_SYMBOLS);
       }
 
-      // Wait for animation to complete then show result
-      setTimeout(() => {
-        setSpinResult(spinResultRef.current);
-        setIsSpinning(false);
-        setStep('result');
-      }, 4500);
+      // The result will be shown when onReelsFinished is called by SlotMachine
 
     } catch (err: any) {
       setIsSpinning(false);
       setError(err.message || 'Erreur lors du tirage');
     }
   }, [fingerprintId, restaurant, restaurantId, positiveText, negativeText, prizeSymbolMap]);
+
+  const handleReelsFinished = useCallback(() => {
+    setReelsFinished(true);
+    // Wait 2.5s after reels stop so user can see the final symbols
+    setTimeout(() => {
+      setSpinResult(spinResultRef.current);
+      setIsSpinning(false);
+      setStep('result');
+    }, 2500);
+  }, []);
 
   // Loading state
   if (loading) {
@@ -209,6 +215,8 @@ export default function ClientExperiencePage() {
     isSpinning,
     onSpin: handleSpin,
     spinResult,
+    reelsFinished,
+    onReelsFinished: handleReelsFinished,
     prizeSymbolMap,
     assignedSymbols,
   };
