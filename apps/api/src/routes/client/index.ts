@@ -307,12 +307,38 @@ export async function clientRoutes(fastify: FastifyInstance) {
       });
     }
 
-    // Récupérer les lots disponibles
+    // Récupérer les lots actifs du restaurant
     const today = getTodayDateString();
+    const todayDate = new Date(today);
+
+    // Récupérer tous les lots actifs du restaurant
+    const activePrizes = await prisma.prize.findMany({
+      where: { restaurantId, isActive: true },
+    });
+
+    // Auto-créer les dailyPrizePool pour aujourd'hui si elles n'existent pas
+    for (const prize of activePrizes) {
+      const existingPool = await prisma.dailyPrizePool.findUnique({
+        where: { prizeId_date: { prizeId: prize.id, date: todayDate } },
+      });
+      if (!existingPool) {
+        await prisma.dailyPrizePool.create({
+          data: {
+            prizeId: prize.id,
+            restaurantId,
+            date: todayDate,
+            allocated: prize.maxPerDay || 10,
+            claimed: 0,
+          },
+        });
+      }
+    }
+
+    // Récupérer les pools du jour
     const pools = await prisma.dailyPrizePool.findMany({
       where: { 
         restaurantId, 
-        date: new Date(today),
+        date: todayDate,
       },
       include: { prize: true },
     });
@@ -343,16 +369,18 @@ export async function clientRoutes(fastify: FastifyInstance) {
       });
     }
 
-    // Tirage au sort pondéré
-    const totalWeight = availablePrizes.reduce((sum, p) => sum + p.probability, 0);
-    const random = Math.random() * (totalWeight + 0.3); // 30% de chance de ne rien gagner
+    // Tirage au sort pondéré par probabilité
+    // probability = 1 signifie 100% de chance de gagner ce lot
+    // On tire un nombre entre 0 et 1, puis on parcourt les lots
+    const random = Math.random();
 
-    let cumulative = 0;
+    // Trier par probabilité décroissante pour favoriser les lots à haute probabilité
+    const sortedPrizes = [...availablePrizes].sort((a, b) => b.probability - a.probability);
+
     let wonPrize = null;
 
-    for (const prize of availablePrizes) {
-      cumulative += prize.probability;
-      if (random <= cumulative) {
+    for (const prize of sortedPrizes) {
+      if (random <= prize.probability) {
         wonPrize = prize;
         break;
       }
