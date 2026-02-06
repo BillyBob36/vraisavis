@@ -691,32 +691,21 @@ export async function managerRoutes(fastify: FastifyInstance) {
     // Use OpenAI to match the improvement against negative feedbacks
     const feedbackTexts = negativeFeedbacks.map((f: FeedbackWithFP, i: number) => `[${i}] ${f.negativeText}`).join('\n');
 
-    const openaiEndpoint = config.AZURE_OPENAI_ENDPOINT;
-    const openaiKey = config.AZURE_OPENAI_API_KEY;
-    const deployment = config.AZURE_OPENAI_DEPLOYMENT;
+    const openaiKey = config.OPENAI_API_KEY;
+    const model = config.OPENAI_MODEL;
 
     let matchedIndices: number[] = [];
 
-    if (openaiEndpoint && openaiKey) {
+    if (openaiKey) {
       try {
-        const apiUrl = openaiEndpoint.includes('openai.azure.com')
-          ? `${openaiEndpoint}/openai/deployments/${deployment}/chat/completions?api-version=${config.AZURE_OPENAI_API_VERSION}`
-          : 'https://api.openai.com/v1/chat/completions';
-
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-        if (openaiEndpoint.includes('openai.azure.com')) {
-          headers['api-key'] = openaiKey;
-        } else {
-          headers['Authorization'] = `Bearer ${openaiKey}`;
-        }
-
-        const res = await fetch(apiUrl, {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
-          headers,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openaiKey}`,
+          },
           body: JSON.stringify({
-            model: deployment,
+            model,
             messages: [
               {
                 role: 'system',
@@ -743,6 +732,8 @@ Réponds UNIQUEMENT avec le tableau JSON, rien d'autre.`,
           if (jsonMatch) {
             matchedIndices = JSON.parse(jsonMatch[0]);
           }
+        } else {
+          console.error('OpenAI API error:', res.status, await res.text());
         }
       } catch (err) {
         console.error('OpenAI matching error:', err);

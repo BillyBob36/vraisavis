@@ -42,7 +42,11 @@ export const config = {
   TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN || '',
   TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER || '',
   
-  // Azure OpenAI
+  // OpenAI Direct
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+  OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-4.1-mini',
+
+  // Azure OpenAI (legacy)
   AZURE_OPENAI_ENDPOINT: process.env.AZURE_OPENAI_ENDPOINT || '',
   AZURE_OPENAI_API_KEY: process.env.AZURE_OPENAI_API_KEY || '',
   AZURE_OPENAI_DEPLOYMENT: process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4.1-mini',
