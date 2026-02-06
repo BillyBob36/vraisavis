@@ -79,39 +79,7 @@ export async function consulterAvis(
   const { start, end } = periodToRange(period);
   const limit = params.limit || 30;
 
-  // If search query provided, use semantic search via embeddings
-  if (params.search) {
-    try {
-      const queryEmbedding = await generateEmbedding(params.search);
-      const results = await searchByEmbedding(restaurantId, queryEmbedding, {
-        limit,
-        sentiment: params.sentiment || 'all',
-        dateFrom: period !== 'all' ? start : undefined,
-        dateTo: period !== 'all' ? end : undefined,
-        serviceType: params.service,
-      });
-
-      if (results.length === 0) {
-        return `Aucun avis trouvé pour "${params.search}" (${period}).`;
-      }
-
-      const lines = results.map((f, i: number) => {
-        const date = new Date(f.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-        const score = f.sentimentScore !== null ? ` [${f.sentimentScore > 0 ? '👍' : '👎'} ${f.sentimentScore.toFixed(1)}]` : '';
-        const themes = Array.isArray(f.themes) && (f.themes as string[]).length > 0 ? ` #${(f.themes as string[]).join(' #')}` : '';
-        const sim = (f.similarity * 100).toFixed(0);
-        const neg = f.negativeText ? `\n   ⚠️ ${f.negativeText}` : '';
-        return `${i + 1}. [${date}]${score} ✅ ${f.positiveText}${neg}${themes} (pertinence: ${sim}%)`;
-      });
-
-      return `🔍 ${results.length} avis trouvés pour "${params.search}" (${period}) :\n\n${lines.join('\n\n')}`;
-    } catch (err) {
-      console.error('Semantic search failed, falling back to SQL:', err);
-      // Fall through to SQL search below
-    }
-  }
-
-  // Standard SQL query (no semantic search)
+  // Build base where clause
   const where: Record<string, unknown> = {
     restaurantId,
     createdAt: { gte: start, lt: end },
@@ -126,6 +94,77 @@ export async function consulterAvis(
 
   if (params.service) {
     where.serviceType = params.service;
+  }
+
+  // If search query provided, try semantic search first, then fallback to text search
+  if (params.search) {
+    try {
+      const queryEmbedding = await generateEmbedding(params.search);
+      const results = await searchByEmbedding(restaurantId, queryEmbedding, {
+        limit,
+        sentiment: params.sentiment || 'all',
+        dateFrom: period !== 'all' ? start : undefined,
+        dateTo: period !== 'all' ? end : undefined,
+        serviceType: params.service,
+      });
+
+      if (results.length > 0) {
+        const lines = results.map((f, i: number) => {
+          const date = new Date(f.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+          const score = f.sentimentScore !== null ? ` [${f.sentimentScore > 0 ? '👍' : '👎'} ${f.sentimentScore.toFixed(1)}]` : '';
+          const themes = Array.isArray(f.themes) && (f.themes as string[]).length > 0 ? ` #${(f.themes as string[]).join(' #')}` : '';
+          const sim = (f.similarity * 100).toFixed(0);
+          const neg = f.negativeText ? `\n   ⚠️ ${f.negativeText}` : '';
+          return `${i + 1}. [${date}]${score} ✅ ${f.positiveText}${neg}${themes} (pertinence: ${sim}%)`;
+        });
+
+        return `🔍 ${results.length} avis trouvés pour "${params.search}" (${period}) :\n\n${lines.join('\n\n')}`;
+      }
+    } catch (err) {
+      console.error('Semantic search failed, falling back to text search:', err);
+    }
+
+    // Fallback: text-based search (LIKE) for feedbacks not yet embedded
+    const searchTerm = params.search;
+    const textSearchOr = [
+      { positiveText: { contains: searchTerm, mode: 'insensitive' as const } },
+      { negativeText: { contains: searchTerm, mode: 'insensitive' as const } },
+    ];
+
+    let textWhere: Record<string, unknown>;
+    if (params.sentiment === 'positive') {
+      textWhere = {
+        restaurantId,
+        createdAt: { gte: start, lt: end },
+        ...(params.service ? { serviceType: params.service } : {}),
+        AND: [
+          { OR: [{ negativeText: null }, { negativeText: '' }] },
+          { OR: textSearchOr },
+        ],
+      };
+    } else {
+      textWhere = { ...where, OR: textSearchOr };
+    }
+
+    const textResults = await prisma.feedback.findMany({
+      where: textWhere,
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+    const textTotal = await prisma.feedback.count({ where: textWhere });
+
+    if (textResults.length > 0) {
+      type FB = typeof textResults[number];
+      const lines = textResults.map((f: FB, i: number) => {
+        const date = f.createdAt.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const neg = f.negativeText ? `\n   ⚠️ ${f.negativeText}` : '';
+        return `${i + 1}. [${date}] ✅ ${f.positiveText}${neg}`;
+      });
+      const showing = textTotal > limit ? ` (${limit} affichés sur ${textTotal})` : '';
+      return `🔍 ${textTotal} avis contenant "${params.search}" (${period})${showing} :\n\n${lines.join('\n\n')}`;
+    }
+
+    return `Aucun avis trouvé pour "${params.search}" (${period}).`;
   }
 
   // Try pre-computed summary for yesterday
