@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../../lib/prisma.js';
+import { processFeedbackAI } from '../../services/feedback-ai/index.js';
 import { 
   calculateDistance, 
   isWithinTimeRange, 
@@ -258,6 +259,9 @@ export async function clientRoutes(fastify: FastifyInstance) {
         serviceType,
       },
     });
+
+    // Fire-and-forget: normalize + embed in background
+    processFeedbackAI(feedback.id).catch(err => console.error('Background AI processing failed:', err));
 
     return reply.status(201).send({
       feedbackId: feedback.id,

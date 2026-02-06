@@ -5,6 +5,7 @@ import { prisma } from '../../lib/prisma.js';
 import { requireManager } from '../../middleware/auth.js';
 import { config } from '../../config/env.js';
 import { notifyClient } from '../../services/notifications/sender.js';
+import { backfillFeedbacks } from '../../services/feedback-ai/index.js';
 
 const updateRestaurantSchema = z.object({
   name: z.string().min(2).optional(),
@@ -922,6 +923,24 @@ Réponds UNIQUEMENT avec le tableau JSON, rien d'autre.`,
       success: true,
       notifiedCount,
       message: `${notifiedCount} notification(s) envoyée(s)`,
+    });
+  });
+
+  // === BACKFILL AI ===
+  fastify.post('/feedbacks/backfill-ai', async (request: FastifyRequest, reply: FastifyReply) => {
+    const restaurant = await getManagerRestaurant(request.user.id);
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
+
+    // Run backfill in background
+    const result = await backfillFeedbacks(restaurant.id);
+
+    return reply.send({
+      success: true,
+      processed: result.processed,
+      errors: result.errors,
+      message: `${result.processed} avis traités, ${result.errors} erreurs`,
     });
   });
 }

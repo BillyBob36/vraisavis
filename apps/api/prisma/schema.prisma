@@ -244,6 +244,13 @@ model Feedback {
   isProcessed  Boolean  @default(false)
   createdAt    DateTime @default(now())
 
+  // AI-enriched fields
+  normalizedText String?  @map("normalized_text") @db.Text
+  sentimentScore Float?   @map("sentiment_score")
+  themes         Json     @default("[]")
+  severity       String?
+  // embedding column is managed via raw SQL (pgvector)
+
   // Relations
   restaurantId  String
   restaurant    Restaurant  @relation(fields: [restaurantId], references: [id])

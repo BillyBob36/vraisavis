@@ -1,14 +1,8 @@
 import { prisma } from '../../lib/prisma.js';
+import { generateEmbedding, searchByEmbedding, getThemeCounts } from '../feedback-ai/embedder.js';
 
-/**
- * Tool: consulter_avis
- * Retrieves feedbacks for a restaurant for a given period.
- * First checks pre-computed summaries, falls back to raw feedbacks.
- */
-export async function consulterAvis(
-  restaurantId: string,
-  period: 'today' | 'yesterday' | 'week' | 'month' | 'all',
-): Promise<string> {
+// Helper: compute date range from period name
+function periodToRange(period: string): { start: Date; end: Date } {
   const now = new Date();
   let start: Date;
   let end: Date = now;
@@ -31,17 +25,111 @@ export async function consulterAvis(
       break;
     case 'month':
       start = new Date(now);
-      start.setDate(start.getDate() - 30);
+      start.setMonth(start.getMonth() - 1);
       start.setHours(0, 0, 0, 0);
       break;
+    case 'last_month': {
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 2);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(now);
+      end.setMonth(end.getMonth() - 1);
+      end.setHours(0, 0, 0, 0);
+      break;
+    }
+    case 'quarter':
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 3);
+      start.setHours(0, 0, 0, 0);
+      break;
+    case 'last_quarter': {
+      start = new Date(now);
+      start.setMonth(start.getMonth() - 6);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(now);
+      end.setMonth(end.getMonth() - 3);
+      end.setHours(0, 0, 0, 0);
+      break;
+    }
     case 'all':
     default:
       start = new Date(2020, 0, 1);
       break;
   }
+  return { start, end };
+}
 
-  // Try to find a pre-computed summary first (for yesterday, completed weeks/months)
-  if (period === 'yesterday') {
+/**
+ * Tool: consulter_avis
+ * Retrieves feedbacks with optional semantic search, sentiment filter, and service filter.
+ * If a search query is provided, uses embedding similarity search across ALL feedbacks.
+ * Otherwise, returns feedbacks for the given period.
+ */
+export async function consulterAvis(
+  restaurantId: string,
+  params: {
+    period?: string;
+    search?: string;
+    sentiment?: 'positive' | 'negative' | 'all';
+    service?: 'lunch' | 'dinner';
+    limit?: number;
+  },
+): Promise<string> {
+  const period = params.period || 'month';
+  const { start, end } = periodToRange(period);
+  const limit = params.limit || 30;
+
+  // If search query provided, use semantic search via embeddings
+  if (params.search) {
+    try {
+      const queryEmbedding = await generateEmbedding(params.search);
+      const results = await searchByEmbedding(restaurantId, queryEmbedding, {
+        limit,
+        sentiment: params.sentiment || 'all',
+        dateFrom: period !== 'all' ? start : undefined,
+        dateTo: period !== 'all' ? end : undefined,
+        serviceType: params.service,
+      });
+
+      if (results.length === 0) {
+        return `Aucun avis trouvé pour "${params.search}" (${period}).`;
+      }
+
+      const lines = results.map((f, i: number) => {
+        const date = new Date(f.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+        const score = f.sentimentScore !== null ? ` [${f.sentimentScore > 0 ? '👍' : '👎'} ${f.sentimentScore.toFixed(1)}]` : '';
+        const themes = Array.isArray(f.themes) && (f.themes as string[]).length > 0 ? ` #${(f.themes as string[]).join(' #')}` : '';
+        const sim = (f.similarity * 100).toFixed(0);
+        const neg = f.negativeText ? `\n   ⚠️ ${f.negativeText}` : '';
+        return `${i + 1}. [${date}]${score} ✅ ${f.positiveText}${neg}${themes} (pertinence: ${sim}%)`;
+      });
+
+      return `🔍 ${results.length} avis trouvés pour "${params.search}" (${period}) :\n\n${lines.join('\n\n')}`;
+    } catch (err) {
+      console.error('Semantic search failed, falling back to SQL:', err);
+      // Fall through to SQL search below
+    }
+  }
+
+  // Standard SQL query (no semantic search)
+  const where: Record<string, unknown> = {
+    restaurantId,
+    createdAt: { gte: start, lt: end },
+  };
+
+  if (params.sentiment === 'negative') {
+    where.negativeText = { not: '' };
+    where.NOT = { negativeText: null };
+  } else if (params.sentiment === 'positive') {
+    where.OR = [{ negativeText: null }, { negativeText: '' }];
+  }
+
+  if (params.service) {
+    where.serviceType = params.service;
+  }
+
+  // Try pre-computed summary for yesterday
+  if (period === 'yesterday' && !params.sentiment && !params.service) {
     const summary = await prisma.feedbackSummary.findFirst({
       where: {
         restaurantId,
@@ -54,27 +142,29 @@ export async function consulterAvis(
     }
   }
 
-  // Fall back to raw feedbacks
   const feedbacks = await prisma.feedback.findMany({
-    where: {
-      restaurantId,
-      createdAt: { gte: start, lt: end },
-    },
+    where,
     orderBy: { createdAt: 'desc' },
-    take: 50,
+    take: limit,
   });
+
+  const total = await prisma.feedback.count({ where });
 
   if (feedbacks.length === 0) {
-    return `Aucun avis trouvé pour la période "${period}".`;
+    return `Aucun avis trouvé pour la période "${period}"${params.sentiment ? ` (${params.sentiment})` : ''}.`;
   }
 
-  const lines = feedbacks.map((f: { createdAt: Date; positiveText: string; negativeText: string | null }, i: number) => {
+  type FB = typeof feedbacks[number];
+  const lines = feedbacks.map((f: FB, i: number) => {
     const date = f.createdAt.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-    const neg = f.negativeText ? `\n   ⚠️ À améliorer : ${f.negativeText}` : '';
-    return `${i + 1}. [${date}] ✅ ${f.positiveText}${neg}`;
+    const score = f.sentimentScore !== null ? ` [${f.sentimentScore > 0 ? '👍' : '👎'} ${f.sentimentScore.toFixed(1)}]` : '';
+    const themes = Array.isArray(f.themes) && (f.themes as string[]).length > 0 ? ` #${(f.themes as string[]).join(' #')}` : '';
+    const neg = f.negativeText ? `\n   ⚠️ ${f.negativeText}` : '';
+    return `${i + 1}. [${date}]${score} ✅ ${f.positiveText}${neg}${themes}`;
   });
 
-  return `📊 ${feedbacks.length} avis (${period}) :\n\n${lines.join('\n\n')}`;
+  const showing = total > limit ? ` (${limit} affichés sur ${total})` : '';
+  return `📊 ${total} avis (${period})${showing} :\n\n${lines.join('\n\n')}`;
 }
 
 /**
@@ -416,6 +506,132 @@ export async function signalerAmelioration(
   }
 
   return '❌ Action non reconnue. Utilisez : analyze ou notify.';
+}
+
+/**
+ * Tool: analyser_tendances
+ * Compares feedback themes between two periods to identify trends.
+ * Can also give a snapshot of top themes for a single period.
+ */
+export async function analyserTendances(
+  restaurantId: string,
+  params: {
+    period: string;
+    compareTo?: string;
+    sentiment?: 'positive' | 'negative' | 'all';
+    service?: 'lunch' | 'dinner';
+  },
+): Promise<string> {
+  const sentiment = params.sentiment || 'negative';
+  const { start: s1, end: e1 } = periodToRange(params.period);
+
+  // Get counts for current period
+  const currentThemes = await getThemeCounts(restaurantId, s1, e1, sentiment);
+  const currentTotal = await prisma.feedback.count({
+    where: {
+      restaurantId,
+      createdAt: { gte: s1, lt: e1 },
+      ...(sentiment === 'negative' ? { negativeText: { not: '' }, NOT: { negativeText: null } } : {}),
+      ...(sentiment === 'positive' ? { OR: [{ negativeText: null }, { negativeText: '' }] } : {}),
+      ...(params.service ? { serviceType: params.service } : {}),
+    },
+  });
+
+  // If compareTo is provided, get counts for comparison period
+  if (params.compareTo) {
+    const { start: s2, end: e2 } = periodToRange(params.compareTo);
+    const prevThemes = await getThemeCounts(restaurantId, s2, e2, sentiment);
+    const prevTotal = await prisma.feedback.count({
+      where: {
+        restaurantId,
+        createdAt: { gte: s2, lt: e2 },
+        ...(sentiment === 'negative' ? { negativeText: { not: '' }, NOT: { negativeText: null } } : {}),
+        ...(sentiment === 'positive' ? { OR: [{ negativeText: null }, { negativeText: '' }] } : {}),
+        ...(params.service ? { serviceType: params.service } : {}),
+      },
+    });
+
+    // Merge all themes
+    const allThemes = new Set([...Object.keys(currentThemes), ...Object.keys(prevThemes)]);
+
+    const trends: Array<{ theme: string; current: number; previous: number; change: number }> = [];
+    for (const theme of allThemes) {
+      const current = currentThemes[theme] || 0;
+      const previous = prevThemes[theme] || 0;
+      const change = previous > 0 ? ((current - previous) / previous) * 100 : (current > 0 ? 100 : 0);
+      trends.push({ theme, current, previous, change });
+    }
+
+    // Sort by absolute change
+    trends.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+
+    const rising = trends.filter(t => t.change > 10);
+    const declining = trends.filter(t => t.change < -10);
+    const stable = trends.filter(t => Math.abs(t.change) <= 10);
+
+    const sentimentLabel = sentiment === 'negative' ? 'négatifs' : sentiment === 'positive' ? 'positifs' : 'tous';
+    const lines: string[] = [
+      `📊 Comparaison tendances (${sentimentLabel}) :`,
+      `📅 ${params.period} : ${currentTotal} avis | ${params.compareTo} : ${prevTotal} avis`,
+    ];
+
+    if (rising.length > 0) {
+      lines.push(`\n📈 **En hausse :**`);
+      for (const t of rising.slice(0, 5)) {
+        lines.push(`  • ${t.theme} : ${t.previous} → ${t.current} (+${t.change.toFixed(0)}%)`);
+      }
+    }
+
+    if (declining.length > 0) {
+      lines.push(`\n📉 **En baisse :**`);
+      for (const t of declining.slice(0, 5)) {
+        lines.push(`  • ${t.theme} : ${t.previous} → ${t.current} (${t.change.toFixed(0)}%)`);
+      }
+    }
+
+    if (stable.length > 0) {
+      lines.push(`\n🔄 **Stable :** ${stable.map(t => t.theme).join(', ')}`);
+    }
+
+    // Common themes
+    const common = trends.filter(t => t.current > 0 && t.previous > 0);
+    if (common.length > 0) {
+      lines.push(`\n🔗 **Thèmes communs :** ${common.map(t => t.theme).join(', ')}`);
+    }
+
+    // New themes (only in current)
+    const newThemes = trends.filter(t => t.current > 0 && t.previous === 0);
+    if (newThemes.length > 0) {
+      lines.push(`\n🆕 **Nouveaux thèmes :** ${newThemes.map(t => `${t.theme} (${t.current}x)`).join(', ')}`);
+    }
+
+    // Resolved themes (only in previous)
+    const resolved = trends.filter(t => t.current === 0 && t.previous > 0);
+    if (resolved.length > 0) {
+      lines.push(`\n✅ **Résolus :** ${resolved.map(t => `${t.theme} (était ${t.previous}x)`).join(', ')}`);
+    }
+
+    return lines.join('\n');
+  }
+
+  // Single period: just show top themes
+  if (Object.keys(currentThemes).length === 0) {
+    return `Aucun thème identifié pour la période "${params.period}". Les avis n'ont peut-être pas encore été analysés par l'IA.`;
+  }
+
+  const sentimentLabel = sentiment === 'negative' ? 'négatifs' : sentiment === 'positive' ? 'positifs' : 'tous';
+  const sorted = Object.entries(currentThemes).sort((a, b) => b[1] - a[1]);
+  const lines: string[] = [
+    `📊 Top thèmes ${sentimentLabel} (${params.period}, ${currentTotal} avis) :`,
+  ];
+
+  for (const [theme, count] of sorted.slice(0, 10)) {
+    const pct = currentTotal > 0 ? ((count / currentTotal) * 100).toFixed(0) : '0';
+    const bar = '█'.repeat(Math.max(1, Math.round(count / Math.max(...sorted.map(s => s[1])) * 10)));
+    lines.push(`  ${bar} ${theme} : ${count} (${pct}%)`);
+  }
+
+  return lines.join('\n');
 }
 
 // Helper to format a pre-computed summary

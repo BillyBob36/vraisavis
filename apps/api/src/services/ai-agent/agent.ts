@@ -1,20 +1,25 @@
 import { config } from '../../config/env.js';
-import { consulterAvis, gererLots, stats, signalerAmelioration } from './tools.js';
+import { consulterAvis, gererLots, stats, signalerAmelioration, analyserTendances } from './tools.js';
 import { getOrCreateSession, appendToSession } from '../messaging/router.js';
 
 const SYSTEM_PROMPT = `Tu es l'assistant IA du restaurant. Tu aides le manager à :
-1. Consulter les avis clients (par jour, semaine, mois)
-2. Gérer les lots de la machine à sous (lister, ajouter, modifier, supprimer, désactiver/réactiver, stats)
-3. Voir les statistiques du restaurant
-4. Signaler des améliorations et notifier les clients concernés
+1. Consulter et rechercher les avis clients (par période, par thème, par sentiment, par service)
+2. Analyser les tendances et comparer les périodes
+3. Gérer les lots de la machine à sous
+4. Voir les statistiques du restaurant
+5. Signaler des améliorations et notifier les clients concernés
 
 Règles :
 - Réponds toujours en français, de manière concise et professionnelle
-- Si le manager demande les avis, utilise la fonction consulter_avis
+- Pour chercher des avis sur un sujet précis (ex: "les avis qui parlent de choucroute"), utilise consulter_avis avec le paramètre search. La recherche est sémantique : elle trouve les avis par sens, pas juste par mots-clés.
+- Pour filtrer par sentiment, utilise sentiment="negative" ou "positive"
+- Pour comparer deux périodes (ex: "ce mois vs le mois dernier"), utilise analyser_tendances avec period et compareTo
+- Pour voir les thèmes principaux d'une période, utilise analyser_tendances avec juste period
+- Périodes disponibles : today, yesterday, week, month, last_month, quarter, last_quarter, all
 - Si le manager parle de lots/cadeaux/prix/machine à sous, utilise gerer_lots
-- Si le manager demande des chiffres/stats, utilise la fonction stats
-- Si le manager signale une amélioration (ex: "on a changé les chaises", "on a amélioré la carte"), utilise signaler_amelioration avec action=analyze
-- Si le manager confirme vouloir notifier les clients après une analyse, utilise signaler_amelioration avec action=notify et l'improvementId
+- Si le manager demande des chiffres/stats globaux, utilise la fonction stats
+- Si le manager signale une amélioration, utilise signaler_amelioration avec action=analyze
+- Si le manager confirme vouloir notifier les clients, utilise signaler_amelioration avec action=notify et l'improvementId
 - Sois proactif : propose des actions concrètes basées sur les données
 - Formate tes réponses pour être lisibles sur mobile (messages courts, emojis)
 - Ne révèle jamais de données techniques (IDs, SQL, etc.)`;
@@ -24,17 +29,30 @@ const TOOLS_DEFINITION = [
     type: 'function' as const,
     function: {
       name: 'consulter_avis',
-      description: 'Consulte les avis clients du restaurant pour une période donnée',
+      description: 'Consulte et recherche les avis clients. Supporte la recherche sémantique (par sens, pas juste mots-clés), le filtrage par sentiment et service, et les périodes étendues.',
       parameters: {
         type: 'object',
         properties: {
           period: {
             type: 'string',
-            enum: ['today', 'yesterday', 'week', 'month', 'all'],
+            enum: ['today', 'yesterday', 'week', 'month', 'last_month', 'quarter', 'last_quarter', 'all'],
             description: 'Période à consulter',
           },
+          search: {
+            type: 'string',
+            description: 'Recherche sémantique : trouve les avis liés à ce sujet (ex: "choucroute", "temps d\'attente", "bruit")',
+          },
+          sentiment: {
+            type: 'string',
+            enum: ['positive', 'negative', 'all'],
+            description: 'Filtrer par sentiment',
+          },
+          service: {
+            type: 'string',
+            enum: ['lunch', 'dinner'],
+            description: 'Filtrer par service (midi/soir)',
+          },
         },
-        required: ['period'],
       },
     },
   },
@@ -75,6 +93,39 @@ const TOOLS_DEFINITION = [
             type: 'string',
             enum: ['today', 'week', 'month', 'all'],
             description: 'Période des stats',
+          },
+        },
+        required: ['period'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'analyser_tendances',
+      description: 'Analyse les tendances des avis par thème. Peut comparer deux périodes pour voir ce qui s\'améliore, se dégrade, ou reste stable. Identifie les nouveaux problèmes et les problèmes résolus.',
+      parameters: {
+        type: 'object',
+        properties: {
+          period: {
+            type: 'string',
+            enum: ['today', 'yesterday', 'week', 'month', 'last_month', 'quarter', 'last_quarter', 'all'],
+            description: 'Période principale à analyser',
+          },
+          compareTo: {
+            type: 'string',
+            enum: ['yesterday', 'week', 'month', 'last_month', 'quarter', 'last_quarter'],
+            description: 'Période de comparaison (optionnel). Ex: period=month + compareTo=last_month pour comparer ce mois au mois dernier',
+          },
+          sentiment: {
+            type: 'string',
+            enum: ['positive', 'negative', 'all'],
+            description: 'Filtrer par sentiment (défaut: negative)',
+          },
+          service: {
+            type: 'string',
+            enum: ['lunch', 'dinner'],
+            description: 'Filtrer par service',
           },
         },
         required: ['period'],
@@ -246,7 +297,12 @@ async function executeTool(
   try {
     switch (name) {
       case 'consulter_avis':
-        return await consulterAvis(restaurantId, (args.period as 'today' | 'yesterday' | 'week' | 'month' | 'all') || 'today');
+        return await consulterAvis(restaurantId, {
+          period: args.period as string | undefined,
+          search: args.search as string | undefined,
+          sentiment: args.sentiment as 'positive' | 'negative' | 'all' | undefined,
+          service: args.service as 'lunch' | 'dinner' | undefined,
+        });
 
       case 'gerer_lots':
         return await gererLots(restaurantId, (args.action as 'list' | 'add' | 'edit' | 'remove' | 'deactivate' | 'stats') || 'list', {
@@ -261,6 +317,14 @@ async function executeTool(
 
       case 'stats':
         return await stats(restaurantId, (args.period as 'today' | 'week' | 'month' | 'all') || 'today');
+
+      case 'analyser_tendances':
+        return await analyserTendances(restaurantId, {
+          period: (args.period as string) || 'month',
+          compareTo: args.compareTo as string | undefined,
+          sentiment: args.sentiment as 'positive' | 'negative' | 'all' | undefined,
+          service: args.service as 'lunch' | 'dinner' | undefined,
+        });
 
       case 'signaler_amelioration':
         return await signalerAmelioration(restaurantId, (args.action as 'analyze' | 'notify') || 'analyze', {
