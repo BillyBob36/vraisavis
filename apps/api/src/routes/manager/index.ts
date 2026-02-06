@@ -688,24 +688,27 @@ export async function managerRoutes(fastify: FastifyInstance) {
 
     type FeedbackWithFP = typeof negativeFeedbacks[number];
 
-    // Use OpenAI to match the improvement against negative feedbacks
+    // Use Azure OpenAI to match the improvement against negative feedbacks
     const feedbackTexts = negativeFeedbacks.map((f: FeedbackWithFP, i: number) => `[${i}] ${f.negativeText}`).join('\n');
 
-    const openaiKey = config.OPENAI_API_KEY;
-    const model = config.OPENAI_MODEL;
+    const azureEndpoint = config.AZURE_OPENAI_ENDPOINT;
+    const azureKey = config.AZURE_OPENAI_API_KEY;
+    const deployment = config.AZURE_OPENAI_DEPLOYMENT;
+    const apiVersion = config.AZURE_OPENAI_API_VERSION;
 
     let matchedIndices: number[] = [];
 
-    if (openaiKey) {
+    if (azureEndpoint && azureKey) {
       try {
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        const apiUrl = `${azureEndpoint.replace(/\/$/, '')}/openai/deployments/${deployment}/chat/completions?api-version=${apiVersion}`;
+
+        const res = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openaiKey}`,
+            'api-key': azureKey,
           },
           body: JSON.stringify({
-            model,
             messages: [
               {
                 role: 'system',
@@ -733,7 +736,7 @@ Réponds UNIQUEMENT avec le tableau JSON, rien d'autre.`,
             matchedIndices = JSON.parse(jsonMatch[0]);
           }
         } else {
-          console.error('OpenAI API error:', res.status, await res.text());
+          console.error('Azure OpenAI API error:', res.status, await res.text());
         }
       } catch (err) {
         console.error('OpenAI matching error:', err);
