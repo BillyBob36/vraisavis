@@ -249,6 +249,27 @@ export async function clientRoutes(fastify: FastifyInstance) {
       serviceType = 'dinner';
     }
 
+    // Vérifier si déjà participé pendant ce service
+    if (
+      fingerprint.lastPlayedAt &&
+      isToday(fingerprint.lastPlayedAt) &&
+      fingerprint.lastServiceType === serviceType
+    ) {
+      return reply.status(403).send({
+        error: true,
+        message: 'Vous avez déjà participé pendant ce service',
+      });
+    }
+
+    // Marquer comme ayant participé AVANT de créer le feedback
+    await prisma.fingerprint.update({
+      where: { id: fingerprintId },
+      data: {
+        lastPlayedAt: new Date(),
+        lastServiceType: serviceType,
+      },
+    });
+
     // Créer le feedback
     const feedback = await prisma.feedback.create({
       data: {
@@ -399,15 +420,6 @@ export async function clientRoutes(fastify: FastifyInstance) {
         poolId: p.id,
         remaining: p.allocated - p.claimed,
       }));
-
-    // Mettre à jour le fingerprint
-    await prisma.fingerprint.update({
-      where: { id: fingerprintId },
-      data: {
-        lastPlayedAt: new Date(),
-        lastServiceType: currentService,
-      },
-    });
 
     // Si pas de lots disponibles
     if (availablePrizes.length === 0) {
