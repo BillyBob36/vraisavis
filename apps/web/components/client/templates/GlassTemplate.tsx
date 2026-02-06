@@ -8,10 +8,16 @@ export default function GlassTemplate(props: TemplateProps) {
     step, restaurant, onNext, onBack,
     positiveText, onPositiveChange,
     negativeText, onNegativeChange,
+    wantNotifyOwn, onWantNotifyOwnChange,
+    wantNotifyOthers, onWantNotifyOthersChange,
+    contactEmail, onContactEmailChange,
+    contactPhone, onContactPhoneChange,
     isSpinning, onSpin, spinResult,
     reelsFinished, onReelsFinished, isWin,
     prizeSymbolMap, assignedSymbols,
   } = props;
+
+  const showContactFields = wantNotifyOwn || wantNotifyOthers;
 
   // === INTRO ===
   if (step === 'intro') {
@@ -194,6 +200,125 @@ export default function GlassTemplate(props: TemplateProps) {
               <button
                 onClick={onNext}
                 className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-xl shadow-md shadow-blue-500/25 transition-all border border-white/10"
+              >
+                Suivant →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === CONTACT PREFERENCES ===
+  if (step === 'contact') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-violet-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute top-10 -left-20 w-64 h-64 bg-violet-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-10 -right-20 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+
+        <div className="w-full max-w-md relative z-10">
+          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8 space-y-5">
+            {/* Progress */}
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-1.5 bg-emerald-400/80 rounded-full shadow-sm shadow-emerald-400/50" />
+              <div className="flex-1 h-1.5 bg-blue-400/80 rounded-full shadow-sm shadow-blue-400/50" />
+              <div className="flex-1 h-1.5 bg-violet-400/80 rounded-full shadow-sm shadow-violet-400/50" />
+            </div>
+
+            {/* Header */}
+            <div className="text-center space-y-2">
+              <div className="text-4xl">🔔</div>
+              <h2 className="text-xl font-bold text-white">Restez informé(e)</h2>
+              <p className="text-sm text-white/50">
+                Souhaitez-vous être prévenu(e) quand le restaurant prend en compte les retours clients ?
+              </p>
+            </div>
+
+            {/* Toggle options */}
+            <div className="space-y-3">
+              <div
+                onClick={() => onWantNotifyOwnChange(!wantNotifyOwn)}
+                className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
+                  wantNotifyOwn ? 'border-violet-400/50 bg-violet-500/10' : 'border-white/10 bg-white/5'
+                }`}
+              >
+                <div className="flex-1 pr-3">
+                  <p className="font-semibold text-white/90 text-sm">Mes remarques</p>
+                  <p className="text-xs text-white/40">Être prévenu(e) quand mes suggestions sont prises en compte</p>
+                </div>
+                <div className={`w-12 h-7 rounded-full p-1 transition-all ${
+                  wantNotifyOwn ? 'bg-violet-500' : 'bg-white/20'
+                }`}>
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    wantNotifyOwn ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </div>
+              </div>
+
+              <div
+                onClick={() => onWantNotifyOthersChange(!wantNotifyOthers)}
+                className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
+                  wantNotifyOthers ? 'border-violet-400/50 bg-violet-500/10' : 'border-white/10 bg-white/5'
+                }`}
+              >
+                <div className="flex-1 pr-3">
+                  <p className="font-semibold text-white/90 text-sm">Autres améliorations</p>
+                  <p className="text-xs text-white/40">Être prévenu(e) des améliorations suite aux retours d'autres clients</p>
+                </div>
+                <div className={`w-12 h-7 rounded-full p-1 transition-all ${
+                  wantNotifyOthers ? 'bg-violet-500' : 'bg-white/20'
+                }`}>
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    wantNotifyOthers ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </div>
+              </div>
+            </div>
+
+            {/* Contact fields */}
+            {showContactFields && (
+              <div className="space-y-3">
+                <div className="bg-blue-500/10 border border-blue-400/20 rounded-xl p-3">
+                  <p className="text-xs text-blue-300">
+                    🔒 Vos coordonnées restent <strong>strictement anonymes</strong>. Le restaurateur n'y a pas accès. Elles servent uniquement à vous envoyer une alerte automatique en cas d'amélioration liée à vos retours.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => onContactEmailChange(e.target.value)}
+                    placeholder="votre@email.com"
+                    className="w-full p-3 bg-white/5 border border-white/20 rounded-xl text-sm text-white focus:border-violet-400/50 focus:ring-2 focus:ring-violet-400/20 outline-none transition-all placeholder:text-white/20 backdrop-blur-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-1">Téléphone <span className="text-white/30 font-normal">(optionnel)</span></label>
+                  <input
+                    type="tel"
+                    value={contactPhone}
+                    onChange={(e) => onContactPhoneChange(e.target.value)}
+                    placeholder="06 12 34 56 78"
+                    className="w-full p-3 bg-white/5 border border-white/20 rounded-xl text-sm text-white focus:border-violet-400/50 focus:ring-2 focus:ring-violet-400/20 outline-none transition-all placeholder:text-white/20 backdrop-blur-xl"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={onBack}
+                className="px-6 py-3 text-white/50 font-medium rounded-xl hover:bg-white/5 border border-white/10 transition-all"
+              >
+                Retour
+              </button>
+              <button
+                onClick={onNext}
+                disabled={showContactFields && !contactEmail && !contactPhone}
+                className="flex-1 py-3 bg-gradient-to-r from-violet-500 to-purple-500 text-white font-bold rounded-xl shadow-md shadow-violet-500/25 disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-white/10"
               >
                 Jouer à la machine ! 🎰
               </button>

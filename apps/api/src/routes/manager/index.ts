@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import { prisma } from '../../lib/prisma.js';
 import { requireManager } from '../../middleware/auth.js';
 import { config } from '../../config/env.js';
+import { notifyClient } from '../../services/notifications/sender.js';
 
 const updateRestaurantSchema = z.object({
   name: z.string().min(2).optional(),
@@ -110,7 +111,19 @@ export async function managerRoutes(fastify: FastifyInstance) {
 
   // === FEEDBACKS ===
   fastify.get('/feedbacks', async (request: FastifyRequest<{
-    Querystring: { page?: string; limit?: string; filter?: string }
+    Querystring: {
+      page?: string;
+      limit?: string;
+      filter?: string;
+      search?: string;
+      sentiment?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      service?: string;
+      wantsNotify?: string;
+      sort?: string;
+      order?: string;
+    }
   }>, reply: FastifyReply) => {
     const restaurant = await getManagerRestaurant(request.user.id);
     if (!restaurant) {
@@ -120,19 +133,81 @@ export async function managerRoutes(fastify: FastifyInstance) {
     const page = parseInt(request.query.page || '1');
     const limit = parseInt(request.query.limit || '20');
     const filter = request.query.filter;
+    const search = request.query.search?.trim();
+    const sentiment = request.query.sentiment;
+    const dateFrom = request.query.dateFrom;
+    const dateTo = request.query.dateTo;
+    const service = request.query.service;
+    const wantsNotify = request.query.wantsNotify;
+    const sort = request.query.sort || 'createdAt';
+    const order = request.query.order || 'desc';
 
     const where: Record<string, unknown> = { restaurantId: restaurant.id };
     if (filter === 'unread') where.isRead = false;
     if (filter === 'unprocessed') where.isProcessed = false;
 
-    const [feedbacks, total] = await Promise.all([
+    // Search by keyword in positive or negative text
+    if (search) {
+      where.OR = [
+        { positiveText: { contains: search, mode: 'insensitive' } },
+        { negativeText: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Sentiment filter
+    if (sentiment === 'positive') {
+      where.positiveText = { not: '' };
+      where.negativeText = { in: [null, ''] };
+    } else if (sentiment === 'negative') {
+      where.negativeText = { not: { in: [null, ''] } };
+    }
+
+    // Date range
+    if (dateFrom) where.createdAt = { ...(where.createdAt as Record<string, unknown> || {}), gte: new Date(dateFrom) };
+    if (dateTo) {
+      const endDate = new Date(dateTo);
+      endDate.setHours(23, 59, 59, 999);
+      where.createdAt = { ...(where.createdAt as Record<string, unknown> || {}), lte: endDate };
+    }
+
+    // Service type
+    if (service && (service === 'lunch' || service === 'dinner')) {
+      where.serviceType = service;
+    }
+
+    // Wants notification filter
+    if (wantsNotify === 'true') {
+      where.fingerprint = { OR: [{ wantNotifyOwn: true }, { wantNotifyOthers: true }] };
+    }
+
+    // Sort
+    const orderBy: Record<string, string> = {};
+    if (sort === 'createdAt' || sort === 'serviceType') {
+      orderBy[sort] = order === 'asc' ? 'asc' : 'desc';
+    } else {
+      orderBy.createdAt = 'desc';
+    }
+
+    const [feedbacks, total, totalAll, totalUnread] = await Promise.all([
       prisma.feedback.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
+        include: {
+          fingerprint: {
+            select: {
+              wantNotifyOwn: true,
+              wantNotifyOthers: true,
+              contactEmail: true,
+              contactPhone: true,
+            },
+          },
+        },
       }),
       prisma.feedback.count({ where }),
+      prisma.feedback.count({ where: { restaurantId: restaurant.id } }),
+      prisma.feedback.count({ where: { restaurantId: restaurant.id, isRead: false } }),
     ]);
 
     return reply.send({
@@ -142,6 +217,10 @@ export async function managerRoutes(fastify: FastifyInstance) {
         limit,
         total,
         pages: Math.ceil(total / limit),
+      },
+      stats: {
+        totalAll,
+        totalUnread,
       },
     });
   });
@@ -550,6 +629,285 @@ export async function managerRoutes(fastify: FastifyInstance) {
       feedbacksByDay,
       feedbacksByService,
       topPrizes,
+    });
+  });
+
+  // === IMPROVEMENTS ===
+
+  // Analyze: AI matches improvement text against negative feedbacks
+  fastify.post('/improvements', async (request: FastifyRequest<{
+    Body: { description: string }
+  }>, reply: FastifyReply) => {
+    const restaurant = await getManagerRestaurant(request.user.id);
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
+
+    const { description } = request.body as { description: string };
+    if (!description || description.trim().length < 3) {
+      return reply.status(400).send({ error: true, message: 'Description trop courte' });
+    }
+
+    // Fetch negative feedbacks with fingerprints that want notifications
+    const negativeFeedbacks = await prisma.feedback.findMany({
+      where: {
+        restaurantId: restaurant.id,
+        negativeText: { not: { in: [null, ''] } },
+      },
+      include: {
+        fingerprint: {
+          select: {
+            id: true,
+            wantNotifyOwn: true,
+            wantNotifyOthers: true,
+            contactEmail: true,
+            contactPhone: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 500,
+    });
+
+    // Use OpenAI to match the improvement against negative feedbacks
+    const feedbackTexts = negativeFeedbacks.map((f: { negativeText: string | null }, i: number) => `[${i}] ${f.negativeText}`).join('\n');
+
+    const openaiEndpoint = config.AZURE_OPENAI_ENDPOINT;
+    const openaiKey = config.AZURE_OPENAI_API_KEY;
+    const deployment = config.AZURE_OPENAI_DEPLOYMENT;
+
+    let matchedIndices: number[] = [];
+
+    if (openaiEndpoint && openaiKey) {
+      try {
+        const apiUrl = openaiEndpoint.includes('openai.azure.com')
+          ? `${openaiEndpoint}/openai/deployments/${deployment}/chat/completions?api-version=${config.AZURE_OPENAI_API_VERSION}`
+          : 'https://api.openai.com/v1/chat/completions';
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (openaiEndpoint.includes('openai.azure.com')) {
+          headers['api-key'] = openaiKey;
+        } else {
+          headers['Authorization'] = `Bearer ${openaiKey}`;
+        }
+
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            model: deployment,
+            messages: [
+              {
+                role: 'system',
+                content: `Tu es un assistant qui analyse des commentaires négatifs de clients de restaurant.
+On te donne une amélioration faite par le restaurateur et une liste de commentaires négatifs numérotés.
+Retourne UNIQUEMENT un tableau JSON d'indices (nombres) des commentaires qui sont directement liés à cette amélioration.
+Si aucun commentaire ne correspond, retourne [].
+Réponds UNIQUEMENT avec le tableau JSON, rien d'autre.`,
+              },
+              {
+                role: 'user',
+                content: `Amélioration : "${description.trim()}"\n\nCommentaires négatifs :\n${feedbackTexts}`,
+              },
+            ],
+            temperature: 0.1,
+            max_tokens: 1000,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json() as { choices: Array<{ message: { content: string } }> };
+          const content = data.choices?.[0]?.message?.content?.trim() || '[]';
+          const jsonMatch = content.match(/\[[\d\s,]*\]/);
+          if (jsonMatch) {
+            matchedIndices = JSON.parse(jsonMatch[0]);
+          }
+        }
+      } catch (err) {
+        console.error('OpenAI matching error:', err);
+      }
+    }
+
+    // Fallback: simple keyword matching if AI fails
+    if (matchedIndices.length === 0) {
+      const keywords = description.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+      matchedIndices = negativeFeedbacks
+        .map((f: { negativeText: string | null }, i: number) => {
+          const text = (f.negativeText || '').toLowerCase();
+          const matches = keywords.filter(k => text.includes(k));
+          return matches.length > 0 ? i : -1;
+        })
+        .filter((i: number) => i >= 0);
+    }
+
+    const matchedFeedbacks = matchedIndices
+      .filter(i => i >= 0 && i < negativeFeedbacks.length)
+      .map(i => negativeFeedbacks[i]);
+
+    // Count notifiable clients
+    const notifiableCount = matchedFeedbacks.filter(
+      f => (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
+           (f.fingerprint.contactEmail || f.fingerprint.contactPhone)
+    ).length;
+
+    // Create improvement record
+    const improvement = await prisma.improvement.create({
+      data: {
+        description: description.trim(),
+        restaurantId: restaurant.id,
+        matchedFeedbackIds: matchedFeedbacks.map(f => f.id),
+      },
+    });
+
+    return reply.send({
+      improvement,
+      matchedFeedbacks: matchedFeedbacks.map(f => ({
+        id: f.id,
+        negativeText: f.negativeText,
+        positiveText: f.positiveText,
+        createdAt: f.createdAt,
+        serviceType: f.serviceType,
+        wantsNotify: (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
+                     !!(f.fingerprint.contactEmail || f.fingerprint.contactPhone),
+      })),
+      notifiableCount,
+    });
+  });
+
+  // List improvements
+  fastify.get('/improvements', async (request: FastifyRequest, reply: FastifyReply) => {
+    const restaurant = await getManagerRestaurant(request.user.id);
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
+
+    const improvements = await prisma.improvement.findMany({
+      where: { restaurantId: restaurant.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+
+    return reply.send({ improvements });
+  });
+
+  // Notify clients about an improvement
+  fastify.post('/improvements/:id/notify', async (request: FastifyRequest<{
+    Params: { id: string }
+  }>, reply: FastifyReply) => {
+    const restaurant = await getManagerRestaurant(request.user.id);
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
+
+    const { id } = request.params;
+
+    const improvement = await prisma.improvement.findFirst({
+      where: { id, restaurantId: restaurant.id },
+    });
+
+    if (!improvement) {
+      return reply.status(404).send({ error: true, message: 'Amélioration non trouvée' });
+    }
+
+    if (improvement.status === 'NOTIFIED') {
+      return reply.status(400).send({ error: true, message: 'Les clients ont déjà été notifiés pour cette amélioration' });
+    }
+
+    const feedbackIds = improvement.matchedFeedbackIds as string[];
+
+    // Get unique fingerprints that want notifications
+    const feedbacks = await prisma.feedback.findMany({
+      where: { id: { in: feedbackIds } },
+      include: {
+        fingerprint: {
+          select: {
+            id: true,
+            wantNotifyOwn: true,
+            wantNotifyOthers: true,
+            contactEmail: true,
+            contactPhone: true,
+          },
+        },
+      },
+    });
+
+    // Deduplicate by fingerprint ID
+    const seen = new Set<string>();
+    const uniqueFingerprints = feedbacks
+      .filter((f: { fingerprintId: string; fingerprint: { id: string; wantNotifyOwn: boolean; wantNotifyOthers: boolean; contactEmail: string | null; contactPhone: string | null } }) => {
+        if (seen.has(f.fingerprintId)) return false;
+        seen.add(f.fingerprintId);
+        return (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
+               (f.fingerprint.contactEmail || f.fingerprint.contactPhone);
+      })
+      .map((f: { fingerprint: { id: string; wantNotifyOwn: boolean; wantNotifyOthers: boolean; contactEmail: string | null; contactPhone: string | null } }) => f.fingerprint);
+
+    let notifiedCount = 0;
+    const notifications: Array<{
+      fingerprintId: string;
+      channel: string;
+      destination: string;
+      success: boolean;
+    }> = [];
+
+    for (const fp of uniqueFingerprints) {
+      const result = await notifyClient(
+        restaurant.name,
+        improvement.description,
+        fp.contactEmail,
+        fp.contactPhone,
+      );
+
+      if (result.emailSent) {
+        notifications.push({
+          fingerprintId: fp.id,
+          channel: 'email',
+          destination: fp.contactEmail!,
+          success: true,
+        });
+        notifiedCount++;
+      }
+
+      if (result.smsSent) {
+        notifications.push({
+          fingerprintId: fp.id,
+          channel: 'sms',
+          destination: fp.contactPhone!,
+          success: true,
+        });
+        notifiedCount++;
+      }
+    }
+
+    // Save notifications
+    if (notifications.length > 0) {
+      await prisma.improvementNotification.createMany({
+        data: notifications.map(n => ({
+          improvementId: improvement.id,
+          fingerprintId: n.fingerprintId,
+          channel: n.channel,
+          destination: n.destination,
+          success: n.success,
+        })),
+      });
+    }
+
+    // Update improvement status
+    await prisma.improvement.update({
+      where: { id: improvement.id },
+      data: {
+        status: 'NOTIFIED',
+        notifiedAt: new Date(),
+        notifiedCount,
+      },
+    });
+
+    return reply.send({
+      success: true,
+      notifiedCount,
+      message: `${notifiedCount} notification(s) envoyée(s)`,
     });
   });
 }

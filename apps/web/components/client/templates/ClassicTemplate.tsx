@@ -8,10 +8,16 @@ export default function ClassicTemplate(props: TemplateProps) {
     step, restaurant, onNext, onBack,
     positiveText, onPositiveChange,
     negativeText, onNegativeChange,
+    wantNotifyOwn, onWantNotifyOwnChange,
+    wantNotifyOthers, onWantNotifyOthersChange,
+    contactEmail, onContactEmailChange,
+    contactPhone, onContactPhoneChange,
     isSpinning, onSpin, spinResult,
     reelsFinished, onReelsFinished, isWin,
     prizeSymbolMap, assignedSymbols,
   } = props;
+
+  const showContactFields = wantNotifyOwn || wantNotifyOthers;
 
   // === INTRO ===
   if (step === 'intro') {
@@ -181,6 +187,122 @@ export default function ClassicTemplate(props: TemplateProps) {
               <button
                 onClick={onNext}
                 className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all"
+              >
+                Suivant →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === CONTACT PREFERENCES ===
+  if (step === 'contact') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 space-y-5">
+            {/* Progress */}
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-2 bg-green-400 rounded-full" />
+              <div className="flex-1 h-2 bg-blue-400 rounded-full" />
+              <div className="flex-1 h-2 bg-violet-400 rounded-full" />
+            </div>
+
+            {/* Header */}
+            <div className="text-center space-y-2">
+              <div className="text-4xl">🔔</div>
+              <h2 className="text-xl font-bold text-gray-900">Restez informé(e)</h2>
+              <p className="text-sm text-gray-500">
+                Souhaitez-vous être prévenu(e) quand le restaurant prend en compte les retours clients ?
+              </p>
+            </div>
+
+            {/* Toggle options */}
+            <div className="space-y-3">
+              <div
+                onClick={() => onWantNotifyOwnChange(!wantNotifyOwn)}
+                className={`flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                  wantNotifyOwn ? 'border-violet-400 bg-violet-50' : 'border-gray-200 bg-white'
+                }`}
+              >
+                <div className="flex-1 pr-3">
+                  <p className="font-semibold text-gray-900 text-sm">Mes remarques</p>
+                  <p className="text-xs text-gray-500">Être prévenu(e) quand mes suggestions sont prises en compte</p>
+                </div>
+                <div className={`w-12 h-7 rounded-full p-1 transition-all ${
+                  wantNotifyOwn ? 'bg-violet-500' : 'bg-gray-300'
+                }`}>
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    wantNotifyOwn ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </div>
+              </div>
+
+              <div
+                onClick={() => onWantNotifyOthersChange(!wantNotifyOthers)}
+                className={`flex items-center justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                  wantNotifyOthers ? 'border-violet-400 bg-violet-50' : 'border-gray-200 bg-white'
+                }`}
+              >
+                <div className="flex-1 pr-3">
+                  <p className="font-semibold text-gray-900 text-sm">Autres améliorations</p>
+                  <p className="text-xs text-gray-500">Être prévenu(e) des améliorations suite aux retours d'autres clients</p>
+                </div>
+                <div className={`w-12 h-7 rounded-full p-1 transition-all ${
+                  wantNotifyOthers ? 'bg-violet-500' : 'bg-gray-300'
+                }`}>
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    wantNotifyOthers ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </div>
+              </div>
+            </div>
+
+            {/* Contact fields — only if at least one toggle is on */}
+            {showContactFields && (
+              <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                  <p className="text-xs text-blue-700">
+                    🔒 Vos coordonnées restent <strong>strictement anonymes</strong>. Le restaurateur n'y a pas accès. Elles servent uniquement à vous envoyer une alerte automatique en cas d'amélioration liée à vos retours.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => onContactEmailChange(e.target.value)}
+                    placeholder="votre@email.com"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl text-sm focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone <span className="text-gray-400 font-normal">(optionnel)</span></label>
+                  <input
+                    type="tel"
+                    value={contactPhone}
+                    onChange={(e) => onContactPhoneChange(e.target.value)}
+                    placeholder="06 12 34 56 78"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl text-sm focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none transition-all"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={onBack}
+                className="px-6 py-3 text-gray-500 font-medium rounded-xl hover:bg-gray-100 transition-all"
+              >
+                Retour
+              </button>
+              <button
+                onClick={onNext}
+                disabled={showContactFields && !contactEmail && !contactPhone}
+                className="flex-1 py-3 bg-gradient-to-r from-violet-500 to-purple-500 text-white font-bold rounded-xl shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 Jouer à la machine ! 🎰
               </button>

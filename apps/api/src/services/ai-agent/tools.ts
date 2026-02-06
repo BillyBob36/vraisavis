@@ -267,6 +267,153 @@ export async function stats(
   return `📊 Stats (${period}) :\n• Avis reçus : ${feedbackCount}\n• Visiteurs uniques : ${uniqueVisitors}\n• Lots gagnés : ${claimCount}\n• Lots en attente : ${pendingClaims}`;
 }
 
+/**
+ * Tool: signaler_amelioration
+ * Manager signals an improvement, AI finds matching negative feedbacks and offers to notify clients.
+ */
+export async function signalerAmelioration(
+  restaurantId: string,
+  action: 'analyze' | 'notify',
+  params?: {
+    description?: string;
+    improvementId?: string;
+  },
+): Promise<string> {
+  if (action === 'analyze') {
+    if (!params?.description) {
+      return '❌ Décrivez l\'amélioration que vous avez apportée (ex: "Nous avons changé les chaises du restaurant").';
+    }
+
+    const negativeFeedbacks = await prisma.feedback.findMany({
+      where: {
+        restaurantId,
+        negativeText: { not: { in: [null, ''] } },
+      },
+      include: {
+        fingerprint: {
+          select: {
+            id: true,
+            wantNotifyOwn: true,
+            wantNotifyOthers: true,
+            contactEmail: true,
+            contactPhone: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 500,
+    });
+
+    if (negativeFeedbacks.length === 0) {
+      return '📭 Aucun commentaire négatif trouvé dans votre restaurant.';
+    }
+
+    // Simple keyword matching (AI agent itself will do the smart matching via its own reasoning)
+    const keywords = params.description.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
+    const matched = negativeFeedbacks.filter((f: { negativeText: string | null }) => {
+      const text = (f.negativeText || '').toLowerCase();
+      return keywords.some((k: string) => text.includes(k));
+    });
+
+    if (matched.length === 0) {
+      return `🔍 Aucun commentaire négatif ne semble correspondre à "${params.description}". Vos clients n'ont pas mentionné ce point.`;
+    }
+
+    const notifiable = matched.filter(
+      (f: { fingerprint: { wantNotifyOwn: boolean; wantNotifyOthers: boolean; contactEmail: string | null; contactPhone: string | null } }) =>
+        (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
+        (f.fingerprint.contactEmail || f.fingerprint.contactPhone)
+    );
+
+    // Save improvement
+    const improvement = await prisma.improvement.create({
+      data: {
+        description: params.description,
+        restaurantId,
+        matchedFeedbackIds: matched.map((f: { id: string }) => f.id),
+      },
+    });
+
+    const lines = matched.slice(0, 10).map((f: { negativeText: string | null; createdAt: Date }, i: number) => {
+      const date = f.createdAt.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+      return `${i + 1}. [${date}] "${f.negativeText}"`;
+    });
+
+    let response = `🎯 ${matched.length} commentaire(s) négatif(s) correspondent à "${params.description}" :\n\n${lines.join('\n')}`;
+
+    if (notifiable.length > 0) {
+      response += `\n\n📬 ${notifiable.length} client(s) souhaitent être prévenus des améliorations.`;
+      response += `\n💡 Voulez-vous les notifier ? Dites "oui, notifier" et je m'en occupe. (ID: ${improvement.id})`;
+    } else {
+      response += `\n\nℹ️ Aucun client n'a demandé à être notifié pour ces commentaires.`;
+    }
+
+    return response;
+  }
+
+  if (action === 'notify') {
+    if (!params?.improvementId) {
+      return '❌ Précisez l\'ID de l\'amélioration à notifier.';
+    }
+
+    const improvement = await prisma.improvement.findFirst({
+      where: { id: params.improvementId, restaurantId },
+    });
+
+    if (!improvement) return '❌ Amélioration non trouvée.';
+    if (improvement.status === 'NOTIFIED') return '✅ Les clients ont déjà été notifiés pour cette amélioration.';
+
+    const feedbackIds = improvement.matchedFeedbackIds as string[];
+    const feedbacks = await prisma.feedback.findMany({
+      where: { id: { in: feedbackIds } },
+      include: {
+        fingerprint: {
+          select: {
+            id: true,
+            wantNotifyOwn: true,
+            wantNotifyOthers: true,
+            contactEmail: true,
+            contactPhone: true,
+          },
+        },
+      },
+    });
+
+    const seen = new Set<string>();
+    const toNotify = feedbacks.filter((f: { fingerprintId: string; fingerprint: { wantNotifyOwn: boolean; wantNotifyOthers: boolean; contactEmail: string | null; contactPhone: string | null } }) => {
+      if (seen.has(f.fingerprintId)) return false;
+      seen.add(f.fingerprintId);
+      return (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
+             (f.fingerprint.contactEmail || f.fingerprint.contactPhone);
+    });
+
+    // Import notifyClient dynamically
+    const { notifyClient } = await import('../notifications/sender.js');
+
+    const restaurant = await prisma.restaurant.findUnique({ where: { id: restaurantId } });
+    let notifiedCount = 0;
+
+    for (const f of toNotify) {
+      const result = await notifyClient(
+        restaurant?.name || 'Votre restaurant',
+        improvement.description,
+        f.fingerprint.contactEmail,
+        f.fingerprint.contactPhone,
+      );
+      if (result.emailSent || result.smsSent) notifiedCount++;
+    }
+
+    await prisma.improvement.update({
+      where: { id: improvement.id },
+      data: { status: 'NOTIFIED', notifiedAt: new Date(), notifiedCount },
+    });
+
+    return `✅ ${notifiedCount} client(s) notifié(s) de votre amélioration "${improvement.description}". Bravo pour cette initiative ! 🎉`;
+  }
+
+  return '❌ Action non reconnue. Utilisez : analyze ou notify.';
+}
+
 // Helper to format a pre-computed summary
 function formatSummary(summary: {
   totalFeedbacks: number;

@@ -33,6 +33,15 @@ const spinSchema = z.object({
   restaurantId: z.string(),
 });
 
+const contactPrefsSchema = z.object({
+  fingerprintId: z.string(),
+  restaurantId: z.string(),
+  wantNotifyOwn: z.boolean(),
+  wantNotifyOthers: z.boolean(),
+  contactEmail: z.string().email().optional().or(z.literal('')),
+  contactPhone: z.string().optional().or(z.literal('')),
+});
+
 const claimSchema = z.object({
   code: z.string(),
 });
@@ -255,6 +264,41 @@ export async function clientRoutes(fastify: FastifyInstance) {
       canSpin: true,
       message: 'Merci pour votre avis !',
     });
+  });
+
+  // Enregistrer les préférences de contact
+  fastify.post('/contact-prefs', async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = contactPrefsSchema.safeParse(request.body);
+    if (!body.success) {
+      return reply.status(400).send({ error: true, message: 'Données invalides' });
+    }
+
+    const { fingerprintId, restaurantId, wantNotifyOwn, wantNotifyOthers, contactEmail, contactPhone } = body.data;
+
+    const fingerprint = await prisma.fingerprint.findUnique({
+      where: { id: fingerprintId },
+    });
+
+    if (!fingerprint || fingerprint.restaurantId !== restaurantId) {
+      return reply.status(400).send({ error: true, message: 'Session invalide' });
+    }
+
+    const needsContact = wantNotifyOwn || wantNotifyOthers;
+    if (needsContact && !contactEmail && !contactPhone) {
+      return reply.status(400).send({ error: true, message: 'Veuillez fournir un email ou un numéro de téléphone' });
+    }
+
+    await prisma.fingerprint.update({
+      where: { id: fingerprintId },
+      data: {
+        wantNotifyOwn,
+        wantNotifyOthers,
+        contactEmail: contactEmail || null,
+        contactPhone: contactPhone || null,
+      },
+    });
+
+    return reply.send({ success: true, message: 'Préférences enregistrées' });
   });
 
   // Tourner la machine à sous

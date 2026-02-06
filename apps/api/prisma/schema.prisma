@@ -66,52 +66,52 @@ enum ContractStatus {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  passwordHash  String
-  name          String
-  phone         String?
-  role          UserRole
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastLoginAt   DateTime?
-  
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         UserRole
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastLoginAt  DateTime?
+
   // Messaging
-  preferredMessaging  MessagingProvider?  @map("preferred_messaging")
-  telegramChatId      String?             @unique @map("telegram_chat_id")
-  whatsappNumber      String?             @map("whatsapp_number")
-  whatsappVerified    Boolean             @default(false) @map("whatsapp_verified")
-  messagingOptIn      Boolean             @default(false) @map("messaging_opt_in")
-  
+  preferredMessaging MessagingProvider? @map("preferred_messaging")
+  telegramChatId     String?            @unique @map("telegram_chat_id")
+  whatsappNumber     String?            @map("whatsapp_number")
+  whatsappVerified   Boolean            @default(false) @map("whatsapp_verified")
+  messagingOptIn     Boolean            @default(false) @map("messaging_opt_in")
+
   // Relations
-  managedRestaurants      Restaurant[]              @relation("RestaurantManager")
-  messagingSessions       MessagingSession[]
-  messagingVerifications  MessagingVerification[]
-  
+  managedRestaurants     Restaurant[]            @relation("RestaurantManager")
+  messagingSessions      MessagingSession[]
+  messagingVerifications MessagingVerification[]
+
   @@map("users")
 }
 
 model Vendor {
-  id               String   @id @default(cuid())
-  email            String   @unique
+  id               String    @id @default(cuid())
+  email            String    @unique
   passwordHash     String
   name             String
   phone            String?
-  referralCode     String?  @unique
-  commissionAmount Int      @default(5000)
+  referralCode     String?   @unique
+  commissionAmount Int       @default(5000)
   stripeAccountId  String?
-  stripeOnboarded  Boolean  @default(false)
-  isActive         Boolean  @default(true)
-  isValidated      Boolean  @default(false)
+  stripeOnboarded  Boolean   @default(false)
+  isActive         Boolean   @default(true)
+  isValidated      Boolean   @default(false)
   validatedAt      DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
   // Relations
-  restaurants      Restaurant[]
-  commissions      Commission[]
-  contracts        VendorContract[]
-  
+  restaurants Restaurant[]
+  commissions Commission[]
+  contracts   VendorContract[]
+
   @@map("vendors")
 }
 
@@ -127,51 +127,52 @@ model Plan {
   stripePriceIdYearly  String?
   isActive             Boolean  @default(true)
   createdAt            DateTime @default(now())
-  
+
   // Relations
   subscriptions Subscription[]
-  
+
   @@map("plans")
 }
 
 model Restaurant {
-  id              String           @id @default(cuid())
-  name            String
-  address         String
-  latitude        Float
-  longitude       Float
-  geoRadius       Int              @default(100)
-  phone           String?
-  qrCodeUrl       String?
-  status          RestaurantStatus @default(PENDING)
-  
-  serviceHours    Json
-  
+  id        String           @id @default(cuid())
+  name      String
+  address   String
+  latitude  Float
+  longitude Float
+  geoRadius Int              @default(100)
+  phone     String?
+  qrCodeUrl String?
+  status    RestaurantStatus @default(PENDING)
+
+  serviceHours Json
+
   welcomeMessage  String?
   thankYouMessage String?
-  clientTemplate  String   @default("classic") @map("client_template")
-  
+  clientTemplate  String  @default("classic") @map("client_template")
+
   // Acceptation CGU/CGV
-  cguAcceptedAt   DateTime? @map("cgu_accepted_at")
-  cguAcceptedIP   String?   @map("cgu_accepted_ip")
-  cguVersion      String?   @map("cgu_version")
-  
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  
+  cguAcceptedAt DateTime? @map("cgu_accepted_at")
+  cguAcceptedIP String?   @map("cgu_accepted_ip")
+  cguVersion    String?   @map("cgu_version")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  managerId       String
-  manager         User             @relation("RestaurantManager", fields: [managerId], references: [id])
-  vendorId        String?
-  vendor          Vendor?          @relation(fields: [vendorId], references: [id])
-  subscription    Subscription?
-  feedbacks        Feedback[]
-  prizes           Prize[]
-  prizeClaims      PrizeClaim[]
-  fingerprints     Fingerprint[]
-  dailyPrizePools  DailyPrizePool[]
+  managerId         String
+  manager           User              @relation("RestaurantManager", fields: [managerId], references: [id])
+  vendorId          String?
+  vendor            Vendor?           @relation(fields: [vendorId], references: [id])
+  subscription      Subscription?
+  feedbacks         Feedback[]
+  prizes            Prize[]
+  prizeClaims       PrizeClaim[]
+  fingerprints      Fingerprint[]
+  dailyPrizePools   DailyPrizePool[]
   feedbackSummaries FeedbackSummary[]
-  
+  improvements      Improvement[]
+
   @@map("restaurants")
 }
 
@@ -184,17 +185,17 @@ model Subscription {
   cancelAtPeriodEnd    Boolean            @default(false)
   stripeCustomerId     String?
   stripeSubscriptionId String?
-  
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  restaurantId         String             @unique
-  restaurant           Restaurant         @relation(fields: [restaurantId], references: [id])
-  planId               String
-  plan                 Plan               @relation(fields: [planId], references: [id])
-  payments             Payment[]
-  
+  restaurantId String     @unique
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  planId       String
+  plan         Plan       @relation(fields: [planId], references: [id])
+  payments     Payment[]
+
   @@map("subscriptions")
 }
 
@@ -206,11 +207,11 @@ model Payment {
   stripePaymentId String?
   invoiceUrl      String?
   createdAt       DateTime @default(now())
-  
+
   // Relations
-  subscriptionId  String
-  subscription    Subscription @relation(fields: [subscriptionId], references: [id])
-  
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+
   @@map("payments")
 }
 
@@ -221,12 +222,12 @@ model Commission {
   triggeredAt      DateTime         @default(now())
   paidAt           DateTime?
   stripeTransferId String?
-  
+
   // Relations
   vendorId     String
   vendor       Vendor @relation(fields: [vendorId], references: [id])
   restaurantId String
-  
+
   @@map("commissions")
 }
 
@@ -235,20 +236,20 @@ model Commission {
 // ============================================
 
 model Feedback {
-  id            String   @id @default(cuid())
-  positiveText  String
-  negativeText  String?
-  serviceType   String
-  isRead        Boolean  @default(false)
-  isProcessed   Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  
+  id           String   @id @default(cuid())
+  positiveText String
+  negativeText String?
+  serviceType  String
+  isRead       Boolean  @default(false)
+  isProcessed  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
   // Relations
   restaurantId  String
-  restaurant    Restaurant   @relation(fields: [restaurantId], references: [id])
+  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id])
   fingerprintId String
-  fingerprint   Fingerprint  @relation(fields: [fingerprintId], references: [id])
-  
+  fingerprint   Fingerprint @relation(fields: [fingerprintId], references: [id])
+
   @@map("feedbacks")
 }
 
@@ -259,69 +260,76 @@ model Fingerprint {
   lastServiceType String?
   createdAt       DateTime  @default(now())
   expiresAt       DateTime
-  
+
+  // Contact preferences
+  contactEmail     String? @map("contact_email")
+  contactPhone     String? @map("contact_phone")
+  wantNotifyOwn    Boolean @default(false) @map("want_notify_own")
+  wantNotifyOthers Boolean @default(false) @map("want_notify_others")
+
   // Relations
-  restaurantId    String
-  restaurant      Restaurant  @relation(fields: [restaurantId], references: [id])
-  feedbacks       Feedback[]
-  prizeClaims     PrizeClaim[]
-  
+  restaurantId             String
+  restaurant               Restaurant                @relation(fields: [restaurantId], references: [id])
+  feedbacks                Feedback[]
+  prizeClaims              PrizeClaim[]
+  improvementNotifications ImprovementNotification[]
+
   @@unique([hash, restaurantId])
   @@map("fingerprints")
 }
 
 model Prize {
-  id           String   @id @default(cuid())
-  name         String
-  description  String?
-  probability  Float
-  isActive     Boolean  @default(true)
-  maxPerDay    Int?
-  maxPerWeek   Int?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  probability Float
+  isActive    Boolean  @default(true)
+  maxPerDay   Int?
+  maxPerWeek  Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Relations
   restaurantId String
-  restaurant   Restaurant   @relation(fields: [restaurantId], references: [id])
+  restaurant   Restaurant       @relation(fields: [restaurantId], references: [id])
   claims       PrizeClaim[]
   dailyPools   DailyPrizePool[]
-  
+
   @@map("prizes")
 }
 
 model DailyPrizePool {
-  id           String   @id @default(cuid())
-  date         DateTime @db.Date
-  allocated    Int
-  claimed      Int      @default(0)
-  
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  allocated Int
+  claimed   Int      @default(0)
+
   // Relations
   prizeId      String
   prize        Prize      @relation(fields: [prizeId], references: [id])
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  
+
   @@unique([prizeId, date])
   @@map("daily_prize_pools")
 }
 
 model PrizeClaim {
-  id            String           @id @default(cuid())
-  code          String           @unique
-  status        PrizeClaimStatus @default(PENDING)
-  claimedAt     DateTime?
-  expiresAt     DateTime
-  createdAt     DateTime         @default(now())
-  
+  id        String           @id @default(cuid())
+  code      String           @unique
+  status    PrizeClaimStatus @default(PENDING)
+  claimedAt DateTime?
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+
   // Relations
   prizeId       String
-  prize         Prize        @relation(fields: [prizeId], references: [id])
+  prize         Prize       @relation(fields: [prizeId], references: [id])
   restaurantId  String
-  restaurant    Restaurant   @relation(fields: [restaurantId], references: [id])
+  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id])
   fingerprintId String
-  fingerprint   Fingerprint  @relation(fields: [fingerprintId], references: [id])
-  
+  fingerprint   Fingerprint @relation(fields: [fingerprintId], references: [id])
+
   @@map("prize_claims")
 }
 
@@ -344,47 +352,90 @@ model FeedbackSummary {
   rawAnalysis     Json?             @map("raw_analysis")
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  
+
   // Relations
-  restaurantId    String            @map("restaurant_id")
-  restaurant      Restaurant        @relation(fields: [restaurantId], references: [id])
-  
+  restaurantId String     @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
   @@unique([restaurantId, periodType, periodStart])
   @@index([restaurantId, periodType, periodStart])
   @@map("feedback_summaries")
 }
 
 model MessagingSession {
-  id                  String             @id @default(cuid())
+  id                  String            @id @default(cuid())
   provider            MessagingProvider
-  conversationHistory Json               @default("[]") @map("conversation_history")
-  lastMessageAt       DateTime?          @map("last_message_at")
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
-  
+  conversationHistory Json              @default("[]") @map("conversation_history")
+  lastMessageAt       DateTime?         @map("last_message_at")
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
   // Relations
-  managerId           String             @map("manager_id")
-  manager             User               @relation(fields: [managerId], references: [id])
-  restaurantId        String             @map("restaurant_id")
-  
+  managerId    String @map("manager_id")
+  manager      User   @relation(fields: [managerId], references: [id])
+  restaurantId String @map("restaurant_id")
+
   @@unique([managerId, restaurantId, provider])
   @@map("messaging_sessions")
 }
 
 model MessagingVerification {
-  id          String    @id @default(cuid())
-  phoneNumber String    @map("phone_number")
+  id          String   @id @default(cuid())
+  phoneNumber String   @map("phone_number")
   code        String
-  expiresAt   DateTime  @map("expires_at")
-  verified    Boolean   @default(false)
-  attempts    Int       @default(0)
-  createdAt   DateTime  @default(now())
-  
+  expiresAt   DateTime @map("expires_at")
+  verified    Boolean  @default(false)
+  attempts    Int      @default(0)
+  createdAt   DateTime @default(now())
+
   // Relations
-  managerId   String    @map("manager_id")
-  manager     User      @relation(fields: [managerId], references: [id])
-  
+  managerId String @map("manager_id")
+  manager   User   @relation(fields: [managerId], references: [id])
+
   @@map("messaging_verifications")
+}
+
+// ============================================
+// IMPROVEMENTS & CLIENT NOTIFICATIONS
+// ============================================
+
+enum ImprovementStatus {
+  DRAFT
+  NOTIFIED
+}
+
+model Improvement {
+  id                 String            @id @default(cuid())
+  description        String            @db.Text
+  matchedFeedbackIds Json              @default("[]") @map("matched_feedback_ids")
+  status             ImprovementStatus @default(DRAFT)
+  notifiedAt         DateTime?         @map("notified_at")
+  notifiedCount      Int               @default(0) @map("notified_count")
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  // Relations
+  restaurantId  String                    @map("restaurant_id")
+  restaurant    Restaurant                @relation(fields: [restaurantId], references: [id])
+  notifications ImprovementNotification[]
+
+  @@map("improvements")
+}
+
+model ImprovementNotification {
+  id          String   @id @default(cuid())
+  channel     String // 'email' or 'sms'
+  destination String // email address or phone number
+  sentAt      DateTime @default(now()) @map("sent_at")
+  success     Boolean  @default(true)
+
+  // Relations
+  improvementId String      @map("improvement_id")
+  improvement   Improvement @relation(fields: [improvementId], references: [id])
+  fingerprintId String      @map("fingerprint_id")
+  fingerprint   Fingerprint @relation(fields: [fingerprintId], references: [id])
+
+  @@map("improvement_notifications")
 }
 
 // ============================================
@@ -392,87 +443,87 @@ model MessagingVerification {
 // ============================================
 
 model ContractTemplate {
-  id                String   @id @default(cuid())
-  type              ContractType
-  version           String   @default("1.0")
-  
+  id      String       @id @default(cuid())
+  type    ContractType
+  version String       @default("1.0")
+
   // Informations légales société
-  companyName       String
-  companyLegalForm  String
-  companyCapital    String
-  companyAddress    String
-  companyRCS        String
-  companySIRET      String
-  companyVAT        String
-  companyPhone      String
-  companyEmail      String
-  companyDirector   String
-  
+  companyName      String
+  companyLegalForm String
+  companyCapital   String
+  companyAddress   String
+  companyRCS       String
+  companySIRET     String
+  companyVAT       String
+  companyPhone     String
+  companyEmail     String
+  companyDirector  String
+
   // Hébergeur
-  hostingProvider   String
-  hostingAddress    String
-  
+  hostingProvider String
+  hostingAddress  String
+
   // DPO
-  dpoEmail          String?
-  
+  dpoEmail String?
+
   // Médiateur
-  mediatorName      String
-  mediatorAddress   String
-  mediatorWebsite   String
-  
+  mediatorName    String
+  mediatorAddress String
+  mediatorWebsite String
+
   // Juridiction
-  jurisdiction      String
-  
+  jurisdiction String
+
   // Tarifs (pour CGU)
-  monthlyPrice      Int?
-  
+  monthlyPrice Int?
+
   // Commission (pour contrat vendeur)
-  commissionRate    Float?
+  commissionRate     Float?
   commissionDuration Int?
-  
+
   // Contenu du contrat
-  contractContent   String   @db.Text
-  
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
+  contractContent String @db.Text
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  vendorContracts   VendorContract[]
-  
+  vendorContracts VendorContract[]
+
   @@map("contract_templates")
 }
 
 model VendorContract {
-  id                String         @id @default(cuid())
-  status            ContractStatus @default(DRAFT)
-  
+  id     String         @id @default(cuid())
+  status ContractStatus @default(DRAFT)
+
   // Signature électronique
-  signedAt          DateTime?
-  signatureIP       String?
-  signatureData     String?        @db.Text
-  
+  signedAt      DateTime?
+  signatureIP   String?
+  signatureData String?   @db.Text
+
   // Informations vendeur au moment de la signature
-  vendorName        String
-  vendorEmail       String
-  vendorAddress     String?
-  vendorSIRET       String?
-  vendorIBAN        String?
-  
+  vendorName    String
+  vendorEmail   String
+  vendorAddress String?
+  vendorSIRET   String?
+  vendorIBAN    String?
+
   // Suivi
-  sentAt            DateTime?
-  viewedAt          DateTime?
-  rejectedAt        DateTime?
-  rejectionReason   String?
-  
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-  
+  sentAt          DateTime?
+  viewedAt        DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  vendorId          String
-  vendor            Vendor         @relation(fields: [vendorId], references: [id])
-  templateId        String
-  template          ContractTemplate @relation(fields: [templateId], references: [id])
-  
+  vendorId   String
+  vendor     Vendor           @relation(fields: [vendorId], references: [id])
+  templateId String
+  template   ContractTemplate @relation(fields: [templateId], references: [id])
+
   @@map("vendor_contracts")
 }

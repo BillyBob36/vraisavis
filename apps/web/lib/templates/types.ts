@@ -39,7 +39,7 @@ export interface SpinResult {
   message: string;
 }
 
-export type ClientStep = 'intro' | 'positive' | 'negative' | 'spin' | 'result';
+export type ClientStep = 'intro' | 'positive' | 'negative' | 'contact' | 'spin' | 'result';
 
 export interface TemplateProps {
   step: ClientStep;
@@ -53,6 +53,15 @@ export interface TemplateProps {
   // Negative feedback
   negativeText: string;
   onNegativeChange: (text: string) => void;
+  // Contact preferences
+  wantNotifyOwn: boolean;
+  onWantNotifyOwnChange: (val: boolean) => void;
+  wantNotifyOthers: boolean;
+  onWantNotifyOthersChange: (val: boolean) => void;
+  contactEmail: string;
+  onContactEmailChange: (val: string) => void;
+  contactPhone: string;
+  onContactPhoneChange: (val: string) => void;
   // Spin
   isSpinning: boolean;
   onSpin: () => void;

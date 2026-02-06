@@ -53,6 +53,10 @@ export default function ClientExperiencePage() {
   const [step, setStep] = useState<ClientStep>('intro');
   const [positiveText, setPositiveText] = useState('');
   const [negativeText, setNegativeText] = useState('');
+  const [wantNotifyOwn, setWantNotifyOwn] = useState(false);
+  const [wantNotifyOthers, setWantNotifyOthers] = useState(false);
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinResult, setSpinResult] = useState<SpinResult | null>(null);
   const [prizeSymbolMap, setPrizeSymbolMap] = useState<Map<string, [SlotSymbol, SlotSymbol, SlotSymbol]>>(new Map());
@@ -101,7 +105,7 @@ export default function ClientExperiencePage() {
   }, [restaurantId]);
 
   const handleNext = useCallback(() => {
-    const steps: ClientStep[] = ['intro', 'positive', 'negative', 'spin', 'result'];
+    const steps: ClientStep[] = ['intro', 'positive', 'negative', 'contact', 'spin', 'result'];
     const currentIndex = steps.indexOf(step);
     if (currentIndex < steps.length - 1) {
       setStep(steps[currentIndex + 1]);
@@ -109,7 +113,7 @@ export default function ClientExperiencePage() {
   }, [step]);
 
   const handleBack = useCallback(() => {
-    const steps: ClientStep[] = ['intro', 'positive', 'negative', 'spin', 'result'];
+    const steps: ClientStep[] = ['intro', 'positive', 'negative', 'contact', 'spin', 'result'];
     const currentIndex = steps.indexOf(step);
     if (currentIndex > 0) {
       setStep(steps[currentIndex - 1]);
@@ -132,6 +136,21 @@ export default function ClientExperiencePage() {
           negativeText: negativeText || undefined,
         }),
       });
+
+      // Submit contact preferences
+      if (wantNotifyOwn || wantNotifyOthers) {
+        await apiFetch('/api/v1/client/contact-prefs', {
+          method: 'POST',
+          body: JSON.stringify({
+            fingerprintId,
+            restaurantId,
+            wantNotifyOwn,
+            wantNotifyOthers,
+            contactEmail: contactEmail || '',
+            contactPhone: contactPhone || '',
+          }),
+        });
+      }
 
       // Then spin
       const result = await apiFetch<SpinResult>('/api/v1/client/spin', {
@@ -165,7 +184,7 @@ export default function ClientExperiencePage() {
       setIsSpinning(false);
       setError(err.message || 'Erreur lors du tirage');
     }
-  }, [fingerprintId, restaurant, restaurantId, positiveText, negativeText, prizeSymbolMap]);
+  }, [fingerprintId, restaurant, restaurantId, positiveText, negativeText, prizeSymbolMap, wantNotifyOwn, wantNotifyOthers, contactEmail, contactPhone]);
 
   const handleReelsFinished = useCallback(() => {
     setReelsFinished(true);
@@ -211,6 +230,14 @@ export default function ClientExperiencePage() {
     onPositiveChange: setPositiveText,
     negativeText,
     onNegativeChange: setNegativeText,
+    wantNotifyOwn,
+    onWantNotifyOwnChange: setWantNotifyOwn,
+    wantNotifyOthers,
+    onWantNotifyOthersChange: setWantNotifyOthers,
+    contactEmail,
+    onContactEmailChange: setContactEmail,
+    contactPhone,
+    onContactPhoneChange: setContactPhone,
     isSpinning,
     onSpin: handleSpin,
     spinResult,

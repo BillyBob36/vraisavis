@@ -1,17 +1,20 @@
 import { config } from '../../config/env.js';
-import { consulterAvis, gererLots, stats } from './tools.js';
+import { consulterAvis, gererLots, stats, signalerAmelioration } from './tools.js';
 import { getOrCreateSession, appendToSession } from '../messaging/router.js';
 
 const SYSTEM_PROMPT = `Tu es l'assistant IA du restaurant. Tu aides le manager à :
 1. Consulter les avis clients (par jour, semaine, mois)
 2. Gérer les lots de la machine à sous (lister, ajouter, modifier, supprimer, désactiver/réactiver, stats)
 3. Voir les statistiques du restaurant
+4. Signaler des améliorations et notifier les clients concernés
 
 Règles :
 - Réponds toujours en français, de manière concise et professionnelle
 - Si le manager demande les avis, utilise la fonction consulter_avis
 - Si le manager parle de lots/cadeaux/prix/machine à sous, utilise gerer_lots
 - Si le manager demande des chiffres/stats, utilise la fonction stats
+- Si le manager signale une amélioration (ex: "on a changé les chaises", "on a amélioré la carte"), utilise signaler_amelioration avec action=analyze
+- Si le manager confirme vouloir notifier les clients après une analyse, utilise signaler_amelioration avec action=notify et l'improvementId
 - Sois proactif : propose des actions concrètes basées sur les données
 - Formate tes réponses pour être lisibles sur mobile (messages courts, emojis)
 - Ne révèle jamais de données techniques (IDs, SQL, etc.)`;
@@ -75,6 +78,26 @@ const TOOLS_DEFINITION = [
           },
         },
         required: ['period'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'signaler_amelioration',
+      description: 'Signale une amélioration apportée au restaurant, trouve les commentaires négatifs correspondants et propose de notifier les clients concernés',
+      parameters: {
+        type: 'object',
+        properties: {
+          action: {
+            type: 'string',
+            enum: ['analyze', 'notify'],
+            description: 'analyze = chercher les commentaires correspondants, notify = envoyer les notifications aux clients',
+          },
+          description: { type: 'string', description: 'Description de l\'amélioration (pour analyze)' },
+          improvementId: { type: 'string', description: 'ID de l\'amélioration à notifier (pour notify)' },
+        },
+        required: ['action'],
       },
     },
   },
@@ -238,6 +261,12 @@ async function executeTool(
 
       case 'stats':
         return await stats(restaurantId, (args.period as 'today' | 'week' | 'month' | 'all') || 'today');
+
+      case 'signaler_amelioration':
+        return await signalerAmelioration(restaurantId, (args.action as 'analyze' | 'notify') || 'analyze', {
+          description: args.description as string | undefined,
+          improvementId: args.improvementId as string | undefined,
+        });
 
       default:
         return `Outil "${name}" non reconnu.`;
