@@ -9,11 +9,18 @@ const SYSTEM_PROMPT = `Tu es l'assistant IA du restaurant. Tu aides le manager �
 4. Voir les statistiques du restaurant
 5. Signaler des améliorations et notifier les clients concernés
 
-Règles :
+RÈGLE ABSOLUE SUR LES CITATIONS D'AVIS :
+- Quand tu cites des avis clients, tu DOIS reproduire le texte EXACT entre guillemets, tel qu'il apparaît dans les données. NE REFORMULE JAMAIS un avis.
+- Si le manager demande "cite-moi les messages" ou "donne-moi les avis", tu dois lister chaque avis avec son texte ORIGINAL COMPLET, pas un résumé.
+- Chaque avis doit être présenté avec sa date et le texte exact entre guillemets.
+- Ne fusionne JAMAIS plusieurs avis en un seul. Ne dis JAMAIS "plusieurs avis disent..." quand on te demande les messages exacts.
+- Si tu as 30 avis, liste les 30 individuellement.
+
+Règles générales :
 - Réponds toujours en français, de manière concise et professionnelle
-- Pour chercher des avis sur un sujet précis (ex: "les avis qui parlent de choucroute"), utilise consulter_avis avec le paramètre search. La recherche est sémantique : elle trouve les avis par sens, pas juste par mots-clés.
+- Pour chercher des avis sur un sujet précis, utilise consulter_avis avec le paramètre search. La recherche est sémantique.
 - Pour filtrer par sentiment, utilise sentiment="negative" ou "positive"
-- Pour comparer deux périodes (ex: "ce mois vs le mois dernier"), utilise analyser_tendances avec period et compareTo
+- Pour comparer deux périodes, utilise analyser_tendances avec period et compareTo
 - Pour voir les thèmes principaux d'une période, utilise analyser_tendances avec juste period
 - Périodes disponibles : today, yesterday, week, month, last_month, quarter, last_quarter, all
 - Si le manager parle de lots/cadeaux/prix/machine à sous, utilise gerer_lots
@@ -41,6 +48,10 @@ const TOOLS_DEFINITION = [
           search: {
             type: 'string',
             description: 'Recherche sémantique : trouve les avis liés à ce sujet (ex: "choucroute", "temps d\'attente", "bruit")',
+          },
+          limit: {
+            type: 'integer',
+            description: 'Nombre max d\'avis à retourner (défaut: 50)',
           },
           sentiment: {
             type: 'string',
@@ -263,7 +274,7 @@ async function callAzureOpenAI(messages: ChatMessage[]): Promise<{
       tools: TOOLS_DEFINITION,
       tool_choice: 'auto',
       temperature: 0.7,
-      max_tokens: 1000,
+      max_tokens: 4000,
     }),
   });
 
@@ -302,6 +313,7 @@ async function executeTool(
           search: args.search as string | undefined,
           sentiment: args.sentiment as 'positive' | 'negative' | 'all' | undefined,
           service: args.service as 'lunch' | 'dinner' | undefined,
+          limit: args.limit as number | undefined,
         });
 
       case 'gerer_lots':

@@ -77,7 +77,7 @@ export async function consulterAvis(
 ): Promise<string> {
   const period = params.period || 'month';
   const { start, end } = periodToRange(period);
-  const limit = params.limit || 30;
+  const limit = params.limit || 50;
 
   // Build base where clause
   const where: Record<string, unknown> = {
@@ -111,14 +111,14 @@ export async function consulterAvis(
       if (results.length > 0) {
         const lines = results.map((f, i: number) => {
           const date = new Date(f.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-          const score = f.sentimentScore !== null ? ` [${f.sentimentScore > 0 ? '👍' : '👎'} ${f.sentimentScore.toFixed(1)}]` : '';
-          const themes = Array.isArray(f.themes) && (f.themes as string[]).length > 0 ? ` #${(f.themes as string[]).join(' #')}` : '';
           const sim = (f.similarity * 100).toFixed(0);
-          const neg = f.negativeText ? `\n   ⚠️ ${f.negativeText}` : '';
-          return `${i + 1}. [${date}]${score} ✅ ${f.positiveText}${neg}${themes} (pertinence: ${sim}%)`;
+          let text = `${i + 1}. [${date}] (pertinence: ${sim}%)`;
+          text += `\n   POSITIF: "${f.positiveText}"`;
+          if (f.negativeText) text += `\n   NÉGATIF: "${f.negativeText}"`;
+          return text;
         });
 
-        return `🔍 ${results.length} avis trouvés pour "${params.search}" (${period}) :\n\n${lines.join('\n\n')}`;
+        return `🔍 ${results.length} avis trouvés pour "${params.search}" (${period}).\nATTENTION: Les textes ci-dessous sont les CITATIONS EXACTES des clients. Ne les reformule JAMAIS.\n\n${lines.join('\n\n')}`;
       }
     } catch (err) {
       console.error('Semantic search failed, falling back to text search:', err);
@@ -157,11 +157,13 @@ export async function consulterAvis(
       type FB = typeof textResults[number];
       const lines = textResults.map((f: FB, i: number) => {
         const date = f.createdAt.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-        const neg = f.negativeText ? `\n   ⚠️ ${f.negativeText}` : '';
-        return `${i + 1}. [${date}] ✅ ${f.positiveText}${neg}`;
+        let text = `${i + 1}. [${date}]`;
+        text += `\n   POSITIF: "${f.positiveText}"`;
+        if (f.negativeText) text += `\n   NÉGATIF: "${f.negativeText}"`;
+        return text;
       });
-      const showing = textTotal > limit ? ` (${limit} affichés sur ${textTotal})` : '';
-      return `🔍 ${textTotal} avis contenant "${params.search}" (${period})${showing} :\n\n${lines.join('\n\n')}`;
+      const showing = textTotal > limit ? ` (${limit} affichés sur ${textTotal} au total)` : '';
+      return `🔍 ${textTotal} avis contenant "${params.search}" (${period})${showing}.\nATTENTION: Les textes ci-dessous sont les CITATIONS EXACTES des clients. Ne les reformule JAMAIS.\n\n${lines.join('\n\n')}`;
     }
 
     return `Aucun avis trouvé pour "${params.search}" (${period}).`;
@@ -196,14 +198,14 @@ export async function consulterAvis(
   type FB = typeof feedbacks[number];
   const lines = feedbacks.map((f: FB, i: number) => {
     const date = f.createdAt.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-    const score = f.sentimentScore !== null ? ` [${f.sentimentScore > 0 ? '👍' : '👎'} ${f.sentimentScore.toFixed(1)}]` : '';
-    const themes = Array.isArray(f.themes) && (f.themes as string[]).length > 0 ? ` #${(f.themes as string[]).join(' #')}` : '';
-    const neg = f.negativeText ? `\n   ⚠️ ${f.negativeText}` : '';
-    return `${i + 1}. [${date}]${score} ✅ ${f.positiveText}${neg}${themes}`;
+    let text = `${i + 1}. [${date}]`;
+    text += `\n   POSITIF: "${f.positiveText}"`;
+    if (f.negativeText) text += `\n   NÉGATIF: "${f.negativeText}"`;
+    return text;
   });
 
-  const showing = total > limit ? ` (${limit} affichés sur ${total})` : '';
-  return `📊 ${total} avis (${period})${showing} :\n\n${lines.join('\n\n')}`;
+  const showing = total > limit ? ` (${limit} affichés sur ${total} au total)` : '';
+  return `📊 ${total} avis (${period})${showing}.\nATTENTION: Les textes ci-dessous sont les CITATIONS EXACTES des clients. Ne les reformule JAMAIS, cite-les entre guillemets.\n\n${lines.join('\n\n')}`;
 }
 
 /**
