@@ -142,32 +142,43 @@ export async function managerRoutes(fastify: FastifyInstance) {
     const sort = request.query.sort || 'createdAt';
     const order = request.query.order || 'desc';
 
+    // Build where clause using AND array to avoid conflicts
+    const andConditions: Record<string, unknown>[] = [];
+
+    // Base filter
     const where: Record<string, unknown> = { restaurantId: restaurant.id };
     if (filter === 'unread') where.isRead = false;
     if (filter === 'unprocessed') where.isProcessed = false;
 
     // Search by keyword in positive or negative text
     if (search) {
-      where.OR = [
-        { positiveText: { contains: search, mode: 'insensitive' } },
-        { negativeText: { contains: search, mode: 'insensitive' } },
-      ];
+      andConditions.push({
+        OR: [
+          { positiveText: { contains: search, mode: 'insensitive' } },
+          { negativeText: { contains: search, mode: 'insensitive' } },
+        ],
+      });
     }
 
     // Sentiment filter
     if (sentiment === 'positive') {
-      where.positiveText = { not: '' };
-      where.negativeText = { in: [null, ''] };
+      andConditions.push({ positiveText: { not: '' } });
+      andConditions.push({ OR: [{ negativeText: null }, { negativeText: '' }] });
     } else if (sentiment === 'negative') {
-      where.negativeText = { not: { in: [null, ''] } };
+      andConditions.push({ negativeText: { not: '' } });
+      andConditions.push({ NOT: { negativeText: null } });
     }
 
     // Date range
-    if (dateFrom) where.createdAt = { ...(where.createdAt as Record<string, unknown> || {}), gte: new Date(dateFrom) };
+    const createdAtFilter: Record<string, unknown> = {};
+    if (dateFrom) createdAtFilter.gte = new Date(dateFrom);
     if (dateTo) {
       const endDate = new Date(dateTo);
       endDate.setHours(23, 59, 59, 999);
-      where.createdAt = { ...(where.createdAt as Record<string, unknown> || {}), lte: endDate };
+      createdAtFilter.lte = endDate;
+    }
+    if (Object.keys(createdAtFilter).length > 0) {
+      where.createdAt = createdAtFilter;
     }
 
     // Service type
@@ -178,6 +189,11 @@ export async function managerRoutes(fastify: FastifyInstance) {
     // Wants notification filter
     if (wantsNotify === 'true') {
       where.fingerprint = { OR: [{ wantNotifyOwn: true }, { wantNotifyOthers: true }] };
+    }
+
+    // Combine AND conditions
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     // Sort
