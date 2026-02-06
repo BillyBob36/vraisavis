@@ -121,13 +121,13 @@ export async function appendToSession(
 
   if (!session) return null;
 
-  const history = (session.conversationHistory as Array<unknown>) || [];
+  const history = Array.isArray(session.conversationHistory) ? session.conversationHistory : [];
   const updated = [...history, ...messages].slice(-20); // Keep last 20
 
   return prisma.messagingSession.update({
     where: { id: sessionId },
     data: {
-      conversationHistory: updated,
+      conversationHistory: JSON.parse(JSON.stringify(updated)),
       lastMessageAt: new Date(),
     },
   });
