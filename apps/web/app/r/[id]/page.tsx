@@ -62,6 +62,7 @@ export default function ClientExperiencePage() {
   const [prizeSymbolMap, setPrizeSymbolMap] = useState<Map<string, [SlotSymbol, SlotSymbol, SlotSymbol]>>(new Map());
   const [assignedSymbols, setAssignedSymbols] = useState<[SlotSymbol, SlotSymbol, SlotSymbol] | null>(null);
   const [reelsFinished, setReelsFinished] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const spinResultRef = useRef<SpinResult | null>(null);
 
   // Load restaurant data and register fingerprint
@@ -104,13 +105,47 @@ export default function ClientExperiencePage() {
     if (restaurantId) init();
   }, [restaurantId]);
 
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback(async () => {
     const steps: ClientStep[] = ['intro', 'positive', 'negative', 'contact', 'spin', 'result'];
     const currentIndex = steps.indexOf(step);
-    if (currentIndex < steps.length - 1) {
-      setStep(steps[currentIndex + 1]);
+    if (currentIndex >= steps.length - 1) return;
+
+    // When transitioning from contact to spin, submit feedback + contact prefs first
+    if (step === 'contact' && !feedbackSubmitted) {
+      try {
+        await apiFetch('/api/v1/client/feedback', {
+          method: 'POST',
+          body: JSON.stringify({
+            fingerprintId,
+            restaurantId,
+            positiveText,
+            negativeText: negativeText || undefined,
+          }),
+        });
+
+        if (wantNotifyOwn || wantNotifyOthers) {
+          await apiFetch('/api/v1/client/contact-prefs', {
+            method: 'POST',
+            body: JSON.stringify({
+              fingerprintId,
+              restaurantId,
+              wantNotifyOwn,
+              wantNotifyOthers,
+              contactEmail: contactEmail || '',
+              contactPhone: contactPhone || '',
+            }),
+          });
+        }
+
+        setFeedbackSubmitted(true);
+      } catch (err: any) {
+        setError(err.message || 'Erreur lors de la soumission');
+        return;
+      }
     }
-  }, [step]);
+
+    setStep(steps[currentIndex + 1]);
+  }, [step, feedbackSubmitted, fingerprintId, restaurantId, positiveText, negativeText, wantNotifyOwn, wantNotifyOthers, contactEmail, contactPhone]);
 
   const handleBack = useCallback(() => {
     const steps: ClientStep[] = ['intro', 'positive', 'negative', 'contact', 'spin', 'result'];
@@ -126,33 +161,7 @@ export default function ClientExperiencePage() {
     setIsSpinning(true);
 
     try {
-      // Submit feedback first
-      await apiFetch('/api/v1/client/feedback', {
-        method: 'POST',
-        body: JSON.stringify({
-          fingerprintId,
-          restaurantId,
-          positiveText,
-          negativeText: negativeText || undefined,
-        }),
-      });
-
-      // Submit contact preferences
-      if (wantNotifyOwn || wantNotifyOthers) {
-        await apiFetch('/api/v1/client/contact-prefs', {
-          method: 'POST',
-          body: JSON.stringify({
-            fingerprintId,
-            restaurantId,
-            wantNotifyOwn,
-            wantNotifyOthers,
-            contactEmail: contactEmail || '',
-            contactPhone: contactPhone || '',
-          }),
-        });
-      }
-
-      // Then spin
+      // Spin only - feedback was already submitted when entering this step
       const result = await apiFetch<SpinResult>('/api/v1/client/spin', {
         method: 'POST',
         body: JSON.stringify({ fingerprintId, restaurantId }),
@@ -184,7 +193,7 @@ export default function ClientExperiencePage() {
       setIsSpinning(false);
       setError(err.message || 'Erreur lors du tirage');
     }
-  }, [fingerprintId, restaurant, restaurantId, positiveText, negativeText, prizeSymbolMap, wantNotifyOwn, wantNotifyOthers, contactEmail, contactPhone]);
+  }, [fingerprintId, restaurant, restaurantId, prizeSymbolMap]);
 
   const handleReelsFinished = useCallback(() => {
     setReelsFinished(true);
