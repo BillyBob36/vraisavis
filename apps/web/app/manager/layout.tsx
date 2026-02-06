@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   QrCode,
-  BarChart3
+  BarChart3,
+  Bot
 } from 'lucide-react';
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
   { href: '/manager/prizes', label: 'Lots', icon: Gift },
   { href: '/manager/stats', label: 'Statistiques', icon: BarChart3 },
   { href: '/manager/qrcode', label: 'QR Code', icon: QrCode },
+  { href: '/manager/messaging', label: 'Assistant IA', icon: Bot },
   { href: '/manager/settings', label: 'Paramètres', icon: Settings },
 ];
 

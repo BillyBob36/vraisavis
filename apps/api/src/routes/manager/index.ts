@@ -349,6 +349,104 @@ export async function managerRoutes(fastify: FastifyInstance) {
     return reply.send({ subscription });
   });
 
+  // === MESSAGING SETTINGS ===
+  fastify.get('/messaging', async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = await prisma.user.findUnique({
+      where: { id: request.user.id },
+      select: {
+        phone: true,
+        preferredMessaging: true,
+        telegramChatId: true,
+        whatsappNumber: true,
+        whatsappVerified: true,
+        messagingOptIn: true,
+      },
+    });
+
+    if (!user) {
+      return reply.status(404).send({ error: true, message: 'Utilisateur non trouvé' });
+    }
+
+    return reply.send({
+      phone: user.phone,
+      preferredMessaging: user.preferredMessaging,
+      telegramLinked: !!user.telegramChatId,
+      whatsappNumber: user.whatsappNumber,
+      whatsappVerified: user.whatsappVerified,
+      messagingOptIn: user.messagingOptIn,
+    });
+  });
+
+  fastify.patch('/messaging', async (request: FastifyRequest, reply: FastifyReply) => {
+    const schema = z.object({
+      preferredMessaging: z.enum(['TELEGRAM', 'WHATSAPP']).nullable().optional(),
+      messagingOptIn: z.boolean().optional(),
+      phone: z.string().optional(),
+    });
+
+    const body = schema.safeParse(request.body);
+    if (!body.success) {
+      return reply.status(400).send({ error: true, message: 'Données invalides' });
+    }
+
+    const data: Record<string, unknown> = {};
+    if (body.data.preferredMessaging !== undefined) data.preferredMessaging = body.data.preferredMessaging;
+    if (body.data.messagingOptIn !== undefined) data.messagingOptIn = body.data.messagingOptIn;
+    if (body.data.phone !== undefined) data.phone = body.data.phone;
+
+    await prisma.user.update({
+      where: { id: request.user.id },
+      data,
+    });
+
+    return reply.send({ message: 'Paramètres de messagerie mis à jour' });
+  });
+
+  // Generate Telegram link
+  fastify.post('/messaging/telegram-link', async (request: FastifyRequest, reply: FastifyReply) => {
+    const managerId = request.user.id;
+
+    // Generate a unique link code
+    const code = `link_${managerId}_${Date.now().toString(36)}`;
+
+    await prisma.messagingVerification.create({
+      data: {
+        managerId,
+        phoneNumber: 'telegram-link',
+        code,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+      },
+    });
+
+    // Try to get bot username
+    let botLink = '';
+    if (config.TELEGRAM_BOT_TOKEN) {
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${config.TELEGRAM_BOT_TOKEN}/getMe`);
+        const data = await res.json() as { result?: { username?: string } };
+        const username = data.result?.username || 'VraisAvisBot';
+        botLink = `https://t.me/${username}?start=${code}`;
+      } catch {
+        botLink = `Code: ${code}`;
+      }
+    }
+
+    return reply.send({ code, botLink });
+  });
+
+  // Unlink Telegram
+  fastify.delete('/messaging/telegram', async (request: FastifyRequest, reply: FastifyReply) => {
+    await prisma.user.update({
+      where: { id: request.user.id },
+      data: {
+        telegramChatId: null,
+        preferredMessaging: null,
+      },
+    });
+
+    return reply.send({ message: 'Telegram délié' });
+  });
+
   // Upgrade - placeholder pour Stripe
   fastify.post('/subscription/upgrade', async (request: FastifyRequest, reply: FastifyReply) => {
     // TODO: Implémenter avec Stripe Checkout

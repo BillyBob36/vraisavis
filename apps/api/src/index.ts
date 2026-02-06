@@ -10,6 +10,8 @@ import { managerRoutes } from './routes/manager/index.js';
 import { vendorRoutes } from './routes/vendor/index.js';
 import { clientRoutes } from './routes/client/index.js';
 import { webhookRoutes } from './routes/webhooks.js';
+import { telegramRoutes } from './routes/telegram/index.js';
+import { startCronJobs } from './cron/scheduler.js';
 
 const fastify = Fastify({
   logger: {
@@ -51,6 +53,7 @@ await fastify.register(managerRoutes, { prefix: '/api/v1/manager' });
 await fastify.register(vendorRoutes, { prefix: '/api/v1/vendor' });
 await fastify.register(clientRoutes, { prefix: '/api/v1/client' });
 await fastify.register(webhookRoutes, { prefix: '/api/v1/webhooks' });
+await fastify.register(telegramRoutes, { prefix: '/api/v1/telegram' });
 
 // Error handler
 fastify.setErrorHandler((error, request, reply) => {
@@ -71,6 +74,7 @@ const start = async () => {
   try {
     await fastify.listen({ port: 3001, host: '0.0.0.0' });
     console.log(`🚀 Server running at http://localhost:3001`);
+    startCronJobs();
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

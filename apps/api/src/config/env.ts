@@ -27,4 +27,19 @@ export const config = {
   SMTP_PASS: process.env.SMTP_PASS || '',
   FROM_EMAIL: process.env.FROM_EMAIL || 'noreply@vraisavis.fr',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'admin@vraisavis.fr',
+  
+  // Telegram
+  TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '',
+  TELEGRAM_WEBHOOK_SECRET: process.env.TELEGRAM_WEBHOOK_SECRET || '',
+  
+  // WhatsApp Cloud API
+  WHATSAPP_TOKEN: process.env.WHATSAPP_TOKEN || '',
+  WHATSAPP_PHONE_NUMBER_ID: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
+  WHATSAPP_VERIFY_TOKEN: process.env.WHATSAPP_VERIFY_TOKEN || '',
+  
+  // Azure OpenAI
+  AZURE_OPENAI_ENDPOINT: process.env.AZURE_OPENAI_ENDPOINT || '',
+  AZURE_OPENAI_API_KEY: process.env.AZURE_OPENAI_API_KEY || '',
+  AZURE_OPENAI_DEPLOYMENT: process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4o-mini',
+  AZURE_OPENAI_API_VERSION: process.env.AZURE_OPENAI_API_VERSION || '2024-08-01-preview',
 };

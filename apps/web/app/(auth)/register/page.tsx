@@ -375,15 +375,19 @@ function RegisterForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Téléphone (optionnel)</Label>
+              <Label htmlFor="phone">Téléphone</Label>
               <Input
                 id="phone"
                 name="phone"
                 type="tel"
-                placeholder="01 23 45 67 89"
+                placeholder="06 12 34 56 78"
                 value={formData.phone}
                 onChange={handleChange}
+                required
               />
+              <p className="text-xs text-muted-foreground">
+                Utilisé pour votre assistant IA (Telegram/WhatsApp)
+              </p>
             </div>
             {formData.referralCode && (
               <div className="space-y-2">

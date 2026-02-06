@@ -47,6 +47,17 @@ enum ContractType {
   VENDOR_CONTRACT
 }
 
+enum MessagingProvider {
+  TELEGRAM
+  WHATSAPP
+}
+
+enum SummaryPeriodType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
 enum ContractStatus {
   DRAFT
   SENT
@@ -59,13 +70,23 @@ model User {
   email         String    @unique
   passwordHash  String
   name          String
+  phone         String?
   role          UserRole
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   lastLoginAt   DateTime?
   
+  // Messaging
+  preferredMessaging  MessagingProvider?  @map("preferred_messaging")
+  telegramChatId      String?             @unique @map("telegram_chat_id")
+  whatsappNumber      String?             @map("whatsapp_number")
+  whatsappVerified    Boolean             @default(false) @map("whatsapp_verified")
+  messagingOptIn      Boolean             @default(false) @map("messaging_opt_in")
+  
   // Relations
-  managedRestaurants Restaurant[] @relation("RestaurantManager")
+  managedRestaurants      Restaurant[]              @relation("RestaurantManager")
+  messagingSessions       MessagingSession[]
+  messagingVerifications  MessagingVerification[]
   
   @@map("users")
 }
@@ -144,11 +165,12 @@ model Restaurant {
   vendorId        String?
   vendor          Vendor?          @relation(fields: [vendorId], references: [id])
   subscription    Subscription?
-  feedbacks       Feedback[]
-  prizes          Prize[]
-  prizeClaims     PrizeClaim[]
-  fingerprints    Fingerprint[]
-  dailyPrizePools DailyPrizePool[]
+  feedbacks        Feedback[]
+  prizes           Prize[]
+  prizeClaims      PrizeClaim[]
+  fingerprints     Fingerprint[]
+  dailyPrizePools  DailyPrizePool[]
+  feedbackSummaries FeedbackSummary[]
   
   @@map("restaurants")
 }
@@ -301,6 +323,68 @@ model PrizeClaim {
   fingerprint   Fingerprint  @relation(fields: [fingerprintId], references: [id])
   
   @@map("prize_claims")
+}
+
+// ============================================
+// MESSAGING & AI AGENT
+// ============================================
+
+model FeedbackSummary {
+  id              String            @id @default(cuid())
+  periodType      SummaryPeriodType @map("period_type")
+  periodStart     DateTime          @map("period_start") @db.Date
+  periodEnd       DateTime          @map("period_end") @db.Date
+  totalFeedbacks  Int               @default(0) @map("total_feedbacks")
+  avgSentiment    Float?            @map("avg_sentiment")
+  positiveSummary String?           @map("positive_summary") @db.Text
+  negativeSummary String?           @map("negative_summary") @db.Text
+  topStrengths    Json?             @map("top_strengths")
+  topWeaknesses   Json?             @map("top_weaknesses")
+  actionItems     Json?             @map("action_items")
+  rawAnalysis     Json?             @map("raw_analysis")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  // Relations
+  restaurantId    String            @map("restaurant_id")
+  restaurant      Restaurant        @relation(fields: [restaurantId], references: [id])
+  
+  @@unique([restaurantId, periodType, periodStart])
+  @@index([restaurantId, periodType, periodStart])
+  @@map("feedback_summaries")
+}
+
+model MessagingSession {
+  id                  String             @id @default(cuid())
+  provider            MessagingProvider
+  conversationHistory Json               @default("[]") @map("conversation_history")
+  lastMessageAt       DateTime?          @map("last_message_at")
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  
+  // Relations
+  managerId           String             @map("manager_id")
+  manager             User               @relation(fields: [managerId], references: [id])
+  restaurantId        String             @map("restaurant_id")
+  
+  @@unique([managerId, restaurantId, provider])
+  @@map("messaging_sessions")
+}
+
+model MessagingVerification {
+  id          String    @id @default(cuid())
+  phoneNumber String    @map("phone_number")
+  code        String
+  expiresAt   DateTime  @map("expires_at")
+  verified    Boolean   @default(false)
+  attempts    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  
+  // Relations
+  managerId   String    @map("manager_id")
+  manager     User      @relation(fields: [managerId], references: [id])
+  
+  @@map("messaging_verifications")
 }
 
 // ============================================
