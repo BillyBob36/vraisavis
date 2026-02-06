@@ -118,7 +118,7 @@ export async function searchByEmbedding(
   const whereClause = conditions.join(' AND ');
 
   // Minimum cosine similarity threshold to filter out irrelevant results
-  const MIN_SIMILARITY = 0.45;
+  const MIN_SIMILARITY = 0.30;
 
   const query = `
     SELECT
