@@ -1,0 +1,3011 @@
+{
+  "restaurant": "Chez Bibi",
+  "date_generation": "2026-02-06",
+  "total_avis": 600,
+  "avis": {
+    "positifs": [
+      {
+        "id": 1,
+        "texte": "Excellente cuisine, service impeccable !",
+        "note": 5
+      },
+      {
+        "id": 2,
+        "texte": "Meilleur couscous de la ville",
+        "note": 4
+      },
+      {
+        "id": 3,
+        "texte": "Ambiance chaleureuse, plats délicieux",
+        "note": 5
+      },
+      {
+        "id": 4,
+        "texte": "Rapport qualité-prix imbattable",
+        "note": 5
+      },
+      {
+        "id": 5,
+        "texte": "Accueil très sympathique",
+        "note": 4
+      },
+      {
+        "id": 6,
+        "texte": "Découverte culinaire exceptionnelle",
+        "note": 5
+      },
+      {
+        "id": 7,
+        "texte": "Produits frais et savoureux",
+        "note": 5
+      },
+      {
+        "id": 8,
+        "texte": "Service rapide et efficace",
+        "note": 4
+      },
+      {
+        "id": 9,
+        "texte": "Décoration magnifique, repas parfait",
+        "note": 4
+      },
+      {
+        "id": 10,
+        "texte": "Une adresse à retenir absolument",
+        "note": 5
+      },
+      {
+        "id": 11,
+        "texte": "Tajine sublime, je reviendrai",
+        "note": 5
+      },
+      {
+        "id": 12,
+        "texte": "Personnel aux petits soins",
+        "note": 5
+      },
+      {
+        "id": 13,
+        "texte": "Portions généreuses et goûteuses",
+        "note": 4
+      },
+      {
+        "id": 14,
+        "texte": "Cadre enchanteur",
+        "note": 5
+      },
+      {
+        "id": 15,
+        "texte": "Saveurs authentiques extraordinaires",
+        "note": 5
+      },
+      {
+        "id": 16,
+        "texte": "Prix très raisonnables",
+        "note": 5
+      },
+      {
+        "id": 17,
+        "texte": "Équipe souriante et professionnelle",
+        "note": 5
+      },
+      {
+        "id": 18,
+        "texte": "Meilleure expérience culinaire de l'année",
+        "note": 5
+      },
+      {
+        "id": 19,
+        "texte": "Fraîcheur remarquable",
+        "note": 5
+      },
+      {
+        "id": 20,
+        "texte": "Cuisine raffinée et délicate",
+        "note": 5
+      },
+      {
+        "id": 21,
+        "texte": "Ambiance conviviale à souhait",
+        "note": 5
+      },
+      {
+        "id": 22,
+        "texte": "Desserts maison incroyables",
+        "note": 5
+      },
+      {
+        "id": 23,
+        "texte": "Service attentionné et discret",
+        "note": 4
+      },
+      {
+        "id": 24,
+        "texte": "Produits de qualité supérieure",
+        "note": 5
+      },
+      {
+        "id": 25,
+        "texte": "Moment magique entre amis",
+        "note": 4
+      },
+      {
+        "id": 26,
+        "texte": "Déco soignée, plats divins",
+        "note": 5
+      },
+      {
+        "id": 27,
+        "texte": "Vins excellents, bien conseillés",
+        "note": 4
+      },
+      {
+        "id": 28,
+        "texte": "Carte variée et alléchante",
+        "note": 5
+      },
+      {
+        "id": 29,
+        "texte": "Cuisson parfaite de la viande",
+        "note": 5
+      },
+      {
+        "id": 30,
+        "texte": "Accueil digne d'un palace",
+        "note": 4
+      },
+      {
+        "id": 31,
+        "texte": "Terrasse agréable en été",
+        "note": 5
+      },
+      {
+        "id": 32,
+        "texte": "Saveurs explosives en bouche",
+        "note": 5
+      },
+      {
+        "id": 33,
+        "texte": "Présentation des plats soignée",
+        "note": 5
+      },
+      {
+        "id": 34,
+        "texte": "Patron passionné et accueillant",
+        "note": 5
+      },
+      {
+        "id": 35,
+        "texte": "Menu enfant très apprécié",
+        "note": 4
+      },
+      {
+        "id": 36,
+        "texte": "Spécialités maison extraordinaires",
+        "note": 5
+      },
+      {
+        "id": 37,
+        "texte": "Propreté irréprochable",
+        "note": 4
+      },
+      {
+        "id": 38,
+        "texte": "Expérience gastronomique mémorable",
+        "note": 4
+      },
+      {
+        "id": 39,
+        "texte": "Cocktails délicieux et originaux",
+        "note": 4
+      },
+      {
+        "id": 40,
+        "texte": "Ambiance musicale parfaite",
+        "note": 4
+      },
+      {
+        "id": 41,
+        "texte": "Service ultra rapide midi",
+        "note": 5
+      },
+      {
+        "id": 42,
+        "texte": "Plats copieux et savoureux",
+        "note": 5
+      },
+      {
+        "id": 43,
+        "texte": "Meilleur restaurant du quartier",
+        "note": 5
+      },
+      {
+        "id": 44,
+        "texte": "Épices parfaitement dosées",
+        "note": 5
+      },
+      {
+        "id": 45,
+        "texte": "Équipe dynamique et souriante",
+        "note": 4
+      },
+      {
+        "id": 46,
+        "texte": "Cadre romantique idéal",
+        "note": 4
+      },
+      {
+        "id": 47,
+        "texte": "Pâtisseries orientales divines",
+        "note": 4
+      },
+      {
+        "id": 48,
+        "texte": "Thé à la menthe excellent",
+        "note": 4
+      },
+      {
+        "id": 49,
+        "texte": "Cuisine généreuse et authentique",
+        "note": 5
+      },
+      {
+        "id": 50,
+        "texte": "Personnel multilingue très aimable",
+        "note": 4
+      },
+      {
+        "id": 51,
+        "texte": "Formules midi imbattables",
+        "note": 5
+      },
+      {
+        "id": 52,
+        "texte": "Viande fondante à souhait",
+        "note": 5
+      },
+      {
+        "id": 53,
+        "texte": "Décor traditionnel magnifique",
+        "note": 4
+      },
+      {
+        "id": 54,
+        "texte": "Saveurs du bled retrouvées",
+        "note": 5
+      },
+      {
+        "id": 55,
+        "texte": "Service irréprochable du début à la fin",
+        "note": 5
+      },
+      {
+        "id": 56,
+        "texte": "Qualité constante depuis des années",
+        "note": 4
+      },
+      {
+        "id": 57,
+        "texte": "Meilleur rapport qualité-prix région",
+        "note": 4
+      },
+      {
+        "id": 58,
+        "texte": "Accueil familial très chaleureux",
+        "note": 5
+      },
+      {
+        "id": 59,
+        "texte": "Produits bio et locaux",
+        "note": 5
+      },
+      {
+        "id": 60,
+        "texte": "Cuisine créative et surprenante",
+        "note": 4
+      },
+      {
+        "id": 61,
+        "texte": "Ambiance festive garantie",
+        "note": 5
+      },
+      {
+        "id": 62,
+        "texte": "Personnel attentif aux allergies",
+        "note": 5
+      },
+      {
+        "id": 63,
+        "texte": "Délicieux du début à la fin",
+        "note": 4
+      },
+      {
+        "id": 64,
+        "texte": "Brochettes sublimes et juteuses",
+        "note": 4
+      },
+      {
+        "id": 65,
+        "texte": "Entrées variées et raffinées",
+        "note": 5
+      },
+      {
+        "id": 66,
+        "texte": "Sauces maison exceptionnelles",
+        "note": 5
+      },
+      {
+        "id": 67,
+        "texte": "Cave à vins impressionnante",
+        "note": 5
+      },
+      {
+        "id": 68,
+        "texte": "Menu végétarien disponible",
+        "note": 4
+      },
+      {
+        "id": 69,
+        "texte": "Pain frais fait maison",
+        "note": 5
+      },
+      {
+        "id": 70,
+        "texte": "Terroir respecté et sublimé",
+        "note": 4
+      },
+      {
+        "id": 71,
+        "texte": "Chef talentueux et créatif",
+        "note": 4
+      },
+      {
+        "id": 72,
+        "texte": "Lieu parfait pour événements",
+        "note": 5
+      },
+      {
+        "id": 73,
+        "texte": "Parking facile à proximité",
+        "note": 4
+      },
+      {
+        "id": 74,
+        "texte": "Réservation simple et rapide",
+        "note": 5
+      },
+      {
+        "id": 75,
+        "texte": "Additions claires et justes",
+        "note": 4
+      },
+      {
+        "id": 76,
+        "texte": "Soirées à thème originales",
+        "note": 4
+      },
+      {
+        "id": 77,
+        "texte": "Musique live certains soirs",
+        "note": 4
+      },
+      {
+        "id": 78,
+        "texte": "Décor moderne et élégant",
+        "note": 5
+      },
+      {
+        "id": 79,
+        "texte": "Luminosité idéale et douce",
+        "note": 4
+      },
+      {
+        "id": 80,
+        "texte": "Tables bien espacées, intimité préservée",
+        "note": 4
+      },
+      {
+        "id": 81,
+        "texte": "Menu dégustation exceptionnel",
+        "note": 4
+      },
+      {
+        "id": 82,
+        "texte": "Produits de saison privilégiés",
+        "note": 5
+      },
+      {
+        "id": 83,
+        "texte": "Présentation digne d'un étoilé",
+        "note": 5
+      },
+      {
+        "id": 84,
+        "texte": "Odeurs alléchantes dès l'entrée",
+        "note": 4
+      },
+      {
+        "id": 85,
+        "texte": "Température des plats parfaite",
+        "note": 4
+      },
+      {
+        "id": 86,
+        "texte": "Vaisselle raffinée et belle",
+        "note": 4
+      },
+      {
+        "id": 87,
+        "texte": "Service à table impeccable",
+        "note": 5
+      },
+      {
+        "id": 88,
+        "texte": "Boissons variées et de qualité",
+        "note": 5
+      },
+      {
+        "id": 89,
+        "texte": "Digestifs offerts avec le sourire",
+        "note": 5
+      },
+      {
+        "id": 90,
+        "texte": "Bibi lui-même accueille clients",
+        "note": 5
+      },
+      {
+        "id": 91,
+        "texte": "Conseils avisés du serveur",
+        "note": 4
+      },
+      {
+        "id": 92,
+        "texte": "Couscous du vendredi légendaire",
+        "note": 5
+      },
+      {
+        "id": 93,
+        "texte": "Ambiance familiale réconfortante",
+        "note": 4
+      },
+      {
+        "id": 94,
+        "texte": "Saveurs équilibrées magistralement",
+        "note": 4
+      },
+      {
+        "id": 95,
+        "texte": "Plats chauds servis rapidement",
+        "note": 5
+      },
+      {
+        "id": 96,
+        "texte": "Carte renouvelée régulièrement",
+        "note": 5
+      },
+      {
+        "id": 97,
+        "texte": "Spécialités régionales authentiques",
+        "note": 5
+      },
+      {
+        "id": 98,
+        "texte": "Fruits de mer ultra frais",
+        "note": 4
+      },
+      {
+        "id": 99,
+        "texte": "Incroyable découverte culinaire",
+        "note": 5
+      },
+      {
+        "id": 100,
+        "texte": "Vraiment délicieux, bravo",
+        "note": 5
+      },
+      {
+        "id": 101,
+        "texte": "Superbe adresse, à recommander",
+        "note": 5
+      },
+      {
+        "id": 102,
+        "texte": "Parfait pour anniversaires",
+        "note": 5
+      },
+      {
+        "id": 103,
+        "texte": "Serveurs adorables et attentifs",
+        "note": 5
+      },
+      {
+        "id": 104,
+        "texte": "Quantité généreuse, qualité top",
+        "note": 5
+      },
+      {
+        "id": 105,
+        "texte": "Saveurs incroyables, retour assuré",
+        "note": 5
+      },
+      {
+        "id": 106,
+        "texte": "Belle présentation, goût parfait",
+        "note": 4
+      },
+      {
+        "id": 107,
+        "texte": "Jamais déçu, toujours excellent",
+        "note": 5
+      },
+      {
+        "id": 108,
+        "texte": "Repas de famille réussi",
+        "note": 4
+      },
+      {
+        "id": 109,
+        "texte": "Cadre magnifique, service rapide",
+        "note": 4
+      },
+      {
+        "id": 110,
+        "texte": "Accueil souriant, plats succulents",
+        "note": 5
+      },
+      {
+        "id": 111,
+        "texte": "Prix doux, qualité haute",
+        "note": 4
+      },
+      {
+        "id": 112,
+        "texte": "Un régal pour papilles",
+        "note": 5
+      },
+      {
+        "id": 113,
+        "texte": "Meilleure table de la région",
+        "note": 5
+      },
+      {
+        "id": 114,
+        "texte": "Ambiance zen et agréable",
+        "note": 5
+      },
+      {
+        "id": 115,
+        "texte": "Cuisine authentique savoureuse",
+        "note": 5
+      },
+      {
+        "id": 116,
+        "texte": "Personnel très professionnel",
+        "note": 4
+      },
+      {
+        "id": 117,
+        "texte": "Repas d'affaires parfait",
+        "note": 5
+      },
+      {
+        "id": 118,
+        "texte": "Fraîcheur garantie chaque jour",
+        "note": 4
+      },
+      {
+        "id": 119,
+        "texte": "Décor original et chaleureux",
+        "note": 4
+      },
+      {
+        "id": 120,
+        "texte": "Service impeccable et chaleureux",
+        "note": 4
+      },
+      {
+        "id": 121,
+        "texte": "Plats faits minute délicieux",
+        "note": 5
+      },
+      {
+        "id": 122,
+        "texte": "Vrai restaurant de qualité",
+        "note": 4
+      },
+      {
+        "id": 123,
+        "texte": "Produits nobles bien travaillés",
+        "note": 4
+      },
+      {
+        "id": 124,
+        "texte": "Recettes originales et réussies",
+        "note": 5
+      },
+      {
+        "id": 125,
+        "texte": "Moment convivial garanti",
+        "note": 5
+      },
+      {
+        "id": 126,
+        "texte": "Terrasse ensoleillée et calme",
+        "note": 4
+      },
+      {
+        "id": 127,
+        "texte": "Carte des vins remarquable",
+        "note": 5
+      },
+      {
+        "id": 128,
+        "texte": "Enfants ravis de leur menu",
+        "note": 4
+      },
+      {
+        "id": 129,
+        "texte": "Propreté exemplaire partout",
+        "note": 4
+      },
+      {
+        "id": 130,
+        "texte": "Temps d'attente très court",
+        "note": 5
+      },
+      {
+        "id": 131,
+        "texte": "Plats chauds et bien présentés",
+        "note": 5
+      },
+      {
+        "id": 132,
+        "texte": "Cuisine faite avec amour",
+        "note": 4
+      },
+      {
+        "id": 133,
+        "texte": "Patron sympathique et disponible",
+        "note": 5
+      },
+      {
+        "id": 134,
+        "texte": "Menu du jour excellent",
+        "note": 5
+      },
+      {
+        "id": 135,
+        "texte": "Desserts faits maison délicieux",
+        "note": 4
+      },
+      {
+        "id": 136,
+        "texte": "Épices dosées avec justesse",
+        "note": 4
+      },
+      {
+        "id": 137,
+        "texte": "Meilleure cuisine orientale ville",
+        "note": 4
+      },
+      {
+        "id": 138,
+        "texte": "Ambiance cosy et intimiste",
+        "note": 5
+      },
+      {
+        "id": 139,
+        "texte": "Rapport prix qualité exceptionnel",
+        "note": 4
+      },
+      {
+        "id": 140,
+        "texte": "Serveurs efficaces et sympathiques",
+        "note": 4
+      },
+      {
+        "id": 141,
+        "texte": "Décoration soignée et élégante",
+        "note": 5
+      },
+      {
+        "id": 142,
+        "texte": "Plats copieux à prix mini",
+        "note": 4
+      },
+      {
+        "id": 143,
+        "texte": "Vraie cuisine traditionnelle",
+        "note": 5
+      },
+      {
+        "id": 144,
+        "texte": "Saveurs du Maghreb parfaites",
+        "note": 4
+      },
+      {
+        "id": 145,
+        "texte": "Restaurant familial accueillant",
+        "note": 4
+      },
+      {
+        "id": 146,
+        "texte": "Service souriant et rapide",
+        "note": 4
+      },
+      {
+        "id": 147,
+        "texte": "Qualité irréprochable des produits",
+        "note": 5
+      },
+      {
+        "id": 148,
+        "texte": "Expérience culinaire unique",
+        "note": 4
+      },
+      {
+        "id": 149,
+        "texte": "Cadre agréable et propre",
+        "note": 4
+      },
+      {
+        "id": 150,
+        "texte": "Cuisine maison généreuse",
+        "note": 5
+      },
+      {
+        "id": 151,
+        "texte": "Personnel aux petits oignons",
+        "note": 4
+      },
+      {
+        "id": 152,
+        "texte": "Goûts authentiques et subtils",
+        "note": 4
+      },
+      {
+        "id": 153,
+        "texte": "Très bon restaurant marocain",
+        "note": 4
+      },
+      {
+        "id": 154,
+        "texte": "Ambiance musicale traditionnelle agréable",
+        "note": 5
+      },
+      {
+        "id": 155,
+        "texte": "Belle découverte, félicitations",
+        "note": 5
+      },
+      {
+        "id": 156,
+        "texte": "Plats parfumés et délicats",
+        "note": 5
+      },
+      {
+        "id": 157,
+        "texte": "Endroit parfait pour dîner",
+        "note": 5
+      },
+      {
+        "id": 158,
+        "texte": "Cuisine fine et savoureuse",
+        "note": 4
+      },
+      {
+        "id": 159,
+        "texte": "Excellent moment entre collègues",
+        "note": 4
+      },
+      {
+        "id": 160,
+        "texte": "Chef passionné, ça se sent",
+        "note": 4
+      },
+      {
+        "id": 161,
+        "texte": "Saveurs méditerranéennes sublimes",
+        "note": 4
+      },
+      {
+        "id": 162,
+        "texte": "Très belle présentation assiettes",
+        "note": 5
+      },
+      {
+        "id": 163,
+        "texte": "Soirée parfaite, merci Bibi",
+        "note": 4
+      },
+      {
+        "id": 164,
+        "texte": "Qualité prix au top",
+        "note": 5
+      },
+      {
+        "id": 165,
+        "texte": "Service attentionné sans être lourd",
+        "note": 5
+      },
+      {
+        "id": 166,
+        "texte": "Tajine agneau délicieux",
+        "note": 5
+      },
+      {
+        "id": 167,
+        "texte": "Meilleur restaurant marocain alentours",
+        "note": 5
+      },
+      {
+        "id": 168,
+        "texte": "Accueil royal et convivial",
+        "note": 5
+      },
+      {
+        "id": 169,
+        "texte": "Plaisir gustatif assuré",
+        "note": 4
+      },
+      {
+        "id": 170,
+        "texte": "Fraîcheur et qualité réunies",
+        "note": 4
+      },
+      {
+        "id": 171,
+        "texte": "Moment agréable, cuisine excellente",
+        "note": 4
+      },
+      {
+        "id": 172,
+        "texte": "Vins bien choisis et abordables",
+        "note": 4
+      },
+      {
+        "id": 173,
+        "texte": "Ambiance orientale authentique",
+        "note": 4
+      },
+      {
+        "id": 174,
+        "texte": "Patron très accueillant",
+        "note": 5
+      },
+      {
+        "id": 175,
+        "texte": "Couscous royal somptueux",
+        "note": 5
+      },
+      {
+        "id": 176,
+        "texte": "Viandes tendres et savoureuses",
+        "note": 4
+      },
+      {
+        "id": 177,
+        "texte": "Salle propre et confortable",
+        "note": 4
+      },
+      {
+        "id": 178,
+        "texte": "Belle carte, choix variés",
+        "note": 5
+      },
+      {
+        "id": 179,
+        "texte": "Saveurs d'orient magnifiques",
+        "note": 5
+      },
+      {
+        "id": 180,
+        "texte": "Restaurant où on revient",
+        "note": 5
+      },
+      {
+        "id": 181,
+        "texte": "Plats maison vraiment délicieux",
+        "note": 5
+      },
+      {
+        "id": 182,
+        "texte": "Service efficace et agréable",
+        "note": 4
+      },
+      {
+        "id": 183,
+        "texte": "Lieu convivial, cuisine top",
+        "note": 4
+      },
+      {
+        "id": 184,
+        "texte": "Repas excellent, prix raisonnables",
+        "note": 5
+      },
+      {
+        "id": 185,
+        "texte": "Décor chaleureux et typique",
+        "note": 4
+      },
+      {
+        "id": 186,
+        "texte": "Meilleur couscous jamais mangé",
+        "note": 4
+      },
+      {
+        "id": 187,
+        "texte": "Personnel adorable et serviable",
+        "note": 5
+      },
+      {
+        "id": 188,
+        "texte": "Expérience culinaire fabuleuse",
+        "note": 4
+      },
+      {
+        "id": 189,
+        "texte": "Ambiance sympathique et détendue",
+        "note": 5
+      },
+      {
+        "id": 190,
+        "texte": "Produits frais du marché",
+        "note": 4
+      },
+      {
+        "id": 191,
+        "texte": "Très bon accueil, service rapide",
+        "note": 4
+      },
+      {
+        "id": 192,
+        "texte": "Cuisine traditionnelle exceptionnelle",
+        "note": 4
+      },
+      {
+        "id": 193,
+        "texte": "Brochettes parfaitement grillées",
+        "note": 5
+      },
+      {
+        "id": 194,
+        "texte": "Carte variée, tout est bon",
+        "note": 4
+      },
+      {
+        "id": 195,
+        "texte": "Cadre agréable, repas savoureux",
+        "note": 4
+      },
+      {
+        "id": 196,
+        "texte": "Qualité constante, jamais déçu",
+        "note": 5
+      },
+      {
+        "id": 197,
+        "texte": "Service pro et chaleureux",
+        "note": 4
+      },
+      {
+        "id": 198,
+        "texte": "Plats copieux, saveurs délicates",
+        "note": 4
+      },
+      {
+        "id": 199,
+        "texte": "Restaurant familial très agréable",
+        "note": 4
+      },
+      {
+        "id": 200,
+        "texte": "Cadre sympa, nourriture top",
+        "note": 5
+      },
+      {
+        "id": 201,
+        "texte": "Parfait de A à Z",
+        "note": 5
+      },
+      {
+        "id": 202,
+        "texte": "Parfait de A à Z",
+        "note": 4
+      },
+      {
+        "id": 203,
+        "texte": "Meilleur restaurant du coin",
+        "note": 5
+      },
+      {
+        "id": 204,
+        "texte": "Très bonne adresse",
+        "note": 5
+      },
+      {
+        "id": 205,
+        "texte": "Personnel sympa, plats excellents",
+        "note": 5
+      },
+      {
+        "id": 206,
+        "texte": "Cuisine maison de qualité",
+        "note": 5
+      },
+      {
+        "id": 207,
+        "texte": "Très satisfait du repas",
+        "note": 4
+      },
+      {
+        "id": 208,
+        "texte": "Belle découverte gastronomique",
+        "note": 5
+      },
+      {
+        "id": 209,
+        "texte": "Belle découverte gastronomique",
+        "note": 5
+      },
+      {
+        "id": 210,
+        "texte": "Belle découverte gastronomique",
+        "note": 4
+      },
+      {
+        "id": 211,
+        "texte": "Ambiance top, cuisine excellente",
+        "note": 4
+      },
+      {
+        "id": 212,
+        "texte": "Cuisine maison de qualité",
+        "note": 5
+      },
+      {
+        "id": 213,
+        "texte": "Toujours aussi bon",
+        "note": 4
+      },
+      {
+        "id": 214,
+        "texte": "Excellent rapport qualité prix",
+        "note": 5
+      },
+      {
+        "id": 215,
+        "texte": "Meilleur restaurant du coin",
+        "note": 5
+      },
+      {
+        "id": 216,
+        "texte": "Cuisine maison de qualité",
+        "note": 4
+      },
+      {
+        "id": 217,
+        "texte": "Parfait de A à Z",
+        "note": 4
+      },
+      {
+        "id": 218,
+        "texte": "Cadre sympa, nourriture top",
+        "note": 4
+      },
+      {
+        "id": 219,
+        "texte": "Cuisine délicieuse et raffinée",
+        "note": 4
+      },
+      {
+        "id": 220,
+        "texte": "Accueil chaleureux, plats divins",
+        "note": 5
+      },
+      {
+        "id": 221,
+        "texte": "Excellent rapport qualité prix",
+        "note": 5
+      },
+      {
+        "id": 222,
+        "texte": "Ambiance top, cuisine excellente",
+        "note": 5
+      },
+      {
+        "id": 223,
+        "texte": "Super moment passé",
+        "note": 4
+      },
+      {
+        "id": 224,
+        "texte": "Très satisfait du repas",
+        "note": 5
+      },
+      {
+        "id": 225,
+        "texte": "Je recommande vivement",
+        "note": 4
+      },
+      {
+        "id": 226,
+        "texte": "Accueil chaleureux, plats divins",
+        "note": 5
+      },
+      {
+        "id": 227,
+        "texte": "Vraiment très bon",
+        "note": 5
+      },
+      {
+        "id": 228,
+        "texte": "Personnel sympa, plats excellents",
+        "note": 5
+      },
+      {
+        "id": 229,
+        "texte": "Super moment passé",
+        "note": 4
+      },
+      {
+        "id": 230,
+        "texte": "Je recommande vivement",
+        "note": 5
+      },
+      {
+        "id": 231,
+        "texte": "Produits frais, cuisine savoureuse",
+        "note": 4
+      },
+      {
+        "id": 232,
+        "texte": "Personnel sympa, plats excellents",
+        "note": 5
+      },
+      {
+        "id": 233,
+        "texte": "Produits frais, cuisine savoureuse",
+        "note": 5
+      },
+      {
+        "id": 234,
+        "texte": "Personnel sympa, plats excellents",
+        "note": 5
+      },
+      {
+        "id": 235,
+        "texte": "Je recommande vivement",
+        "note": 5
+      },
+      {
+        "id": 236,
+        "texte": "Cuisine délicieuse et raffinée",
+        "note": 5
+      },
+      {
+        "id": 237,
+        "texte": "Parfait de A à Z",
+        "note": 5
+      },
+      {
+        "id": 238,
+        "texte": "Toujours aussi bon",
+        "note": 4
+      },
+      {
+        "id": 239,
+        "texte": "Délicieux et bien présenté",
+        "note": 4
+      },
+      {
+        "id": 240,
+        "texte": "Excellent rapport qualité prix",
+        "note": 5
+      },
+      {
+        "id": 241,
+        "texte": "Très satisfait du repas",
+        "note": 4
+      },
+      {
+        "id": 242,
+        "texte": "Service attentif, plats savoureux",
+        "note": 4
+      },
+      {
+        "id": 243,
+        "texte": "Très satisfait du repas",
+        "note": 5
+      },
+      {
+        "id": 244,
+        "texte": "Parfait de A à Z",
+        "note": 4
+      },
+      {
+        "id": 245,
+        "texte": "Meilleur restaurant du coin",
+        "note": 5
+      },
+      {
+        "id": 246,
+        "texte": "Toujours aussi bon",
+        "note": 5
+      },
+      {
+        "id": 247,
+        "texte": "Cuisine maison de qualité",
+        "note": 5
+      },
+      {
+        "id": 248,
+        "texte": "Service attentif, plats savoureux",
+        "note": 4
+      },
+      {
+        "id": 249,
+        "texte": "Parfait de A à Z",
+        "note": 5
+      },
+      {
+        "id": 250,
+        "texte": "Meilleur restaurant du coin",
+        "note": 4
+      },
+      {
+        "id": 251,
+        "texte": "Très satisfait du repas",
+        "note": 5
+      },
+      {
+        "id": 252,
+        "texte": "Ambiance top, cuisine excellente",
+        "note": 4
+      },
+      {
+        "id": 253,
+        "texte": "Ambiance top, cuisine excellente",
+        "note": 5
+      },
+      {
+        "id": 254,
+        "texte": "Super moment passé",
+        "note": 4
+      },
+      {
+        "id": 255,
+        "texte": "Cuisine délicieuse et raffinée",
+        "note": 4
+      },
+      {
+        "id": 256,
+        "texte": "Belle découverte gastronomique",
+        "note": 5
+      },
+      {
+        "id": 257,
+        "texte": "Excellent rapport qualité prix",
+        "note": 5
+      },
+      {
+        "id": 258,
+        "texte": "Personnel sympa, plats excellents",
+        "note": 5
+      },
+      {
+        "id": 259,
+        "texte": "Belle découverte gastronomique",
+        "note": 4
+      },
+      {
+        "id": 260,
+        "texte": "Cuisine délicieuse et raffinée",
+        "note": 5
+      },
+      {
+        "id": 261,
+        "texte": "Accueil chaleureux, plats divins",
+        "note": 4
+      },
+      {
+        "id": 262,
+        "texte": "Un vrai régal",
+        "note": 5
+      },
+      {
+        "id": 263,
+        "texte": "Meilleur restaurant du coin",
+        "note": 4
+      },
+      {
+        "id": 264,
+        "texte": "Toujours aussi bon",
+        "note": 5
+      },
+      {
+        "id": 265,
+        "texte": "Un vrai régal",
+        "note": 4
+      },
+      {
+        "id": 266,
+        "texte": "Excellent rapport qualité prix",
+        "note": 4
+      },
+      {
+        "id": 267,
+        "texte": "Parfait de A à Z",
+        "note": 5
+      },
+      {
+        "id": 268,
+        "texte": "Super moment passé",
+        "note": 4
+      },
+      {
+        "id": 269,
+        "texte": "Accueil chaleureux, plats divins",
+        "note": 4
+      },
+      {
+        "id": 270,
+        "texte": "Accueil chaleureux, plats divins",
+        "note": 4
+      },
+      {
+        "id": 271,
+        "texte": "Très satisfait du repas",
+        "note": 5
+      },
+      {
+        "id": 272,
+        "texte": "Excellent rapport qualité prix",
+        "note": 5
+      },
+      {
+        "id": 273,
+        "texte": "Très bonne adresse",
+        "note": 5
+      },
+      {
+        "id": 274,
+        "texte": "Accueil chaleureux, plats divins",
+        "note": 5
+      },
+      {
+        "id": 275,
+        "texte": "Excellent rapport qualité prix",
+        "note": 5
+      },
+      {
+        "id": 276,
+        "texte": "Délicieux et bien présenté",
+        "note": 5
+      },
+      {
+        "id": 277,
+        "texte": "Ambiance top, cuisine excellente",
+        "note": 5
+      },
+      {
+        "id": 278,
+        "texte": "Meilleur restaurant du coin",
+        "note": 5
+      },
+      {
+        "id": 279,
+        "texte": "Meilleur restaurant du coin",
+        "note": 4
+      },
+      {
+        "id": 280,
+        "texte": "Personnel sympa, plats excellents",
+        "note": 4
+      },
+      {
+        "id": 281,
+        "texte": "Service attentif, plats savoureux",
+        "note": 4
+      },
+      {
+        "id": 282,
+        "texte": "Cuisine délicieuse et raffinée",
+        "note": 4
+      },
+      {
+        "id": 283,
+        "texte": "Meilleur restaurant du coin",
+        "note": 4
+      },
+      {
+        "id": 284,
+        "texte": "Cuisine délicieuse et raffinée",
+        "note": 4
+      },
+      {
+        "id": 285,
+        "texte": "Super moment passé",
+        "note": 5
+      },
+      {
+        "id": 286,
+        "texte": "Délicieux et bien présenté",
+        "note": 4
+      },
+      {
+        "id": 287,
+        "texte": "Parfait de A à Z",
+        "note": 4
+      },
+      {
+        "id": 288,
+        "texte": "Personnel sympa, plats excellents",
+        "note": 5
+      },
+      {
+        "id": 289,
+        "texte": "Toujours aussi bon",
+        "note": 5
+      },
+      {
+        "id": 290,
+        "texte": "Toujours aussi bon",
+        "note": 5
+      },
+      {
+        "id": 291,
+        "texte": "Ambiance top, cuisine excellente",
+        "note": 5
+      },
+      {
+        "id": 292,
+        "texte": "Très satisfait du repas",
+        "note": 5
+      },
+      {
+        "id": 293,
+        "texte": "Très bonne adresse",
+        "note": 5
+      },
+      {
+        "id": 294,
+        "texte": "Cuisine maison de qualité",
+        "note": 4
+      },
+      {
+        "id": 295,
+        "texte": "Cadre sympa, nourriture top",
+        "note": 4
+      },
+      {
+        "id": 296,
+        "texte": "Personnel sympa, plats excellents",
+        "note": 5
+      },
+      {
+        "id": 297,
+        "texte": "Excellent rapport qualité prix",
+        "note": 5
+      },
+      {
+        "id": 298,
+        "texte": "Produits frais, cuisine savoureuse",
+        "note": 4
+      },
+      {
+        "id": 299,
+        "texte": "Très satisfait du repas",
+        "note": 5
+      },
+      {
+        "id": 300,
+        "texte": "Belle découverte gastronomique",
+        "note": 5
+      }
+    ],
+    "negatifs": [
+      {
+        "id": 1,
+        "texte": "Service très lent et désagréable",
+        "note": 2
+      },
+      {
+        "id": 2,
+        "texte": "Plats froids et sans saveur",
+        "note": 1
+      },
+      {
+        "id": 3,
+        "texte": "Trop cher pour la qualité",
+        "note": 1
+      },
+      {
+        "id": 4,
+        "texte": "Accueil froid et hautain",
+        "note": 1
+      },
+      {
+        "id": 5,
+        "texte": "Cuisine médiocre, décevant",
+        "note": 2
+      },
+      {
+        "id": 6,
+        "texte": "Attente interminable, jamais plus",
+        "note": 2
+      },
+      {
+        "id": 7,
+        "texte": "Portions ridicules pour le prix",
+        "note": 1
+      },
+      {
+        "id": 8,
+        "texte": "Personnel incompétent et désorganisé",
+        "note": 2
+      },
+      {
+        "id": 9,
+        "texte": "Nourriture pas fraîche",
+        "note": 2
+      },
+      {
+        "id": 10,
+        "texte": "Hygiène douteuse, salle sale",
+        "note": 2
+      },
+      {
+        "id": 11,
+        "texte": "Viande trop cuite et sèche",
+        "note": 1
+      },
+      {
+        "id": 12,
+        "texte": "Addition salée pour qualité basse",
+        "note": 1
+      },
+      {
+        "id": 13,
+        "texte": "Serveurs désagréables et impolis",
+        "note": 1
+      },
+      {
+        "id": 14,
+        "texte": "Plats sans goût ni présentation",
+        "note": 1
+      },
+      {
+        "id": 15,
+        "texte": "Ambiance bruyante insupportable",
+        "note": 1
+      },
+      {
+        "id": 16,
+        "texte": "Rapport qualité prix catastrophique",
+        "note": 2
+      },
+      {
+        "id": 17,
+        "texte": "Cuisine industrielle, pas maison",
+        "note": 2
+      },
+      {
+        "id": 18,
+        "texte": "Erreur sur commande, aucune excuse",
+        "note": 2
+      },
+      {
+        "id": 19,
+        "texte": "Prix exorbitants, qualité médiocre",
+        "note": 2
+      },
+      {
+        "id": 20,
+        "texte": "Fraîcheur des produits douteuse",
+        "note": 1
+      },
+      {
+        "id": 21,
+        "texte": "Service inexistant, oubli plats",
+        "note": 2
+      },
+      {
+        "id": 22,
+        "texte": "Décevant du début à fin",
+        "note": 2
+      },
+      {
+        "id": 23,
+        "texte": "Viande avariée, intoxication alimentaire",
+        "note": 2
+      },
+      {
+        "id": 24,
+        "texte": "Personnel désagréable et pressant",
+        "note": 1
+      },
+      {
+        "id": 25,
+        "texte": "Plats réchauffés et secs",
+        "note": 2
+      },
+      {
+        "id": 26,
+        "texte": "Attente d'une heure trente",
+        "note": 1
+      },
+      {
+        "id": 27,
+        "texte": "Couscous insipide et sans légumes",
+        "note": 2
+      },
+      {
+        "id": 28,
+        "texte": "Patron arrogant et désagréable",
+        "note": 1
+      },
+      {
+        "id": 29,
+        "texte": "Vin bouchonné non remplacé",
+        "note": 1
+      },
+      {
+        "id": 30,
+        "texte": "Salle bruyante, impossible discuter",
+        "note": 1
+      },
+      {
+        "id": 31,
+        "texte": "Odeurs désagréables dans toilettes",
+        "note": 2
+      },
+      {
+        "id": 32,
+        "texte": "Vaisselle sale et ébréchée",
+        "note": 2
+      },
+      {
+        "id": 33,
+        "texte": "Plats servis tièdes",
+        "note": 1
+      },
+      {
+        "id": 34,
+        "texte": "Manque de professionnalisme criant",
+        "note": 1
+      },
+      {
+        "id": 35,
+        "texte": "Cuisine grasse et lourde",
+        "note": 2
+      },
+      {
+        "id": 36,
+        "texte": "Prix gonflés, qualité basse",
+        "note": 1
+      },
+      {
+        "id": 37,
+        "texte": "Serveurs pressés et désagréables",
+        "note": 1
+      },
+      {
+        "id": 38,
+        "texte": "Aucune saveur, très décevant",
+        "note": 1
+      },
+      {
+        "id": 39,
+        "texte": "Tables collantes, propreté douteuse",
+        "note": 2
+      },
+      {
+        "id": 40,
+        "texte": "Formule midi très décevante",
+        "note": 2
+      },
+      {
+        "id": 41,
+        "texte": "Viande nerveuse et immangeable",
+        "note": 1
+      },
+      {
+        "id": 42,
+        "texte": "Service déplorable et lent",
+        "note": 1
+      },
+      {
+        "id": 43,
+        "texte": "Desserts industriels pas frais",
+        "note": 1
+      },
+      {
+        "id": 44,
+        "texte": "Aucune ambiance, froid",
+        "note": 1
+      },
+      {
+        "id": 45,
+        "texte": "Qualité en chute libre",
+        "note": 1
+      },
+      {
+        "id": 46,
+        "texte": "Trop salé, inmangeable",
+        "note": 2
+      },
+      {
+        "id": 47,
+        "texte": "Serveurs ont oublié notre table",
+        "note": 1
+      },
+      {
+        "id": 48,
+        "texte": "Épices périmées, goût bizarre",
+        "note": 1
+      },
+      {
+        "id": 49,
+        "texte": "Propreté laisse à désirer",
+        "note": 2
+      },
+      {
+        "id": 50,
+        "texte": "Pas de gestes commerciaux",
+        "note": 2
+      },
+      {
+        "id": 51,
+        "texte": "Tajine sans viande, arnaque",
+        "note": 1
+      },
+      {
+        "id": 52,
+        "texte": "Personnel non formé",
+        "note": 1
+      },
+      {
+        "id": 53,
+        "texte": "Parking inexistant, galère",
+        "note": 1
+      },
+      {
+        "id": 54,
+        "texte": "Réservation non honorée",
+        "note": 1
+      },
+      {
+        "id": 55,
+        "texte": "Addition avec erreurs volontaires",
+        "note": 2
+      },
+      {
+        "id": 56,
+        "texte": "Musique trop forte, mal tête",
+        "note": 1
+      },
+      {
+        "id": 57,
+        "texte": "Décor vieillot et sale",
+        "note": 2
+      },
+      {
+        "id": 58,
+        "texte": "Éclairage agressif et désagréable",
+        "note": 2
+      },
+      {
+        "id": 59,
+        "texte": "Tables trop serrées, promiscuité",
+        "note": 2
+      },
+      {
+        "id": 60,
+        "texte": "Menu dégustation raté",
+        "note": 1
+      },
+      {
+        "id": 61,
+        "texte": "Légumes congelés pas frais",
+        "note": 2
+      },
+      {
+        "id": 62,
+        "texte": "Présentation bâclée et laide",
+        "note": 2
+      },
+      {
+        "id": 63,
+        "texte": "Odeurs de friture partout",
+        "note": 2
+      },
+      {
+        "id": 64,
+        "texte": "Température salle trop chaude",
+        "note": 1
+      },
+      {
+        "id": 65,
+        "texte": "Verres sales et tachés",
+        "note": 2
+      },
+      {
+        "id": 66,
+        "texte": "Service trop rapide, expéditif",
+        "note": 1
+      },
+      {
+        "id": 67,
+        "texte": "Vin dilué, arnaque",
+        "note": 1
+      },
+      {
+        "id": 68,
+        "texte": "Café imbuvable, dégueulasse",
+        "note": 1
+      },
+      {
+        "id": 69,
+        "texte": "Bibi absent, service nul",
+        "note": 2
+      },
+      {
+        "id": 70,
+        "texte": "Conseil serveur très mauvais",
+        "note": 2
+      },
+      {
+        "id": 71,
+        "texte": "Couscous du vendredi raté",
+        "note": 2
+      },
+      {
+        "id": 72,
+        "texte": "Ambiance tendue entre serveurs",
+        "note": 1
+      },
+      {
+        "id": 73,
+        "texte": "Plats pas assez chauds",
+        "note": 1
+      },
+      {
+        "id": 74,
+        "texte": "Carte limitée et peu variée",
+        "note": 1
+      },
+      {
+        "id": 75,
+        "texte": "Spécialités maison décevantes",
+        "note": 1
+      },
+      {
+        "id": 76,
+        "texte": "Poisson pas frais du tout",
+        "note": 2
+      },
+      {
+        "id": 77,
+        "texte": "Serveurs débordés, très long",
+        "note": 2
+      },
+      {
+        "id": 78,
+        "texte": "Quantité insuffisante, resté faim",
+        "note": 1
+      },
+      {
+        "id": 79,
+        "texte": "Saveurs déséquilibrées, trop épicé",
+        "note": 1
+      },
+      {
+        "id": 80,
+        "texte": "Plats servis dans désordre",
+        "note": 1
+      },
+      {
+        "id": 81,
+        "texte": "Menu enfant inexistant",
+        "note": 1
+      },
+      {
+        "id": 82,
+        "texte": "Arnaque sur les prix",
+        "note": 1
+      },
+      {
+        "id": 83,
+        "texte": "Personnel qui discute, nous ignore",
+        "note": 2
+      },
+      {
+        "id": 84,
+        "texte": "Toilettes sales et malodorantes",
+        "note": 2
+      },
+      {
+        "id": 85,
+        "texte": "Faux restaurant traditionnel",
+        "note": 2
+      },
+      {
+        "id": 86,
+        "texte": "Cadre glauque et vieillot",
+        "note": 1
+      },
+      {
+        "id": 87,
+        "texte": "Aucune option végétarienne",
+        "note": 1
+      },
+      {
+        "id": 88,
+        "texte": "Pain rassis et dur",
+        "note": 1
+      },
+      {
+        "id": 89,
+        "texte": "Produits bas de gamme",
+        "note": 1
+      },
+      {
+        "id": 90,
+        "texte": "Chef absent, apprentis cuisine",
+        "note": 1
+      },
+      {
+        "id": 91,
+        "texte": "Impossible organiser événement ici",
+        "note": 2
+      },
+      {
+        "id": 92,
+        "texte": "Brochettes cramées et sèches",
+        "note": 2
+      },
+      {
+        "id": 93,
+        "texte": "Entrées insipides et froides",
+        "note": 1
+      },
+      {
+        "id": 94,
+        "texte": "Sauces industrielles pas maison",
+        "note": 1
+      },
+      {
+        "id": 95,
+        "texte": "Carte vins limitée et chère",
+        "note": 1
+      },
+      {
+        "id": 96,
+        "texte": "Allergies non respectées, danger",
+        "note": 1
+      },
+      {
+        "id": 97,
+        "texte": "Terrasse bruyante, rue passante",
+        "note": 1
+      },
+      {
+        "id": 98,
+        "texte": "Vraiment pas bon du tout",
+        "note": 2
+      },
+      {
+        "id": 99,
+        "texte": "Déçu, n'y retournerai pas",
+        "note": 1
+      },
+      {
+        "id": 100,
+        "texte": "Qualité en baisse constante",
+        "note": 1
+      },
+      {
+        "id": 101,
+        "texte": "Service déplorable, fuyez",
+        "note": 1
+      },
+      {
+        "id": 102,
+        "texte": "Très mauvaise expérience",
+        "note": 1
+      },
+      {
+        "id": 103,
+        "texte": "Prix abusifs, qualité nulle",
+        "note": 2
+      },
+      {
+        "id": 104,
+        "texte": "Personnel désagréable, cuisine fade",
+        "note": 1
+      },
+      {
+        "id": 105,
+        "texte": "Catastrophe culinaire totale",
+        "note": 1
+      },
+      {
+        "id": 106,
+        "texte": "Attente horrible, plats moyens",
+        "note": 2
+      },
+      {
+        "id": 107,
+        "texte": "Propreté médiocre, décevant",
+        "note": 2
+      },
+      {
+        "id": 108,
+        "texte": "Arnaque totale, évitez",
+        "note": 1
+      },
+      {
+        "id": 109,
+        "texte": "Pire restaurant de ma vie",
+        "note": 1
+      },
+      {
+        "id": 110,
+        "texte": "Insipide et trop cher",
+        "note": 1
+      },
+      {
+        "id": 111,
+        "texte": "Accueil glacial, nourriture froide",
+        "note": 1
+      },
+      {
+        "id": 112,
+        "texte": "Fraîcheur douteuse, danger",
+        "note": 1
+      },
+      {
+        "id": 113,
+        "texte": "Indigestion garantie, fuyez vite",
+        "note": 2
+      },
+      {
+        "id": 114,
+        "texte": "Service lamentable et lent",
+        "note": 1
+      },
+      {
+        "id": 115,
+        "texte": "Cuisine infecte, ambiance nulle",
+        "note": 2
+      },
+      {
+        "id": 116,
+        "texte": "Cher et vraiment pas bon",
+        "note": 2
+      },
+      {
+        "id": 117,
+        "texte": "Décevant sur tous points",
+        "note": 2
+      },
+      {
+        "id": 118,
+        "texte": "Zéro saveur, beaucoup d'attente",
+        "note": 2
+      },
+      {
+        "id": 119,
+        "texte": "Mal accueilli, mal servi",
+        "note": 2
+      },
+      {
+        "id": 120,
+        "texte": "Plats industriels réchauffés",
+        "note": 1
+      },
+      {
+        "id": 121,
+        "texte": "Hygiène déplorable, écœurant",
+        "note": 1
+      },
+      {
+        "id": 122,
+        "texte": "Portions minuscules, prix excessifs",
+        "note": 1
+      },
+      {
+        "id": 123,
+        "texte": "Serveurs impolis et incompétents",
+        "note": 2
+      },
+      {
+        "id": 124,
+        "texte": "Vraiment très décevant",
+        "note": 1
+      },
+      {
+        "id": 125,
+        "texte": "Mauvais rapport qualité prix",
+        "note": 2
+      },
+      {
+        "id": 126,
+        "texte": "Cuisine sans âme ni saveur",
+        "note": 1
+      },
+      {
+        "id": 127,
+        "texte": "Ne mérite aucune étoile",
+        "note": 2
+      },
+      {
+        "id": 128,
+        "texte": "Évitez cet endroit absolument",
+        "note": 2
+      },
+      {
+        "id": 129,
+        "texte": "Gâchis d'argent et temps",
+        "note": 2
+      },
+      {
+        "id": 130,
+        "texte": "Produits douteux, mal cuisinés",
+        "note": 2
+      },
+      {
+        "id": 131,
+        "texte": "Service catastrophique, à fuir",
+        "note": 1
+      },
+      {
+        "id": 132,
+        "texte": "Repas gâché, soirée ruinée",
+        "note": 2
+      },
+      {
+        "id": 133,
+        "texte": "Plats immangeables, trop salés",
+        "note": 2
+      },
+      {
+        "id": 134,
+        "texte": "Attente excessive, résultat médiocre",
+        "note": 1
+      },
+      {
+        "id": 135,
+        "texte": "Personnel désorganisé, cuisine bâclée",
+        "note": 2
+      },
+      {
+        "id": 136,
+        "texte": "Froid, sale et cher",
+        "note": 1
+      },
+      {
+        "id": 137,
+        "texte": "Pire couscous jamais mangé",
+        "note": 1
+      },
+      {
+        "id": 138,
+        "texte": "Erreurs facture, arnaque",
+        "note": 1
+      },
+      {
+        "id": 139,
+        "texte": "Ambiance sinistre, plats froids",
+        "note": 1
+      },
+      {
+        "id": 140,
+        "texte": "Vraiment pas à hauteur",
+        "note": 2
+      },
+      {
+        "id": 141,
+        "texte": "Qualité déplorable pour prix",
+        "note": 2
+      },
+      {
+        "id": 142,
+        "texte": "Service inexistant, scandaleux",
+        "note": 2
+      },
+      {
+        "id": 143,
+        "texte": "Viande douteuse, mal cuite",
+        "note": 2
+      },
+      {
+        "id": 144,
+        "texte": "Restaurant à éviter absolument",
+        "note": 2
+      },
+      {
+        "id": 145,
+        "texte": "Très mauvaise cuisine",
+        "note": 2
+      },
+      {
+        "id": 146,
+        "texte": "Accueil exécrable, plats ratés",
+        "note": 1
+      },
+      {
+        "id": 147,
+        "texte": "Aucun respect client",
+        "note": 1
+      },
+      {
+        "id": 148,
+        "texte": "Addition gonflée abusivement",
+        "note": 2
+      },
+      {
+        "id": 149,
+        "texte": "Plats sans intérêt gustatif",
+        "note": 2
+      },
+      {
+        "id": 150,
+        "texte": "Trop bruyant, mal mangé",
+        "note": 2
+      },
+      {
+        "id": 151,
+        "texte": "Serveurs agressifs et malpolis",
+        "note": 1
+      },
+      {
+        "id": 152,
+        "texte": "Cuisine grasse et lourde",
+        "note": 1
+      },
+      {
+        "id": 153,
+        "texte": "Fraîcheur très douteuse",
+        "note": 2
+      },
+      {
+        "id": 154,
+        "texte": "Expérience désastreuse complète",
+        "note": 1
+      },
+      {
+        "id": 155,
+        "texte": "N'y allez surtout pas",
+        "note": 1
+      },
+      {
+        "id": 156,
+        "texte": "Scandaleux rapport qualité prix",
+        "note": 1
+      },
+      {
+        "id": 157,
+        "texte": "Propreté laisse vraiment désirer",
+        "note": 2
+      },
+      {
+        "id": 158,
+        "texte": "Plats froids et insipides",
+        "note": 2
+      },
+      {
+        "id": 159,
+        "texte": "Service déplorable, cuisine pire",
+        "note": 1
+      },
+      {
+        "id": 160,
+        "texte": "Ambiance lugubre, nourriture infecte",
+        "note": 1
+      },
+      {
+        "id": 161,
+        "texte": "Arnaques sur prix affichés",
+        "note": 1
+      },
+      {
+        "id": 162,
+        "texte": "Personnel incompétent totalement",
+        "note": 2
+      },
+      {
+        "id": 163,
+        "texte": "Mal de ventre garanti",
+        "note": 2
+      },
+      {
+        "id": 164,
+        "texte": "Très déçu, pas revenir",
+        "note": 1
+      },
+      {
+        "id": 165,
+        "texte": "Qualité médiocre, prix élevés",
+        "note": 1
+      },
+      {
+        "id": 166,
+        "texte": "Mauvaise expérience du début",
+        "note": 1
+      },
+      {
+        "id": 167,
+        "texte": "Fuyez ce restaurant rapidement",
+        "note": 1
+      },
+      {
+        "id": 168,
+        "texte": "Cuisine médiocre et chère",
+        "note": 2
+      },
+      {
+        "id": 169,
+        "texte": "Serveurs pas aimables du tout",
+        "note": 1
+      },
+      {
+        "id": 170,
+        "texte": "Plats trop gras, écoeurants",
+        "note": 1
+      },
+      {
+        "id": 171,
+        "texte": "Attente interminable pour rien",
+        "note": 2
+      },
+      {
+        "id": 172,
+        "texte": "Vraiment pas satisfait",
+        "note": 1
+      },
+      {
+        "id": 173,
+        "texte": "Mauvaise hygiène visible",
+        "note": 2
+      },
+      {
+        "id": 174,
+        "texte": "Rien n'était bon",
+        "note": 1
+      },
+      {
+        "id": 175,
+        "texte": "Beaucoup trop cher payé",
+        "note": 2
+      },
+      {
+        "id": 176,
+        "texte": "Décevant et pas bon",
+        "note": 2
+      },
+      {
+        "id": 177,
+        "texte": "Fraîcheur absente, produits douteux",
+        "note": 1
+      },
+      {
+        "id": 178,
+        "texte": "Service lent, cuisine fade",
+        "note": 2
+      },
+      {
+        "id": 179,
+        "texte": "À éviter absolument vraiment",
+        "note": 1
+      },
+      {
+        "id": 180,
+        "texte": "Pas bon, trop cher",
+        "note": 1
+      },
+      {
+        "id": 181,
+        "texte": "Expérience culinaire horrible",
+        "note": 2
+      },
+      {
+        "id": 182,
+        "texte": "Mauvais du début fin",
+        "note": 1
+      },
+      {
+        "id": 183,
+        "texte": "Personnel désagréable, plats froids",
+        "note": 2
+      },
+      {
+        "id": 184,
+        "texte": "Hygiène douteuse, attention",
+        "note": 1
+      },
+      {
+        "id": 185,
+        "texte": "Viande cramée et sèche",
+        "note": 1
+      },
+      {
+        "id": 186,
+        "texte": "Vraiment pas recommandable",
+        "note": 2
+      },
+      {
+        "id": 187,
+        "texte": "Prix excessifs, qualité basse",
+        "note": 2
+      },
+      {
+        "id": 188,
+        "texte": "Service nul, ambiance pire",
+        "note": 2
+      },
+      {
+        "id": 189,
+        "texte": "Plats sans saveur aucune",
+        "note": 2
+      },
+      {
+        "id": 190,
+        "texte": "Très mauvais restaurant",
+        "note": 2
+      },
+      {
+        "id": 191,
+        "texte": "Catastrophe sur toute ligne",
+        "note": 2
+      },
+      {
+        "id": 192,
+        "texte": "Jamais vu aussi mauvais",
+        "note": 1
+      },
+      {
+        "id": 193,
+        "texte": "Qualité inexistante, fuir",
+        "note": 1
+      },
+      {
+        "id": 194,
+        "texte": "Personnel débordé, service lent",
+        "note": 2
+      },
+      {
+        "id": 195,
+        "texte": "Déception totale, argent perdu",
+        "note": 2
+      },
+      {
+        "id": 196,
+        "texte": "Cuisine infecte, service nul",
+        "note": 1
+      },
+      {
+        "id": 197,
+        "texte": "Mauvaise adresse à fuir",
+        "note": 1
+      },
+      {
+        "id": 198,
+        "texte": "Qualité très médiocre",
+        "note": 2
+      },
+      {
+        "id": 199,
+        "texte": "Mauvais service, cuisine médiocre",
+        "note": 1
+      },
+      {
+        "id": 200,
+        "texte": "Propreté douteuse, attention",
+        "note": 2
+      },
+      {
+        "id": 201,
+        "texte": "Rapport qualité prix nul",
+        "note": 2
+      },
+      {
+        "id": 202,
+        "texte": "Rapport qualité prix nul",
+        "note": 1
+      },
+      {
+        "id": 203,
+        "texte": "Trop cher, pas bon",
+        "note": 1
+      },
+      {
+        "id": 204,
+        "texte": "Service catastrophique vraiment",
+        "note": 2
+      },
+      {
+        "id": 205,
+        "texte": "Très décevant, pas revenir",
+        "note": 2
+      },
+      {
+        "id": 206,
+        "texte": "Personnel désagréable totalement",
+        "note": 1
+      },
+      {
+        "id": 207,
+        "texte": "Mauvais service, cuisine médiocre",
+        "note": 2
+      },
+      {
+        "id": 208,
+        "texte": "Trop cher, pas bon",
+        "note": 2
+      },
+      {
+        "id": 209,
+        "texte": "Attente longue, plats froids",
+        "note": 2
+      },
+      {
+        "id": 210,
+        "texte": "Cuisine industrielle décevante",
+        "note": 1
+      },
+      {
+        "id": 211,
+        "texte": "N'y retournerai jamais",
+        "note": 2
+      },
+      {
+        "id": 212,
+        "texte": "Déçu complètement",
+        "note": 2
+      },
+      {
+        "id": 213,
+        "texte": "Trop cher, pas bon",
+        "note": 1
+      },
+      {
+        "id": 214,
+        "texte": "Viande pas fraîche",
+        "note": 2
+      },
+      {
+        "id": 215,
+        "texte": "Plats sans saveur",
+        "note": 2
+      },
+      {
+        "id": 216,
+        "texte": "Propreté douteuse, attention",
+        "note": 2
+      },
+      {
+        "id": 217,
+        "texte": "À éviter absolument",
+        "note": 1
+      },
+      {
+        "id": 218,
+        "texte": "Cuisine industrielle décevante",
+        "note": 2
+      },
+      {
+        "id": 219,
+        "texte": "N'y retournerai jamais",
+        "note": 2
+      },
+      {
+        "id": 220,
+        "texte": "Mauvaise expérience culinaire",
+        "note": 2
+      },
+      {
+        "id": 221,
+        "texte": "N'y retournerai jamais",
+        "note": 2
+      },
+      {
+        "id": 222,
+        "texte": "N'y retournerai jamais",
+        "note": 2
+      },
+      {
+        "id": 223,
+        "texte": "Service catastrophique vraiment",
+        "note": 1
+      },
+      {
+        "id": 224,
+        "texte": "À éviter absolument",
+        "note": 1
+      },
+      {
+        "id": 225,
+        "texte": "Rapport qualité prix nul",
+        "note": 1
+      },
+      {
+        "id": 226,
+        "texte": "À éviter absolument",
+        "note": 1
+      },
+      {
+        "id": 227,
+        "texte": "Viande pas fraîche",
+        "note": 1
+      },
+      {
+        "id": 228,
+        "texte": "Mauvaise expérience culinaire",
+        "note": 2
+      },
+      {
+        "id": 229,
+        "texte": "Pas bon du tout",
+        "note": 2
+      },
+      {
+        "id": 230,
+        "texte": "Déçu complètement",
+        "note": 1
+      },
+      {
+        "id": 231,
+        "texte": "Service catastrophique vraiment",
+        "note": 1
+      },
+      {
+        "id": 232,
+        "texte": "Mauvaise expérience culinaire",
+        "note": 2
+      },
+      {
+        "id": 233,
+        "texte": "Serveurs pas professionnels",
+        "note": 2
+      },
+      {
+        "id": 234,
+        "texte": "Qualité très médiocre",
+        "note": 1
+      },
+      {
+        "id": 235,
+        "texte": "Service catastrophique vraiment",
+        "note": 2
+      },
+      {
+        "id": 236,
+        "texte": "Déçu complètement",
+        "note": 1
+      },
+      {
+        "id": 237,
+        "texte": "Déçu complètement",
+        "note": 2
+      },
+      {
+        "id": 238,
+        "texte": "Attente longue, plats froids",
+        "note": 1
+      },
+      {
+        "id": 239,
+        "texte": "Serveurs pas professionnels",
+        "note": 1
+      },
+      {
+        "id": 240,
+        "texte": "Cuisine industrielle décevante",
+        "note": 2
+      },
+      {
+        "id": 241,
+        "texte": "Mauvais service, cuisine médiocre",
+        "note": 2
+      },
+      {
+        "id": 242,
+        "texte": "Attente longue, plats froids",
+        "note": 2
+      },
+      {
+        "id": 243,
+        "texte": "Attente longue, plats froids",
+        "note": 2
+      },
+      {
+        "id": 244,
+        "texte": "Personnel désagréable totalement",
+        "note": 1
+      },
+      {
+        "id": 245,
+        "texte": "Personnel désagréable totalement",
+        "note": 2
+      },
+      {
+        "id": 246,
+        "texte": "Vraiment pas terrible",
+        "note": 2
+      },
+      {
+        "id": 247,
+        "texte": "Service catastrophique vraiment",
+        "note": 2
+      },
+      {
+        "id": 248,
+        "texte": "Service catastrophique vraiment",
+        "note": 1
+      },
+      {
+        "id": 249,
+        "texte": "Pas bon du tout",
+        "note": 1
+      },
+      {
+        "id": 250,
+        "texte": "Mauvais service, cuisine médiocre",
+        "note": 2
+      },
+      {
+        "id": 251,
+        "texte": "Mauvais service, cuisine médiocre",
+        "note": 2
+      },
+      {
+        "id": 252,
+        "texte": "Déçu complètement",
+        "note": 1
+      },
+      {
+        "id": 253,
+        "texte": "Mauvaise expérience culinaire",
+        "note": 2
+      },
+      {
+        "id": 254,
+        "texte": "Service catastrophique vraiment",
+        "note": 1
+      },
+      {
+        "id": 255,
+        "texte": "Déçu complètement",
+        "note": 1
+      },
+      {
+        "id": 256,
+        "texte": "Très décevant, pas revenir",
+        "note": 1
+      },
+      {
+        "id": 257,
+        "texte": "Propreté douteuse, attention",
+        "note": 2
+      },
+      {
+        "id": 258,
+        "texte": "Propreté douteuse, attention",
+        "note": 1
+      },
+      {
+        "id": 259,
+        "texte": "Trop cher, pas bon",
+        "note": 1
+      },
+      {
+        "id": 260,
+        "texte": "Déçu complètement",
+        "note": 1
+      },
+      {
+        "id": 261,
+        "texte": "Cuisine industrielle décevante",
+        "note": 2
+      },
+      {
+        "id": 262,
+        "texte": "Cuisine industrielle décevante",
+        "note": 2
+      },
+      {
+        "id": 263,
+        "texte": "Attente longue, plats froids",
+        "note": 1
+      },
+      {
+        "id": 264,
+        "texte": "Propreté douteuse, attention",
+        "note": 1
+      },
+      {
+        "id": 265,
+        "texte": "Personnel désagréable totalement",
+        "note": 1
+      },
+      {
+        "id": 266,
+        "texte": "Personnel désagréable totalement",
+        "note": 2
+      },
+      {
+        "id": 267,
+        "texte": "Trop cher, pas bon",
+        "note": 2
+      },
+      {
+        "id": 268,
+        "texte": "Qualité très médiocre",
+        "note": 1
+      },
+      {
+        "id": 269,
+        "texte": "Propreté douteuse, attention",
+        "note": 2
+      },
+      {
+        "id": 270,
+        "texte": "Qualité très médiocre",
+        "note": 1
+      },
+      {
+        "id": 271,
+        "texte": "Viande pas fraîche",
+        "note": 2
+      },
+      {
+        "id": 272,
+        "texte": "Personnel désagréable totalement",
+        "note": 1
+      },
+      {
+        "id": 273,
+        "texte": "Qualité très médiocre",
+        "note": 1
+      },
+      {
+        "id": 274,
+        "texte": "Cher pour qualité basse",
+        "note": 1
+      },
+      {
+        "id": 275,
+        "texte": "Propreté douteuse, attention",
+        "note": 1
+      },
+      {
+        "id": 276,
+        "texte": "Viande pas fraîche",
+        "note": 1
+      },
+      {
+        "id": 277,
+        "texte": "Cher pour qualité basse",
+        "note": 2
+      },
+      {
+        "id": 278,
+        "texte": "Service catastrophique vraiment",
+        "note": 2
+      },
+      {
+        "id": 279,
+        "texte": "Cuisine industrielle décevante",
+        "note": 1
+      },
+      {
+        "id": 280,
+        "texte": "Qualité très médiocre",
+        "note": 1
+      },
+      {
+        "id": 281,
+        "texte": "Déçu complètement",
+        "note": 2
+      },
+      {
+        "id": 282,
+        "texte": "Personnel désagréable totalement",
+        "note": 1
+      },
+      {
+        "id": 283,
+        "texte": "Serveurs pas professionnels",
+        "note": 1
+      },
+      {
+        "id": 284,
+        "texte": "Déçu complètement",
+        "note": 2
+      },
+      {
+        "id": 285,
+        "texte": "N'y retournerai jamais",
+        "note": 1
+      },
+      {
+        "id": 286,
+        "texte": "Propreté douteuse, attention",
+        "note": 2
+      },
+      {
+        "id": 287,
+        "texte": "Qualité très médiocre",
+        "note": 2
+      },
+      {
+        "id": 288,
+        "texte": "Mauvaise expérience culinaire",
+        "note": 1
+      },
+      {
+        "id": 289,
+        "texte": "Vraiment pas terrible",
+        "note": 2
+      },
+      {
+        "id": 290,
+        "texte": "Cher pour qualité basse",
+        "note": 2
+      },
+      {
+        "id": 291,
+        "texte": "Vraiment pas terrible",
+        "note": 2
+      },
+      {
+        "id": 292,
+        "texte": "Viande pas fraîche",
+        "note": 2
+      },
+      {
+        "id": 293,
+        "texte": "N'y retournerai jamais",
+        "note": 2
+      },
+      {
+        "id": 294,
+        "texte": "Vraiment pas terrible",
+        "note": 1
+      },
+      {
+        "id": 295,
+        "texte": "N'y retournerai jamais",
+        "note": 1
+      },
+      {
+        "id": 296,
+        "texte": "Trop cher, pas bon",
+        "note": 1
+      },
+      {
+        "id": 297,
+        "texte": "Mauvaise expérience culinaire",
+        "note": 2
+      },
+      {
+        "id": 298,
+        "texte": "Serveurs pas professionnels",
+        "note": 1
+      },
+      {
+        "id": 299,
+        "texte": "Personnel désagréable totalement",
+        "note": 1
+      },
+      {
+        "id": 300,
+        "texte": "Déçu complètement",
+        "note": 2
+      }
+    ]
+  }
+}

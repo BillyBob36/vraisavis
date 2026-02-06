@@ -22,40 +22,44 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
   try {
     await request.jwtVerify();
   } catch (err) {
-    reply.status(401).send({ error: true, message: 'Non autorisé' });
+    return reply.status(401).send({ error: true, message: 'Non autorisé' });
   }
 }
 
 export function requireRole(...roles: ('SUPER_ADMIN' | 'VENDOR' | 'MANAGER')[]) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     await authenticate(request, reply);
+    if (reply.sent) return;
     
     if (!request.user || !roles.includes(request.user.role)) {
-      reply.status(403).send({ error: true, message: 'Accès interdit' });
+      return reply.status(403).send({ error: true, message: 'Accès interdit' });
     }
   };
 }
 
 export async function requireSuperAdmin(request: FastifyRequest, reply: FastifyReply) {
   await authenticate(request, reply);
+  if (reply.sent) return;
   
   if (!request.user || request.user.role !== 'SUPER_ADMIN') {
-    reply.status(403).send({ error: true, message: 'Accès réservé au super admin' });
+    return reply.status(403).send({ error: true, message: 'Accès réservé au super admin' });
   }
 }
 
 export async function requireManager(request: FastifyRequest, reply: FastifyReply) {
   await authenticate(request, reply);
+  if (reply.sent) return;
   
   if (!request.user || request.user.role !== 'MANAGER') {
-    reply.status(403).send({ error: true, message: 'Accès réservé aux managers' });
+    return reply.status(403).send({ error: true, message: 'Accès réservé aux managers' });
   }
 }
 
 export async function requireVendor(request: FastifyRequest, reply: FastifyReply) {
   await authenticate(request, reply);
+  if (reply.sent) return;
   
   if (!request.user || request.user.type !== 'vendor') {
-    reply.status(403).send({ error: true, message: 'Accès réservé aux vendeurs' });
+    return reply.status(403).send({ error: true, message: 'Accès réservé aux vendeurs' });
   }
 }
