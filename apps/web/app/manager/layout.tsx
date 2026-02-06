@@ -15,16 +15,16 @@ import {
   X,
   QrCode,
   BarChart3,
-  Bot
+  Sparkles
 } from 'lucide-react';
 
 const navItems = [
   { href: '/manager', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/manager/feedbacks', label: 'Feedbacks', icon: MessageSquare },
+  { href: '/manager/improvements', label: 'Améliorations', icon: Sparkles },
   { href: '/manager/prizes', label: 'Lots', icon: Gift },
   { href: '/manager/stats', label: 'Statistiques', icon: BarChart3 },
   { href: '/manager/qrcode', label: 'QR Code', icon: QrCode },
-  { href: '/manager/messaging', label: 'Assistant IA', icon: Bot },
   { href: '/manager/settings', label: 'Paramètres', icon: Settings },
 ];
 

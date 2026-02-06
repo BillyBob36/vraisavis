@@ -6,8 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   ThumbsUp, ThumbsDown, Search, X, ChevronDown, ChevronUp,
-  Bell, BellOff, Send, Sparkles, ChevronLeft, ChevronRight,
-  Sun, Moon, Filter, Loader2,
+  Bell, BellOff, ChevronLeft, ChevronRight,
+  Sun, Moon, Coffee, Filter, Loader2, CalendarDays,
 } from 'lucide-react';
 
 interface FingerprintInfo {
@@ -28,26 +28,7 @@ interface Feedback {
   fingerprint?: FingerprintInfo;
 }
 
-interface Improvement {
-  id: string;
-  description: string;
-  matchedFeedbackIds: string[];
-  status: string;
-  notifiedCount: number;
-  createdAt: string;
-}
-
-interface MatchedFeedback {
-  id: string;
-  negativeText: string | null;
-  positiveText: string;
-  createdAt: string;
-  serviceType: string;
-  wantsNotify: boolean;
-}
-
 type SentimentFilter = 'all' | 'positive' | 'negative';
-type PeriodFilter = 'all' | 'today' | 'week' | 'month';
 
 export default function FeedbacksPage() {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
@@ -62,20 +43,13 @@ export default function FeedbacksPage() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [sentiment, setSentiment] = useState<SentimentFilter>('all');
-  const [period, setPeriod] = useState<PeriodFilter>('all');
   const [service, setService] = useState<string>('');
   const [wantsNotify, setWantsNotify] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Improvements
-  const [showImprovement, setShowImprovement] = useState(false);
-  const [improvementText, setImprovementText] = useState('');
-  const [improvementLoading, setImprovementLoading] = useState(false);
-  const [matchedFeedbacks, setMatchedFeedbacks] = useState<MatchedFeedback[]>([]);
-  const [currentImprovement, setCurrentImprovement] = useState<Improvement | null>(null);
-  const [notifiableCount, setNotifiableCount] = useState(0);
-  const [notifyLoading, setNotifyLoading] = useState(false);
-  const [notifyResult, setNotifyResult] = useState<string | null>(null);
+  // Date range
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const buildQuery = useCallback(() => {
     const params = new URLSearchParams();
@@ -85,19 +59,11 @@ export default function FeedbacksPage() {
     if (sentiment !== 'all') params.set('sentiment', sentiment);
     if (service) params.set('service', service);
     if (wantsNotify) params.set('wantsNotify', 'true');
-
-    if (period === 'today') {
-      params.set('dateFrom', new Date().toISOString().split('T')[0]);
-    } else if (period === 'week') {
-      const d = new Date(); d.setDate(d.getDate() - 7);
-      params.set('dateFrom', d.toISOString().split('T')[0]);
-    } else if (period === 'month') {
-      const d = new Date(); d.setDate(d.getDate() - 30);
-      params.set('dateFrom', d.toISOString().split('T')[0]);
-    }
+    if (dateFrom) params.set('dateFrom', dateFrom);
+    if (dateTo) params.set('dateTo', dateTo);
 
     return params.toString();
-  }, [page, search, sentiment, service, wantsNotify, period]);
+  }, [page, search, sentiment, service, wantsNotify, dateFrom, dateTo]);
 
   const loadFeedbacks = useCallback(async () => {
     setLoading(true);
@@ -130,48 +96,8 @@ export default function FeedbacksPage() {
   const clearSearch = () => {
     setSearchInput('');
     setSearch('');
+    setSentiment('all');
     setPage(1);
-  };
-
-  const handleAnalyze = async () => {
-    if (!improvementText.trim()) return;
-    setImprovementLoading(true);
-    setMatchedFeedbacks([]);
-    setCurrentImprovement(null);
-    setNotifyResult(null);
-    try {
-      const data = await apiFetch('/api/v1/manager/improvements', {
-        method: 'POST',
-        body: JSON.stringify({ description: improvementText }),
-      }) as {
-        improvement: Improvement;
-        matchedFeedbacks: MatchedFeedback[];
-        notifiableCount: number;
-      };
-      setCurrentImprovement(data.improvement);
-      setMatchedFeedbacks(data.matchedFeedbacks);
-      setNotifiableCount(data.notifiableCount);
-    } catch (error) {
-      console.error('Erreur analyse:', error);
-    } finally {
-      setImprovementLoading(false);
-    }
-  };
-
-  const handleNotify = async () => {
-    if (!currentImprovement) return;
-    setNotifyLoading(true);
-    try {
-      const data = await apiFetch(`/api/v1/manager/improvements/${currentImprovement.id}/notify`, {
-        method: 'POST',
-      }) as { message: string; notifiedCount: number };
-      setNotifyResult(data.message);
-    } catch (error) {
-      console.error('Erreur notification:', error);
-      setNotifyResult('Erreur lors de l\'envoi des notifications');
-    } finally {
-      setNotifyLoading(false);
-    }
   };
 
   const truncate = (text: string, max: number) =>
@@ -197,99 +123,12 @@ export default function FeedbacksPage() {
   return (
     <div className="space-y-4">
       {/* Header + Stats */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-bold">Avis clients</h1>
-          <p className="text-sm text-muted-foreground">
-            {totalAll} avis au total · {totalUnread} non lus
-          </p>
-        </div>
-        <button
-          onClick={() => setShowImprovement(!showImprovement)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-            showImprovement
-              ? 'bg-violet-100 text-violet-700 border border-violet-200'
-              : 'bg-violet-600 text-white hover:bg-violet-700'
-          }`}
-        >
-          <Sparkles className="h-4 w-4" />
-          Mes améliorations
-        </button>
+      <div>
+        <h1 className="text-2xl font-bold">Avis clients</h1>
+        <p className="text-sm text-muted-foreground">
+          {totalAll} avis au total · {totalUnread} non lus
+        </p>
       </div>
-
-      {/* Improvement Section */}
-      {showImprovement && (
-        <Card>
-          <CardContent className="p-4 space-y-4">
-            <div>
-              <label className="block text-sm font-semibold mb-1">Décrivez votre amélioration</label>
-              <p className="text-xs text-muted-foreground mb-2">
-                L'IA va chercher les commentaires négatifs liés et proposer de notifier les clients concernés.
-              </p>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={improvementText}
-                  onChange={(e) => setImprovementText(e.target.value)}
-                  placeholder="Ex: Nous avons changé les chaises, amélioré la carte..."
-                  className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-violet-200 focus:border-violet-400 outline-none"
-                  onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-                />
-                <button
-                  onClick={handleAnalyze}
-                  disabled={improvementLoading || !improvementText.trim()}
-                  className="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 disabled:opacity-40 flex items-center gap-1"
-                >
-                  {improvementLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                  Analyser
-                </button>
-              </div>
-            </div>
-
-            {matchedFeedbacks.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">
-                    {matchedFeedbacks.length} commentaire(s) correspondant(s)
-                  </p>
-                  {notifiableCount > 0 && !notifyResult && (
-                    <button
-                      onClick={handleNotify}
-                      disabled={notifyLoading}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 disabled:opacity-40"
-                    >
-                      {notifyLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                      Notifier {notifiableCount} client(s)
-                    </button>
-                  )}
-                </div>
-
-                {notifyResult && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700">
-                    ✅ {notifyResult}
-                  </div>
-                )}
-
-                <div className="max-h-60 overflow-y-auto space-y-1">
-                  {matchedFeedbacks.map((f) => (
-                    <div key={f.id} className="flex items-start gap-2 p-2 bg-red-50 rounded-lg text-xs">
-                      <ThumbsDown className="h-3 w-3 text-red-400 mt-0.5 shrink-0" />
-                      <span className="text-gray-700 flex-1">{f.negativeText}</span>
-                      {f.wantsNotify && <Bell className="h-3 w-3 text-violet-500 shrink-0 mt-0.5" />}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {improvementLoading === false && matchedFeedbacks.length === 0 && currentImprovement && (
-              <p className="text-sm text-muted-foreground text-center py-2">
-                Aucun commentaire négatif ne correspond à cette amélioration.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Search Bar */}
       <div className="flex gap-2">
@@ -317,55 +156,123 @@ export default function FeedbacksPage() {
         </button>
       </div>
 
-      {/* Filter Chips */}
-      <div className="flex flex-wrap gap-2">
-        {/* Period */}
-        <div className="flex gap-1 items-center">
-          <Filter className="h-3 w-3 text-gray-400" />
-          <Chip active={period === 'all'} onClick={() => { setPeriod('all'); setPage(1); }}>Tout</Chip>
-          <Chip active={period === 'today'} onClick={() => { setPeriod('today'); setPage(1); }}>Aujourd'hui</Chip>
-          <Chip active={period === 'week'} onClick={() => { setPeriod('week'); setPage(1); }}>7 jours</Chip>
-          <Chip active={period === 'month'} onClick={() => { setPeriod('month'); setPage(1); }}>30 jours</Chip>
+      {/* Filter Bar */}
+      <div className="space-y-3">
+        {/* Date range */}
+        <div className="flex flex-wrap items-center gap-2">
+          <CalendarDays className="h-4 w-4 text-gray-400 shrink-0" />
+          <div className="flex items-center gap-1.5">
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+              className="px-2.5 py-1.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
+            />
+            <span className="text-xs text-gray-400">→</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+              className="px-2.5 py-1.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
+            />
+          </div>
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => { setDateFrom(''); setDateTo(''); setPage(1); }}
+              className="text-xs text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+
+          <div className="w-px h-6 bg-gray-200 self-center hidden sm:block" />
+
+          {/* Quick date presets */}
+          <div className="flex gap-1">
+            <button
+              onClick={() => {
+                const d = new Date();
+                setDateFrom(d.toISOString().split('T')[0]);
+                setDateTo(d.toISOString().split('T')[0]);
+                setPage(1);
+              }}
+              className="px-2 py-1 rounded-md text-xs text-gray-500 hover:bg-gray-100 transition"
+            >
+              Aujourd&apos;hui
+            </button>
+            <button
+              onClick={() => {
+                const d = new Date(); d.setDate(d.getDate() - 7);
+                setDateFrom(d.toISOString().split('T')[0]);
+                setDateTo(new Date().toISOString().split('T')[0]);
+                setPage(1);
+              }}
+              className="px-2 py-1 rounded-md text-xs text-gray-500 hover:bg-gray-100 transition"
+            >
+              7j
+            </button>
+            <button
+              onClick={() => {
+                const d = new Date(); d.setMonth(d.getMonth() - 1);
+                setDateFrom(d.toISOString().split('T')[0]);
+                setDateTo(new Date().toISOString().split('T')[0]);
+                setPage(1);
+              }}
+              className="px-2 py-1 rounded-md text-xs text-gray-500 hover:bg-gray-100 transition"
+            >
+              30j
+            </button>
+          </div>
         </div>
 
-        <div className="w-px h-6 bg-gray-200 self-center hidden sm:block" />
+        {/* Service + Notify chips */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <Filter className="h-3.5 w-3.5 text-gray-400 shrink-0" />
 
-        {/* Sentiment */}
-        <Chip active={sentiment === 'all'} onClick={() => { setSentiment('all'); setPage(1); }}>Tous</Chip>
-        <Chip active={sentiment === 'positive'} onClick={() => { setSentiment('positive'); setPage(1); }}>
-          👍 Positifs
-        </Chip>
-        <Chip active={sentiment === 'negative'} onClick={() => { setSentiment('negative'); setPage(1); }}>
-          👎 Négatifs
-        </Chip>
+          {/* Service */}
+          <Chip active={service === ''} onClick={() => { setService(''); setPage(1); }}>Tous services</Chip>
+          <Chip active={service === 'dejeuner'} onClick={() => { setService('dejeuner'); setPage(1); }}>
+            <Sun className="h-3 w-3 inline mr-1" />Déjeuner
+          </Chip>
+          <Chip active={service === 'diner'} onClick={() => { setService('diner'); setPage(1); }}>
+            <Moon className="h-3 w-3 inline mr-1" />Dîner
+          </Chip>
+          <Chip active={service === 'gouter'} onClick={() => { setService('gouter'); setPage(1); }}>
+            <Coffee className="h-3 w-3 inline mr-1" />Goûter
+          </Chip>
 
-        <div className="w-px h-6 bg-gray-200 self-center hidden sm:block" />
+          <div className="w-px h-6 bg-gray-200 self-center hidden sm:block" />
 
-        {/* Service */}
-        <Chip active={service === ''} onClick={() => { setService(''); setPage(1); }}>Tous services</Chip>
-        <Chip active={service === 'lunch'} onClick={() => { setService('lunch'); setPage(1); }}>
-          <Sun className="h-3 w-3 inline mr-1" />Déjeuner
-        </Chip>
-        <Chip active={service === 'dinner'} onClick={() => { setService('dinner'); setPage(1); }}>
-          <Moon className="h-3 w-3 inline mr-1" />Dîner
-        </Chip>
+          {/* Notify */}
+          <Chip active={wantsNotify} onClick={() => { setWantsNotify(!wantsNotify); setPage(1); }}>
+            <Bell className="h-3 w-3 inline mr-1" />Veulent être prévenus
+          </Chip>
 
-        <div className="w-px h-6 bg-gray-200 self-center hidden sm:block" />
-
-        {/* Notify */}
-        <Chip active={wantsNotify} onClick={() => { setWantsNotify(!wantsNotify); setPage(1); }}>
-          <Bell className="h-3 w-3 inline mr-1" />Veulent être prévenus
-        </Chip>
+          {/* Sentiment: only visible when search is active */}
+          {search && (
+            <>
+              <div className="w-px h-6 bg-gray-200 self-center hidden sm:block" />
+              <span className="text-xs text-gray-400">Chercher dans :</span>
+              <Chip active={sentiment === 'all'} onClick={() => { setSentiment('all'); setPage(1); }}>Tout</Chip>
+              <Chip active={sentiment === 'positive'} onClick={() => { setSentiment('positive'); setPage(1); }}>
+                👍 Positifs
+              </Chip>
+              <Chip active={sentiment === 'negative'} onClick={() => { setSentiment('negative'); setPage(1); }}>
+                👎 Négatifs
+              </Chip>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Active filters summary */}
-      {(search || sentiment !== 'all' || period !== 'all' || service || wantsNotify) && (
+      {(search || sentiment !== 'all' || dateFrom || dateTo || service || wantsNotify) && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>{total} résultat(s)</span>
           <button
             onClick={() => {
               setSearch(''); setSearchInput(''); setSentiment('all');
-              setPeriod('all'); setService(''); setWantsNotify(false); setPage(1);
+              setDateFrom(''); setDateTo(''); setService(''); setWantsNotify(false); setPage(1);
             }}
             className="text-blue-600 hover:underline"
           >
@@ -419,8 +326,8 @@ export default function FeedbacksPage() {
                     </span>
                     {/* Mobile: badges inline */}
                     <div className="flex gap-1 md:hidden ml-auto">
-                      <Badge variant={fb.serviceType === 'lunch' ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
-                        {fb.serviceType === 'lunch' ? '☀️' : '🌙'}
+                      <Badge variant={fb.serviceType === 'dejeuner' ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
+                        {fb.serviceType === 'dejeuner' ? '☀️' : fb.serviceType === 'diner' ? '🌙' : '☕'}
                       </Badge>
                       {hasNotify && (
                         <span className="text-violet-500"><Bell className="h-3 w-3" /></span>
@@ -454,8 +361,8 @@ export default function FeedbacksPage() {
 
                   {/* Service (desktop) */}
                   <div className="hidden md:flex items-center">
-                    <Badge variant={fb.serviceType === 'lunch' ? 'default' : 'secondary'} className="text-[10px]">
-                      {fb.serviceType === 'lunch' ? 'Déjeuner' : 'Dîner'}
+                    <Badge variant={fb.serviceType === 'dejeuner' ? 'default' : 'secondary'} className="text-[10px]">
+                      {fb.serviceType === 'dejeuner' ? 'Déjeuner' : fb.serviceType === 'diner' ? 'Dîner' : fb.serviceType === 'gouter' ? 'Goûter' : fb.serviceType}
                     </Badge>
                   </div>
 

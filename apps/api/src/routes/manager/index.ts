@@ -183,7 +183,7 @@ export async function managerRoutes(fastify: FastifyInstance) {
     }
 
     // Service type
-    if (service && (service === 'lunch' || service === 'dinner')) {
+    if (service && ['dejeuner', 'diner', 'gouter', 'lunch', 'dinner'].includes(service)) {
       where.serviceType = service;
     }
 
