@@ -52,7 +52,7 @@ export async function generateDailySummaries(): Promise<void> {
 
       // Generate AI summary if Azure OpenAI is configured
       let analysis = null;
-      if (config.OPENAI_API_KEY) {
+      if (config.AZURE_OPENAI_API_KEY) {
         analysis = await generateAISummary(feedbacks, restaurant.name);
       }
 
@@ -183,16 +183,15 @@ async function generateAISummary(
       return `${i + 1}. Positif: ${f.positiveText}${neg}`;
     }).join('\n');
 
-    const url = 'https://api.openai.com/v1/chat/completions';
+    const url = `${config.AZURE_OPENAI_ENDPOINT}openai/deployments/${config.AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=${config.AZURE_OPENAI_API_VERSION}`;
 
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.OPENAI_API_KEY}`,
+        'api-key': config.AZURE_OPENAI_API_KEY,
       },
       body: JSON.stringify({
-        model: config.OPENAI_MODEL,
         messages: [
           {
             role: 'system',

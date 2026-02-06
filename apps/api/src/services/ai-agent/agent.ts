@@ -101,7 +101,7 @@ export async function processAgentMessage(
   userMessage: string,
   provider: 'TELEGRAM' | 'WHATSAPP',
 ): Promise<string> {
-  if (!config.OPENAI_API_KEY) {
+  if (!config.AZURE_OPENAI_API_KEY) {
     return '⚠️ L\'assistant IA n\'est pas encore configuré. Contactez le support.';
   }
 
@@ -120,7 +120,7 @@ export async function processAgentMessage(
   ];
 
   try {
-    let response = await callOpenAI(messages);
+    let response = await callAzureOpenAI(messages);
     
     // Handle tool calls (may need multiple rounds)
     let maxIterations = 5;
@@ -150,7 +150,7 @@ export async function processAgentMessage(
       }
 
       // Get the next response
-      response = await callOpenAI(messages);
+      response = await callAzureOpenAI(messages);
     }
 
     const assistantText = response.content || 'Désolé, je n\'ai pas pu traiter votre demande.';
@@ -168,7 +168,7 @@ export async function processAgentMessage(
   }
 }
 
-async function callOpenAI(messages: ChatMessage[]): Promise<{
+async function callAzureOpenAI(messages: ChatMessage[]): Promise<{
   content: string | null;
   tool_calls?: Array<{
     id: string;
@@ -176,16 +176,15 @@ async function callOpenAI(messages: ChatMessage[]): Promise<{
     function: { name: string; arguments: string };
   }>;
 }> {
-  const url = 'https://api.openai.com/v1/chat/completions';
+  const url = `${config.AZURE_OPENAI_ENDPOINT}openai/deployments/${config.AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=${config.AZURE_OPENAI_API_VERSION}`;
 
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${config.OPENAI_API_KEY}`,
+      'api-key': config.AZURE_OPENAI_API_KEY,
     },
     body: JSON.stringify({
-      model: config.OPENAI_MODEL,
       messages,
       tools: TOOLS_DEFINITION,
       tool_choice: 'auto',
@@ -196,8 +195,8 @@ async function callOpenAI(messages: ChatMessage[]): Promise<{
 
   if (!res.ok) {
     const errorText = await res.text();
-    console.error('OpenAI error:', res.status, errorText);
-    throw new Error(`OpenAI error: ${res.status}`);
+    console.error('Azure OpenAI error:', res.status, errorText);
+    throw new Error(`Azure OpenAI error: ${res.status}`);
   }
 
   const data = await res.json() as {
