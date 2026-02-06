@@ -174,7 +174,7 @@ export async function managerRoutes(fastify: FastifyInstance) {
 
     // Générer CSV
     const headers = 'Date,Service,Positif,Négatif,Lu,Traité\n';
-    const rows = feedbacks.map(f => 
+    const rows = feedbacks.map((f: { createdAt: Date; serviceType: string; positiveText: string; negativeText: string | null; isRead: boolean; isProcessed: boolean }) => 
       `"${f.createdAt.toISOString()}","${f.serviceType}","${f.positiveText.replace(/"/g, '""')}","${(f.negativeText || '').replace(/"/g, '""')}","${f.isRead}","${f.isProcessed}"`
     ).join('\n');
 

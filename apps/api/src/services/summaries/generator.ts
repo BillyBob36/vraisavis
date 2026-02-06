@@ -57,6 +57,16 @@ export async function generateDailySummaries(): Promise<void> {
       }
 
       // Upsert summary
+      const analysisData = analysis ? {
+        avgSentiment: analysis.avgSentiment,
+        positiveSummary: analysis.positiveSummary,
+        negativeSummary: analysis.negativeSummary,
+        topStrengths: analysis.topStrengths as string[],
+        topWeaknesses: analysis.topWeaknesses as string[],
+        actionItems: analysis.actionItems as string[],
+        rawAnalysis: analysis.raw as Record<string, string>,
+      } : {};
+
       const summary = await prisma.feedbackSummary.upsert({
         where: {
           restaurantId_periodType_periodStart: {
@@ -67,13 +77,7 @@ export async function generateDailySummaries(): Promise<void> {
         },
         update: {
           totalFeedbacks: feedbacks.length,
-          avgSentiment: analysis?.avgSentiment ?? null,
-          positiveSummary: analysis?.positiveSummary ?? null,
-          negativeSummary: analysis?.negativeSummary ?? null,
-          topStrengths: analysis?.topStrengths ?? null,
-          topWeaknesses: analysis?.topWeaknesses ?? null,
-          actionItems: analysis?.actionItems ?? null,
-          rawAnalysis: analysis?.raw ?? null,
+          ...analysisData,
         },
         create: {
           restaurantId: restaurant.id,
@@ -81,13 +85,7 @@ export async function generateDailySummaries(): Promise<void> {
           periodStart: startOfDay,
           periodEnd: endOfDay,
           totalFeedbacks: feedbacks.length,
-          avgSentiment: analysis?.avgSentiment ?? null,
-          positiveSummary: analysis?.positiveSummary ?? null,
-          negativeSummary: analysis?.negativeSummary ?? null,
-          topStrengths: analysis?.topStrengths ?? null,
-          topWeaknesses: analysis?.topWeaknesses ?? null,
-          actionItems: analysis?.actionItems ?? null,
-          rawAnalysis: analysis?.raw ?? null,
+          ...analysisData,
         },
       });
 
@@ -128,14 +126,16 @@ export async function generateWeeklySummaries(): Promise<void> {
         },
       });
 
-      const totalFeedbacks = dailySummaries.reduce((sum, s) => sum + s.totalFeedbacks, 0);
+      const totalFeedbacks = dailySummaries.reduce((sum: number, s: { totalFeedbacks: number }) => sum + s.totalFeedbacks, 0);
 
       const sentiments = dailySummaries
-        .filter(s => s.avgSentiment !== null)
-        .map(s => s.avgSentiment as number);
+        .filter((s: { avgSentiment: number | null }) => s.avgSentiment !== null)
+        .map((s: { avgSentiment: number | null }) => s.avgSentiment as number);
       const avgSentiment = sentiments.length > 0
-        ? sentiments.reduce((a, b) => a + b, 0) / sentiments.length
+        ? sentiments.reduce((a: number, b: number) => a + b, 0) / sentiments.length
         : null;
+
+      const weeklyData = avgSentiment !== null ? { totalFeedbacks, avgSentiment } : { totalFeedbacks };
 
       await prisma.feedbackSummary.upsert({
         where: {
@@ -145,7 +145,7 @@ export async function generateWeeklySummaries(): Promise<void> {
             periodStart: startOfWeek,
           },
         },
-        update: { totalFeedbacks, avgSentiment },
+        update: weeklyData,
         create: {
           restaurantId: restaurant.id,
           periodType: 'WEEKLY',

@@ -68,7 +68,7 @@ export async function consulterAvis(
     return `Aucun avis trouvé pour la période "${period}".`;
   }
 
-  const lines = feedbacks.map((f, i) => {
+  const lines = feedbacks.map((f: { createdAt: Date; positiveText: string; negativeText: string | null }, i: number) => {
     const date = f.createdAt.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     const neg = f.negativeText ? `\n   ⚠️ À améliorer : ${f.negativeText}` : '';
     return `${i + 1}. [${date}] ✅ ${f.positiveText}${neg}`;
@@ -104,9 +104,9 @@ export async function gererLots(
 
       if (prizes.length === 0) return '🎁 Aucun lot configuré.';
 
-      const lines = prizes.map((p) => {
+      const lines = prizes.map((p: { name: string; isActive: boolean; probability: number; maxPerDay: number | null; maxPerWeek: number | null; _count: { claims: number } }) => {
         const status = p.isActive ? '✅' : '❌';
-        const limits = [];
+        const limits: string[] = [];
         if (p.maxPerDay) limits.push(`${p.maxPerDay}/jour`);
         if (p.maxPerWeek) limits.push(`${p.maxPerWeek}/sem`);
         const limitsStr = limits.length > 0 ? ` (${limits.join(', ')})` : '';
