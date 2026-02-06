@@ -83,7 +83,7 @@ export async function consulterAvis(
  */
 export async function gererLots(
   restaurantId: string,
-  action: 'list' | 'add' | 'edit' | 'remove' | 'stats',
+  action: 'list' | 'add' | 'edit' | 'remove' | 'deactivate' | 'stats',
   params?: {
     prizeId?: string;
     name?: string;
@@ -157,28 +157,47 @@ export async function gererLots(
     }
 
     case 'remove': {
-      if (!params?.prizeId) {
-        // Try finding by name
-        if (params?.name) {
-          const prize = await prisma.prize.findFirst({
-            where: { restaurantId, name: { contains: params.name, mode: 'insensitive' } },
-          });
-          if (!prize) return `❌ Lot "${params.name}" non trouvé.`;
-
-          await prisma.prize.update({
-            where: { id: prize.id },
-            data: { isActive: false },
-          });
-          return `✅ Lot "${prize.name}" désactivé.`;
-        }
-        return '❌ Précisez le nom ou l\'ID du lot à supprimer.';
+      let prizeToDelete;
+      if (params?.prizeId) {
+        prizeToDelete = await prisma.prize.findFirst({
+          where: { id: params.prizeId, restaurantId },
+        });
+      } else if (params?.name) {
+        prizeToDelete = await prisma.prize.findFirst({
+          where: { restaurantId, name: { contains: params.name, mode: 'insensitive' } },
+        });
       }
+      if (!prizeToDelete) return '❌ Lot non trouvé. Précisez le nom ou l\'ID du lot à supprimer.';
 
+      await prisma.$transaction([
+        prisma.prizeClaim.deleteMany({ where: { prizeId: prizeToDelete.id } }),
+        prisma.dailyPrizePool.deleteMany({ where: { prizeId: prizeToDelete.id } }),
+        prisma.prize.delete({ where: { id: prizeToDelete.id } }),
+      ]);
+      return `🗑️ Lot "${prizeToDelete.name}" supprimé définitivement.`;
+    }
+
+    case 'deactivate': {
+      let prizeToToggle;
+      if (params?.prizeId) {
+        prizeToToggle = await prisma.prize.findFirst({
+          where: { id: params.prizeId, restaurantId },
+        });
+      } else if (params?.name) {
+        prizeToToggle = await prisma.prize.findFirst({
+          where: { restaurantId, name: { contains: params.name, mode: 'insensitive' } },
+        });
+      }
+      if (!prizeToToggle) return '❌ Lot non trouvé.';
+
+      const newActive = params?.isActive !== undefined ? params.isActive : !prizeToToggle.isActive;
       await prisma.prize.update({
-        where: { id: params.prizeId },
-        data: { isActive: false },
+        where: { id: prizeToToggle.id },
+        data: { isActive: newActive },
       });
-      return '✅ Lot désactivé.';
+      return newActive
+        ? `✅ Lot "${prizeToToggle.name}" réactivé.`
+        : `⏸️ Lot "${prizeToToggle.name}" désactivé.`;
     }
 
     case 'stats': {

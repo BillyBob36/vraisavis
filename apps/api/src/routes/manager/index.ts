@@ -239,14 +239,26 @@ export async function managerRoutes(fastify: FastifyInstance) {
 
   fastify.delete('/prizes/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const { id } = request.params;
+    const restaurant = await getManagerRestaurant(request.user.id);
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
 
-    // Soft delete - désactiver
-    await prisma.prize.update({
-      where: { id },
-      data: { isActive: false },
+    const prize = await prisma.prize.findFirst({
+      where: { id, restaurantId: restaurant.id },
     });
+    if (!prize) {
+      return reply.status(404).send({ error: true, message: 'Lot non trouvé' });
+    }
 
-    return reply.send({ message: 'Lot désactivé' });
+    // Supprimer les dépendances puis le lot
+    await prisma.$transaction([
+      prisma.prizeClaim.deleteMany({ where: { prizeId: id } }),
+      prisma.dailyPrizePool.deleteMany({ where: { prizeId: id } }),
+      prisma.prize.delete({ where: { id } }),
+    ]);
+
+    return reply.send({ message: 'Lot supprimé définitivement' });
   });
 
   // === CLAIMS ===

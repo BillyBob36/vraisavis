@@ -4,7 +4,7 @@ import { getOrCreateSession, appendToSession } from '../messaging/router.js';
 
 const SYSTEM_PROMPT = `Tu es l'assistant IA du restaurant. Tu aides le manager à :
 1. Consulter les avis clients (par jour, semaine, mois)
-2. Gérer les lots de la machine à sous (lister, ajouter, modifier, supprimer, stats)
+2. Gérer les lots de la machine à sous (lister, ajouter, modifier, supprimer, désactiver/réactiver, stats)
 3. Voir les statistiques du restaurant
 
 Règles :
@@ -39,16 +39,16 @@ const TOOLS_DEFINITION = [
     type: 'function' as const,
     function: {
       name: 'gerer_lots',
-      description: 'Gère les lots de la machine à sous : lister, ajouter, modifier, supprimer, voir les stats',
+      description: 'Gère les lots de la machine à sous : lister, ajouter, modifier, supprimer définitivement, désactiver/réactiver, voir les stats',
       parameters: {
         type: 'object',
         properties: {
           action: {
             type: 'string',
-            enum: ['list', 'add', 'edit', 'remove', 'stats'],
-            description: 'Action à effectuer',
+            enum: ['list', 'add', 'edit', 'remove', 'deactivate', 'stats'],
+            description: 'Action à effectuer. remove = suppression définitive, deactivate = désactiver/réactiver sans supprimer',
           },
-          name: { type: 'string', description: 'Nom du lot (pour add/edit/remove)' },
+          name: { type: 'string', description: 'Nom du lot (pour add/edit/remove/deactivate)' },
           description: { type: 'string', description: 'Description du lot' },
           probability: { type: 'number', description: 'Probabilité de gain (0 à 1, ex: 0.1 = 10%)' },
           maxPerDay: { type: 'integer', description: 'Nombre max par jour' },
@@ -226,7 +226,7 @@ async function executeTool(
         return await consulterAvis(restaurantId, (args.period as 'today' | 'yesterday' | 'week' | 'month' | 'all') || 'today');
 
       case 'gerer_lots':
-        return await gererLots(restaurantId, (args.action as 'list' | 'add' | 'edit' | 'remove' | 'stats') || 'list', {
+        return await gererLots(restaurantId, (args.action as 'list' | 'add' | 'edit' | 'remove' | 'deactivate' | 'stats') || 'list', {
           prizeId: args.prizeId as string | undefined,
           name: args.name as string | undefined,
           description: args.description as string | undefined,
