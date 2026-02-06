@@ -287,7 +287,8 @@ export async function signalerAmelioration(
     const negativeFeedbacks = await prisma.feedback.findMany({
       where: {
         restaurantId,
-        negativeText: { not: { in: [null, ''] } },
+        negativeText: { not: '' },
+        NOT: { negativeText: null },
       },
       include: {
         fingerprint: {
@@ -304,13 +305,15 @@ export async function signalerAmelioration(
       take: 500,
     });
 
+    type FBWithFP = typeof negativeFeedbacks[number];
+
     if (negativeFeedbacks.length === 0) {
       return '📭 Aucun commentaire négatif trouvé dans votre restaurant.';
     }
 
     // Simple keyword matching (AI agent itself will do the smart matching via its own reasoning)
     const keywords = params.description.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
-    const matched = negativeFeedbacks.filter((f: { negativeText: string | null }) => {
+    const matched = negativeFeedbacks.filter((f: FBWithFP) => {
       const text = (f.negativeText || '').toLowerCase();
       return keywords.some((k: string) => text.includes(k));
     });
@@ -320,7 +323,7 @@ export async function signalerAmelioration(
     }
 
     const notifiable = matched.filter(
-      (f: { fingerprint: { wantNotifyOwn: boolean; wantNotifyOthers: boolean; contactEmail: string | null; contactPhone: string | null } }) =>
+      (f: FBWithFP) =>
         (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
         (f.fingerprint.contactEmail || f.fingerprint.contactPhone)
     );
@@ -330,11 +333,11 @@ export async function signalerAmelioration(
       data: {
         description: params.description,
         restaurantId,
-        matchedFeedbackIds: matched.map((f: { id: string }) => f.id),
+        matchedFeedbackIds: matched.map((f: FBWithFP) => f.id),
       },
     });
 
-    const lines = matched.slice(0, 10).map((f: { negativeText: string | null; createdAt: Date }, i: number) => {
+    const lines = matched.slice(0, 10).map((f: FBWithFP, i: number) => {
       const date = f.createdAt.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
       return `${i + 1}. [${date}] "${f.negativeText}"`;
     });
@@ -379,8 +382,9 @@ export async function signalerAmelioration(
       },
     });
 
+    type FBNotify = typeof feedbacks[number];
     const seen = new Set<string>();
-    const toNotify = feedbacks.filter((f: { fingerprintId: string; fingerprint: { wantNotifyOwn: boolean; wantNotifyOthers: boolean; contactEmail: string | null; contactPhone: string | null } }) => {
+    const toNotify = feedbacks.filter((f: FBNotify) => {
       if (seen.has(f.fingerprintId)) return false;
       seen.add(f.fingerprintId);
       return (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&

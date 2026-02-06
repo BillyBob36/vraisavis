@@ -652,7 +652,8 @@ export async function managerRoutes(fastify: FastifyInstance) {
     const negativeFeedbacks = await prisma.feedback.findMany({
       where: {
         restaurantId: restaurant.id,
-        negativeText: { not: { in: [null, ''] } },
+        negativeText: { not: '' },
+        NOT: { negativeText: null },
       },
       include: {
         fingerprint: {
@@ -669,8 +670,10 @@ export async function managerRoutes(fastify: FastifyInstance) {
       take: 500,
     });
 
+    type FeedbackWithFP = typeof negativeFeedbacks[number];
+
     // Use OpenAI to match the improvement against negative feedbacks
-    const feedbackTexts = negativeFeedbacks.map((f: { negativeText: string | null }, i: number) => `[${i}] ${f.negativeText}`).join('\n');
+    const feedbackTexts = negativeFeedbacks.map((f: FeedbackWithFP, i: number) => `[${i}] ${f.negativeText}`).join('\n');
 
     const openaiEndpoint = config.AZURE_OPENAI_ENDPOINT;
     const openaiKey = config.AZURE_OPENAI_API_KEY;
@@ -734,7 +737,7 @@ Réponds UNIQUEMENT avec le tableau JSON, rien d'autre.`,
     if (matchedIndices.length === 0) {
       const keywords = description.toLowerCase().split(/\s+/).filter(w => w.length > 3);
       matchedIndices = negativeFeedbacks
-        .map((f: { negativeText: string | null }, i: number) => {
+        .map((f: FeedbackWithFP, i: number) => {
           const text = (f.negativeText || '').toLowerCase();
           const matches = keywords.filter(k => text.includes(k));
           return matches.length > 0 ? i : -1;
@@ -748,7 +751,7 @@ Réponds UNIQUEMENT avec le tableau JSON, rien d'autre.`,
 
     // Count notifiable clients
     const notifiableCount = matchedFeedbacks.filter(
-      f => (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
+      (f: FeedbackWithFP) => (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
            (f.fingerprint.contactEmail || f.fingerprint.contactPhone)
     ).length;
 
@@ -763,7 +766,7 @@ Réponds UNIQUEMENT avec le tableau JSON, rien d'autre.`,
 
     return reply.send({
       improvement,
-      matchedFeedbacks: matchedFeedbacks.map(f => ({
+      matchedFeedbacks: matchedFeedbacks.map((f: FeedbackWithFP) => ({
         id: f.id,
         negativeText: f.negativeText,
         positiveText: f.positiveText,
@@ -834,15 +837,16 @@ Réponds UNIQUEMENT avec le tableau JSON, rien d'autre.`,
     });
 
     // Deduplicate by fingerprint ID
+    type NotifyFB = typeof feedbacks[number];
     const seen = new Set<string>();
     const uniqueFingerprints = feedbacks
-      .filter((f: { fingerprintId: string; fingerprint: { id: string; wantNotifyOwn: boolean; wantNotifyOthers: boolean; contactEmail: string | null; contactPhone: string | null } }) => {
+      .filter((f: NotifyFB) => {
         if (seen.has(f.fingerprintId)) return false;
         seen.add(f.fingerprintId);
         return (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
                (f.fingerprint.contactEmail || f.fingerprint.contactPhone);
       })
-      .map((f: { fingerprint: { id: string; wantNotifyOwn: boolean; wantNotifyOthers: boolean; contactEmail: string | null; contactPhone: string | null } }) => f.fingerprint);
+      .map((f: NotifyFB) => f.fingerprint);
 
     let notifiedCount = 0;
     const notifications: Array<{
