@@ -17,8 +17,8 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     throw new Error('Azure OpenAI not configured');
   }
 
-  // Azure OpenAI embeddings endpoint
-  const apiUrl = `${azureEndpoint.replace(/\/$/, '')}/openai/deployments/${EMBEDDING_MODEL}/embeddings?api-version=${apiVersion}`;
+  // Azure OpenAI embeddings endpoint (uses stable api-version for embeddings)
+  const apiUrl = `${azureEndpoint.replace(/\/$/, '')}/openai/deployments/${EMBEDDING_MODEL}/embeddings?api-version=2023-05-15`;
 
   const res = await fetch(apiUrl, {
     method: 'POST',
