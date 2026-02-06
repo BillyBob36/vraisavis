@@ -117,6 +117,9 @@ export async function searchByEmbedding(
 
   const whereClause = conditions.join(' AND ');
 
+  // Minimum cosine similarity threshold to filter out irrelevant results
+  const MIN_SIMILARITY = 0.45;
+
   const query = `
     SELECT
       f."id",
@@ -131,6 +134,7 @@ export async function searchByEmbedding(
       1 - (f."embedding" <=> $${paramIdx}::vector) as "similarity"
     FROM "feedbacks" f
     WHERE ${whereClause}
+      AND 1 - (f."embedding" <=> $${paramIdx}::vector) > ${MIN_SIMILARITY}
     ORDER BY f."embedding" <=> $${paramIdx}::vector
     LIMIT ${limit}
   `;
