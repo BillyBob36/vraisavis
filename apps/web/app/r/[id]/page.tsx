@@ -63,6 +63,8 @@ export default function ClientExperiencePage() {
   const [assignedSymbols, setAssignedSymbols] = useState<[SlotSymbol, SlotSymbol, SlotSymbol] | null>(null);
   const [reelsFinished, setReelsFinished] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [canPlay, setCanPlay] = useState(true);
+  const [canPlayMessage, setCanPlayMessage] = useState('');
   const spinResultRef = useRef<SpinResult | null>(null);
 
   // Load restaurant data and register fingerprint
@@ -89,12 +91,12 @@ export default function ClientExperiencePage() {
           }
         );
 
-        if (!fpData.canPlay) {
-          setError(fpData.message || 'Vous avez déjà participé pendant ce service');
-          return;
-        }
-
         setFingerprintId(fpData.fingerprintId);
+
+        if (!fpData.canPlay) {
+          setCanPlay(false);
+          setCanPlayMessage(fpData.message || 'Vous avez déjà participé pendant ce service');
+        }
       } catch (err: any) {
         setError(err.message || 'Impossible de charger le restaurant');
       } finally {
@@ -109,6 +111,12 @@ export default function ClientExperiencePage() {
     const steps: ClientStep[] = ['intro', 'positive', 'negative', 'contact', 'spin', 'result'];
     const currentIndex = steps.indexOf(step);
     if (currentIndex >= steps.length - 1) return;
+
+    // When clicking 'C'est parti' (intro → positive), check if can play
+    if (step === 'intro' && !canPlay) {
+      setError(canPlayMessage);
+      return;
+    }
 
     // When transitioning from contact to spin, submit feedback + contact prefs first
     if (step === 'contact' && !feedbackSubmitted) {
@@ -145,7 +153,7 @@ export default function ClientExperiencePage() {
     }
 
     setStep(steps[currentIndex + 1]);
-  }, [step, feedbackSubmitted, fingerprintId, restaurantId, positiveText, negativeText, wantNotifyOwn, wantNotifyOthers, contactEmail, contactPhone]);
+  }, [step, feedbackSubmitted, fingerprintId, restaurantId, positiveText, negativeText, wantNotifyOwn, wantNotifyOthers, contactEmail, contactPhone, canPlay, canPlayMessage]);
 
   const handleBack = useCallback(() => {
     const steps: ClientStep[] = ['intro', 'positive', 'negative', 'contact', 'spin', 'result'];
