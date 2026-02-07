@@ -144,6 +144,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
     }
 
     const { hash, restaurantId } = body.data;
+    console.log('[FINGERPRINT] hash:', hash.substring(0, 12), 'restaurant:', restaurantId);
 
     // Chercher fingerprint existant
     let fingerprint = await prisma.fingerprint.findUnique({
@@ -197,6 +198,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
       isToday(fingerprint.lastPlayedAt) &&
       fingerprint.lastServiceType === currentService
     ) {
+      console.log('[FINGERPRINT] BLOCKED - lastPlayedAt:', fingerprint.lastPlayedAt, 'lastService:', fingerprint.lastServiceType, 'currentService:', currentService);
       return reply.send({
         fingerprintId: fingerprint.id,
         canPlay: false,
@@ -205,6 +207,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
       });
     }
 
+    console.log('[FINGERPRINT] OK canPlay=true, lastPlayedAt:', fingerprint.lastPlayedAt, 'lastService:', fingerprint.lastServiceType, 'currentService:', currentService);
     return reply.send({
       fingerprintId: fingerprint.id,
       canPlay: true,
@@ -249,18 +252,22 @@ export async function clientRoutes(fastify: FastifyInstance) {
       serviceType = 'dinner';
     }
 
+    console.log('[FEEDBACK] fingerprintId:', fingerprintId, 'serviceType:', serviceType, 'lastPlayedAt:', fingerprint.lastPlayedAt, 'lastService:', fingerprint.lastServiceType);
+
     // Vérifier si déjà participé pendant ce service
     if (
       fingerprint.lastPlayedAt &&
       isToday(fingerprint.lastPlayedAt) &&
       fingerprint.lastServiceType === serviceType
     ) {
+      console.log('[FEEDBACK] BLOCKED - already participated');
       return reply.status(403).send({
         error: true,
         message: 'Vous avez déjà participé pendant ce service',
       });
     }
 
+    console.log('[FEEDBACK] OK - creating feedback');
     // Marquer comme ayant participé AVANT de créer le feedback
     await prisma.fingerprint.update({
       where: { id: fingerprintId },
@@ -364,6 +371,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
       currentService = 'dinner';
     }
 
+    console.log('[SPIN] fingerprintId:', fingerprintId, 'lastPlayedAt:', fingerprint.lastPlayedAt, 'lastService:', fingerprint.lastServiceType, 'currentService:', currentService);
     // Note: la vérification anti-doublon est faite dans /feedback (pas ici)
     // Le spin est autorisé si le feedback a été soumis dans cette session
 
