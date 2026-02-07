@@ -185,7 +185,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
       dinner: { start: string; end: string };
     };
 
-    let currentService: string | null = null;
+    let currentService = 'lunch';
     if (isWithinTimeRange(hours.lunch.start, hours.lunch.end)) {
       currentService = 'lunch';
     } else if (isWithinTimeRange(hours.dinner.start, hours.dinner.end)) {
