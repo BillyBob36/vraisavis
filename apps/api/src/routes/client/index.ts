@@ -21,6 +21,8 @@ const verifyLocationSchema = z.object({
 const fingerprintSchema = z.object({
   hash: z.string().min(32),
   restaurantId: z.string(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 const feedbackSchema = z.object({
@@ -137,64 +139,91 @@ export async function clientRoutes(fastify: FastifyInstance) {
     });
   });
 
-  // Enregistrer/vérifier fingerprint
+  // Enregistrer/vérifier fingerprint (point d'entrée unique : horaires + géo + doublon)
   fastify.post('/fingerprint', async (request: FastifyRequest, reply: FastifyReply) => {
     const body = fingerprintSchema.safeParse(request.body);
     if (!body.success) {
       return reply.status(400).send({ error: true, message: 'Données invalides' });
     }
 
-    const { hash, restaurantId } = body.data;
-    console.log('[FINGERPRINT] hash:', hash.substring(0, 12), 'restaurant:', restaurantId);
+    const { hash, restaurantId, latitude, longitude } = body.data;
 
-    // Chercher fingerprint existant
-    let fingerprint = await prisma.fingerprint.findUnique({
-      where: { hash_restaurantId: { hash, restaurantId } },
-    });
-
-    // Créer si n'existe pas
-    if (!fingerprint) {
-      const expiresAt = new Date();
-      expiresAt.setMonth(expiresAt.getMonth() + 3); // Expire dans 3 mois
-
-      fingerprint = await prisma.fingerprint.create({
-        data: {
-          hash,
-          restaurantId,
-          expiresAt,
-        },
-      });
-
-      return reply.send({
-        fingerprintId: fingerprint.id,
-        canPlay: true,
-      });
-    }
-
-    // Vérifier si peut jouer
-    const serviceHours = await prisma.restaurant.findUnique({
+    // 1. Récupérer le restaurant avec toutes les infos nécessaires
+    const restaurant = await prisma.restaurant.findUnique({
       where: { id: restaurantId },
-      select: { serviceHours: true },
+      select: {
+        id: true,
+        serviceHours: true,
+        latitude: true,
+        longitude: true,
+        geoRadius: true,
+        status: true,
+      },
     });
 
-    if (!serviceHours) {
+    if (!restaurant) {
       return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
     }
 
-    const hours = serviceHours.serviceHours as {
+    if (restaurant.status !== 'ACTIVE') {
+      return reply.send({ fingerprintId: null, canPlay: false, reason: 'inactive', message: 'Ce restaurant n\'accepte pas de feedback actuellement' });
+    }
+
+    // 2. Vérifier les horaires de service
+    const hours = restaurant.serviceHours as {
       lunch: { start: string; end: string };
       dinner: { start: string; end: string };
     };
 
+    const isInLunch = isWithinTimeRange(hours.lunch.start, hours.lunch.end);
+    const isInDinner = isWithinTimeRange(hours.dinner.start, hours.dinner.end);
+
+    if (!isInLunch && !isInDinner) {
+      return reply.send({
+        fingerprintId: null,
+        canPlay: false,
+        reason: 'closed',
+        message: 'Le restaurant est actuellement fermé',
+      });
+    }
+
+    // 3. Vérifier la géolocalisation (si fournie)
+    if (latitude !== undefined && longitude !== undefined) {
+      const distance = calculateDistance(latitude, longitude, restaurant.latitude, restaurant.longitude);
+      if (distance > restaurant.geoRadius) {
+        return reply.send({
+          fingerprintId: null,
+          canPlay: false,
+          reason: 'too_far',
+          message: 'Vous devez être dans le restaurant pour participer',
+        });
+      }
+    }
+
+    // 4. Chercher ou créer le fingerprint
+    let fingerprint = await prisma.fingerprint.findUnique({
+      where: { hash_restaurantId: { hash, restaurantId } },
+    });
+
+    if (!fingerprint) {
+      const expiresAt = new Date();
+      expiresAt.setMonth(expiresAt.getMonth() + 3);
+
+      fingerprint = await prisma.fingerprint.create({
+        data: { hash, restaurantId, expiresAt },
+      });
+
+      return reply.send({ fingerprintId: fingerprint.id, canPlay: true });
+    }
+
+    // 5. Vérifier si déjà joué ce service
     const currentService = getCurrentService(hours);
 
-    // Déjà joué ce service aujourd'hui ?
     if (
       fingerprint.lastPlayedAt &&
       isToday(fingerprint.lastPlayedAt) &&
       fingerprint.lastServiceType === currentService
     ) {
-      console.log('[FINGERPRINT] BLOCKED - lastPlayedAt:', fingerprint.lastPlayedAt, 'lastService:', fingerprint.lastServiceType, 'currentService:', currentService);
       return reply.send({
         fingerprintId: fingerprint.id,
         canPlay: false,
@@ -203,11 +232,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
       });
     }
 
-    console.log('[FINGERPRINT] OK canPlay=true, lastPlayedAt:', fingerprint.lastPlayedAt, 'lastService:', fingerprint.lastServiceType, 'currentService:', currentService);
-    return reply.send({
-      fingerprintId: fingerprint.id,
-      canPlay: true,
-    });
+    return reply.send({ fingerprintId: fingerprint.id, canPlay: true });
   });
 
   // Soumettre un feedback

@@ -42,6 +42,26 @@ async function generateFingerprint(): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Get browser geolocation (returns null if denied or unavailable)
+function getGeolocation(): Promise<{ latitude: number; longitude: number } | null> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  });
+}
+
 export default function ClientExperiencePage() {
   const params = useParams();
   const restaurantId = params.id as string;
@@ -81,13 +101,21 @@ export default function ClientExperiencePage() {
         const symbolMap = buildPrizeSymbolMap(restData.restaurant.prizes);
         setPrizeSymbolMap(symbolMap);
 
-        // Generate and register fingerprint
-        const hash = await generateFingerprint();
-        const fpData = await apiFetch<{ fingerprintId: string; canPlay: boolean; message?: string }>(
+        // Get geolocation + generate fingerprint in parallel
+        const [geo, hash] = await Promise.all([
+          getGeolocation(),
+          generateFingerprint(),
+        ]);
+
+        const fpData = await apiFetch<{ fingerprintId: string | null; canPlay: boolean; reason?: string; message?: string }>(
           '/api/v1/client/fingerprint',
           {
             method: 'POST',
-            body: JSON.stringify({ hash, restaurantId }),
+            body: JSON.stringify({
+              hash,
+              restaurantId,
+              ...(geo && { latitude: geo.latitude, longitude: geo.longitude }),
+            }),
           }
         );
 
