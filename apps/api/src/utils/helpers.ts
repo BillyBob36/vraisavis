@@ -72,6 +72,45 @@ export function isWithinTimeRange(start: string, end: string): boolean {
   return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
 }
 
+/**
+ * Determine the current service type based on restaurant service hours.
+ * If currently within lunch hours → 'lunch'
+ * If currently within dinner hours → 'dinner'
+ * If outside both → determine based on which service we're closest to (after lunch = dinner, after dinner/before lunch = lunch)
+ */
+export function getCurrentService(serviceHours: { lunch: { start: string; end: string }; dinner: { start: string; end: string } }): string {
+  if (isWithinTimeRange(serviceHours.lunch.start, serviceHours.lunch.end)) {
+    return 'lunch';
+  }
+  if (isWithinTimeRange(serviceHours.dinner.start, serviceHours.dinner.end)) {
+    return 'dinner';
+  }
+
+  // Outside both services: determine which service period we're in
+  const now = new Date();
+  const parisTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  const currentMinutes = parisTime.getHours() * 60 + parisTime.getMinutes();
+
+  const lunchEnd = parseTime(serviceHours.lunch.end);
+  const dinnerStart = parseTime(serviceHours.dinner.start);
+
+  const lunchEndMinutes = lunchEnd.hours * 60 + lunchEnd.minutes;
+  const dinnerStartMinutes = dinnerStart.hours * 60 + dinnerStart.minutes;
+
+  // After lunch but before dinner → we're in the "dinner" period (between services)
+  if (currentMinutes > lunchEndMinutes && currentMinutes < dinnerStartMinutes) {
+    return 'dinner';
+  }
+
+  // After dinner (late night / early morning before lunch) → last service was dinner
+  if (currentMinutes > lunchEndMinutes) {
+    return 'dinner';
+  }
+
+  // Before lunch → last service was dinner (from yesterday)
+  return 'dinner';
+}
+
 export function calculateDistance(
   lat1: number,
   lon1: number,

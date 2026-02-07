@@ -8,7 +8,8 @@ import {
   isToday, 
   generateUniqueCode, 
   addDays,
-  getTodayDateString 
+  getTodayDateString,
+  getCurrentService 
 } from '../../utils/helpers.js';
 
 const verifyLocationSchema = z.object({
@@ -185,12 +186,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
       dinner: { start: string; end: string };
     };
 
-    let currentService = 'lunch';
-    if (isWithinTimeRange(hours.lunch.start, hours.lunch.end)) {
-      currentService = 'lunch';
-    } else if (isWithinTimeRange(hours.dinner.start, hours.dinner.end)) {
-      currentService = 'dinner';
-    }
+    const currentService = getCurrentService(hours);
 
     // Déjà joué ce service aujourd'hui ?
     if (
@@ -247,10 +243,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
       dinner: { start: string; end: string };
     };
 
-    let serviceType = 'lunch';
-    if (isWithinTimeRange(hours.dinner.start, hours.dinner.end)) {
-      serviceType = 'dinner';
-    }
+    const serviceType = getCurrentService(hours);
 
     console.log('[FEEDBACK] fingerprintId:', fingerprintId, 'serviceType:', serviceType, 'lastPlayedAt:', fingerprint.lastPlayedAt, 'lastService:', fingerprint.lastServiceType);
 
@@ -366,10 +359,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
       dinner: { start: string; end: string };
     };
 
-    let currentService = 'lunch';
-    if (isWithinTimeRange(hours.dinner.start, hours.dinner.end)) {
-      currentService = 'dinner';
-    }
+    const currentService = getCurrentService(hours);
 
     console.log('[SPIN] fingerprintId:', fingerprintId, 'lastPlayedAt:', fingerprint.lastPlayedAt, 'lastService:', fingerprint.lastServiceType, 'currentService:', currentService);
     // Note: la vérification anti-doublon est faite dans /feedback (pas ici)
