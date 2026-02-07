@@ -2,7 +2,14 @@ import { config } from '../../config/env.js';
 import { consulterAvis, gererLots, stats, signalerAmelioration, analyserTendances } from './tools.js';
 import { getOrCreateSession, appendToSession } from '../messaging/router.js';
 
-const SYSTEM_PROMPT = `Tu es l'assistant IA du restaurant. Tu aides le manager à :
+function getSystemPrompt(): string {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+  return `Nous sommes le ${dateStr}, il est ${timeStr}.
+
+Tu es l'assistant IA du restaurant. Tu aides le manager à :
 1. Consulter et rechercher les avis clients (par période, par thème, par sentiment, par service)
 2. Analyser les tendances et comparer les périodes
 3. Gérer les lots de la machine à sous
@@ -43,6 +50,7 @@ Règles générales :
 - Sois proactif : propose des actions concrètes basées sur les données
 - Formate tes réponses pour être lisibles sur mobile (messages courts, emojis)
 - Ne révèle jamais de données techniques (IDs, SQL, etc.)`;
+}
 
 const TOOLS_DEFINITION = [
   {
@@ -209,7 +217,7 @@ export async function processAgentMessage(
 
   // Build messages array
   const messages: ChatMessage[] = [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: getSystemPrompt() },
     ...history.slice(-10).map(h => ({
       role: h.role as 'user' | 'assistant',
       content: h.content,
