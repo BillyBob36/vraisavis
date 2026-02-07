@@ -12,12 +12,6 @@ import {
   getCurrentService 
 } from '../../utils/helpers.js';
 
-const verifyLocationSchema = z.object({
-  latitude: z.number(),
-  longitude: z.number(),
-  restaurantId: z.string(),
-});
-
 const fingerprintSchema = z.object({
   hash: z.string().min(32),
   restaurantId: z.string(),
@@ -52,92 +46,6 @@ const claimSchema = z.object({
 
 export async function clientRoutes(fastify: FastifyInstance) {
   // Pas d'authentification requise - routes publiques
-
-  // Vérifier la localisation
-  fastify.post('/verify-location', async (request: FastifyRequest, reply: FastifyReply) => {
-    const body = verifyLocationSchema.safeParse(request.body);
-    if (!body.success) {
-      return reply.status(400).send({ error: true, message: 'Données invalides' });
-    }
-
-    const { latitude, longitude, restaurantId } = body.data;
-
-    const restaurant = await prisma.restaurant.findUnique({
-      where: { id: restaurantId },
-      select: {
-        id: true,
-        name: true,
-        latitude: true,
-        longitude: true,
-        geoRadius: true,
-        status: true,
-        serviceHours: true,
-        welcomeMessage: true,
-      },
-    });
-
-    if (!restaurant) {
-      return reply.status(404).send({ 
-        allowed: false, 
-        message: 'Restaurant non trouvé' 
-      });
-    }
-
-    if (restaurant.status !== 'ACTIVE') {
-      return reply.status(403).send({ 
-        allowed: false, 
-        message: 'Ce restaurant n\'accepte pas de feedback actuellement' 
-      });
-    }
-
-    // Calculer la distance
-    const distance = calculateDistance(
-      latitude, 
-      longitude, 
-      restaurant.latitude, 
-      restaurant.longitude
-    );
-
-    if (distance > restaurant.geoRadius) {
-      return reply.send({
-        allowed: false,
-        message: 'Vous devez être dans le restaurant pour laisser un feedback',
-        distance: Math.round(distance),
-        maxDistance: restaurant.geoRadius,
-      });
-    }
-
-    // Vérifier les horaires de service
-    const serviceHours = restaurant.serviceHours as {
-      lunch: { start: string; end: string };
-      dinner: { start: string; end: string };
-    };
-
-    let currentService: string | null = null;
-    if (isWithinTimeRange(serviceHours.lunch.start, serviceHours.lunch.end)) {
-      currentService = 'lunch';
-    } else if (isWithinTimeRange(serviceHours.dinner.start, serviceHours.dinner.end)) {
-      currentService = 'dinner';
-    }
-
-    if (!currentService) {
-      return reply.send({
-        allowed: false,
-        message: 'Le restaurant est actuellement fermé',
-        serviceHours,
-      });
-    }
-
-    return reply.send({
-      allowed: true,
-      message: restaurant.welcomeMessage || 'Bienvenue ! Laissez-nous votre avis.',
-      restaurant: {
-        id: restaurant.id,
-        name: restaurant.name,
-      },
-      currentService,
-    });
-  });
 
   // Enregistrer/vérifier fingerprint (point d'entrée unique : horaires + géo + doublon)
   fastify.post('/fingerprint', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -270,22 +178,18 @@ export async function clientRoutes(fastify: FastifyInstance) {
 
     const serviceType = getCurrentService(hours);
 
-    console.log('[FEEDBACK] fingerprintId:', fingerprintId, 'serviceType:', serviceType, 'lastPlayedAt:', fingerprint.lastPlayedAt, 'lastService:', fingerprint.lastServiceType);
-
     // Vérifier si déjà participé pendant ce service
     if (
       fingerprint.lastPlayedAt &&
       isToday(fingerprint.lastPlayedAt) &&
       fingerprint.lastServiceType === serviceType
     ) {
-      console.log('[FEEDBACK] BLOCKED - already participated');
       return reply.status(403).send({
         error: true,
         message: 'Vous avez déjà participé pendant ce service',
       });
     }
 
-    console.log('[FEEDBACK] OK - creating feedback');
     // Marquer comme ayant participé AVANT de créer le feedback
     await prisma.fingerprint.update({
       where: { id: fingerprintId },
@@ -386,7 +290,6 @@ export async function clientRoutes(fastify: FastifyInstance) {
 
     const currentService = getCurrentService(hours);
 
-    console.log('[SPIN] fingerprintId:', fingerprintId, 'lastPlayedAt:', fingerprint.lastPlayedAt, 'lastService:', fingerprint.lastServiceType, 'currentService:', currentService);
     // Note: la vérification anti-doublon est faite dans /feedback (pas ici)
     // Le spin est autorisé si le feedback a été soumis dans cette session
 
