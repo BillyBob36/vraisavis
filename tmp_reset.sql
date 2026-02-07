@@ -1,1 +1,1 @@
-UPDATE fingerprints SET "lastPlayedAt" = NULL, "lastServiceType" = NULL WHERE id IN (SELECT id FROM fingerprints ORDER BY "createdAt" DESC LIMIT 5);
+UPDATE fingerprints SET "lastPlayedAt" = NULL, "lastServiceType" = NULL WHERE "restaurantId" IN (SELECT id FROM restaurants WHERE name = 'Chez Bibi');

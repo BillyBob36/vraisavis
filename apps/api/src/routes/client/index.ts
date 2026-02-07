@@ -364,17 +364,8 @@ export async function clientRoutes(fastify: FastifyInstance) {
       currentService = 'dinner';
     }
 
-    // Vérifier si déjà joué
-    if (
-      fingerprint.lastPlayedAt &&
-      isToday(fingerprint.lastPlayedAt) &&
-      fingerprint.lastServiceType === currentService
-    ) {
-      return reply.status(403).send({
-        error: true,
-        message: 'Vous avez déjà joué pendant ce service',
-      });
-    }
+    // Note: la vérification anti-doublon est faite dans /feedback (pas ici)
+    // Le spin est autorisé si le feedback a été soumis dans cette session
 
     // Récupérer les lots actifs du restaurant
     const today = getTodayDateString();
