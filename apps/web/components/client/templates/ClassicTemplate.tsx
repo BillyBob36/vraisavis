@@ -15,6 +15,10 @@ export default function ClassicTemplate(props: TemplateProps) {
     isSpinning, onSpin, spinResult,
     reelsFinished, onReelsFinished, isWin,
     prizeSymbolMap, assignedSymbols,
+    onClaim, isClaiming, claimSuccess, claimError,
+    holdProgress, onHoldStart, onHoldEnd,
+    redeemCode, onRedeemCodeChange, onRedeemSubmit,
+    isRedeeming, redeemResult, redeemError, onGoToRedeem,
   } = props;
 
   const showContactFields = wantNotifyOwn || wantNotifyOthers;
@@ -70,6 +74,13 @@ export default function ClassicTemplate(props: TemplateProps) {
             <p className="text-xs text-gray-400">
               Votre avis aide {restaurant.name} à s'améliorer
             </p>
+
+            <button
+              onClick={onGoToRedeem}
+              className="w-full py-3 text-sm text-orange-500 font-medium border-2 border-orange-200 rounded-2xl hover:bg-orange-50 transition-all"
+            >
+              Récupérer mes cadeaux
+            </button>
           </div>
         </div>
       </div>
@@ -350,46 +361,146 @@ export default function ClassicTemplate(props: TemplateProps) {
     );
   }
 
-  // === RESULT ===
-  if (step === 'result' && spinResult) {
-    if (spinResult.won && spinResult.prize) {
+  // === CLAIM (server validation) ===
+  if (step === 'claim') {
+    const prizeName = spinResult?.prize?.name || redeemResult?.prizeName || '';
+    const prizeDesc = spinResult?.prize?.description || redeemResult?.prizeDescription || null;
+    const prizeCode = spinResult?.prize?.code || redeemResult?.code || '';
+    const expiresAt = spinResult?.prize?.expiresAt;
+
+    if (claimSuccess) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-green-400 via-emerald-400 to-teal-400 flex items-center justify-center p-4">
           <div className="w-full max-w-md">
             <div className="bg-white rounded-3xl shadow-2xl p-8 text-center space-y-6">
-              <div className="text-6xl animate-bounce">🎉</div>
-              <h2 className="text-2xl font-black text-gray-900">Félicitations !</h2>
-              <p className="text-lg text-gray-600">Vous avez gagné :</p>
-              
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border-2 border-yellow-200">
-                <p className="text-xl font-bold text-orange-600">{spinResult.prize.name}</p>
-                {spinResult.prize.description && (
-                  <p className="text-sm text-gray-500 mt-1">{spinResult.prize.description}</p>
-                )}
+              <div className="text-6xl">✅</div>
+              <h2 className="text-2xl font-black text-gray-900">Cadeau validé !</h2>
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200">
+                <p className="text-xl font-bold text-green-600">{prizeName}</p>
+                {prizeDesc && <p className="text-sm text-gray-500 mt-1">{prizeDesc}</p>}
               </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-500">Votre code :</p>
-                <div className="bg-gray-900 text-yellow-400 font-mono text-2xl font-bold py-4 px-6 rounded-xl tracking-widest">
-                  {spinResult.prize.code}
-                </div>
-                <p className="text-xs text-gray-400">
-                  Présentez ce code au personnel pour récupérer votre lot
-                </p>
-                <p className="text-xs text-gray-400">
-                  Valable jusqu'au {new Date(spinResult.prize.expiresAt).toLocaleDateString('fr-FR')}
-                </p>
-              </div>
-
-              <p className="text-sm text-gray-500">
-                Merci pour votre avis ! 🙏
-              </p>
+              <p className="text-gray-500">Bonne dégustation ! 🎉</p>
             </div>
           </div>
         </div>
       );
     }
 
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 text-center space-y-6">
+            <div className="text-5xl">🎁</div>
+            <h2 className="text-xl font-black text-gray-900">Présentez cet écran au serveur</h2>
+
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border-2 border-yellow-200">
+              <p className="text-xl font-bold text-orange-600">{prizeName}</p>
+              {prizeDesc && <p className="text-sm text-gray-500 mt-1">{prizeDesc}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-500">Code :</p>
+              <div className="bg-gray-900 text-yellow-400 font-mono text-2xl font-bold py-4 px-6 rounded-xl tracking-widest">
+                {prizeCode}
+              </div>
+              {expiresAt && (
+                <p className="text-xs text-gray-400">
+                  Valable jusqu'au {new Date(expiresAt).toLocaleDateString('fr-FR')}
+                </p>
+              )}
+            </div>
+
+            <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4">
+              <p className="text-red-600 font-bold text-sm">
+                ⚠️ Attention ! Si vous appuyez sans responsable, votre lot sera perdu.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="relative">
+                <button
+                  onMouseDown={onHoldStart}
+                  onMouseUp={onHoldEnd}
+                  onMouseLeave={onHoldEnd}
+                  onTouchStart={onHoldStart}
+                  onTouchEnd={onHoldEnd}
+                  disabled={isClaiming}
+                  className="w-full py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-lg rounded-2xl shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 relative overflow-hidden"
+                >
+                  <div
+                    className="absolute inset-0 bg-green-500 transition-none"
+                    style={{ width: `${holdProgress * 100}%` }}
+                  />
+                  <span className="relative z-10">
+                    {isClaiming ? 'Validation...' : holdProgress > 0 && holdProgress < 1 ? 'Maintenez...' : 'Maintenir 2s pour valider'}
+                  </span>
+                </button>
+              </div>
+              {claimError && (
+                <p className="text-red-500 text-sm font-medium">{claimError}</p>
+              )}
+              <p className="text-xs text-gray-400">
+                Le serveur du restaurant doit maintenir ce bouton enfoncé pendant 2 secondes
+              </p>
+            </div>
+
+            <p className="text-xs text-gray-400">
+              Notez votre code <strong>{prizeCode}</strong> — vous pourrez aussi récupérer votre lot un autre jour.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === REDEEM (deferred pickup) ===
+  if (step === 'redeem') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-3xl shadow-xl p-8 text-center space-y-6">
+            <div className="text-5xl">🎟️</div>
+            <h2 className="text-xl font-bold text-gray-900">Récupérer mon cadeau</h2>
+            <p className="text-sm text-gray-500">
+              Entrez le code que vous avez reçu lors de votre dernière visite
+            </p>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={redeemCode}
+                onChange={(e) => onRedeemCodeChange(e.target.value.toUpperCase())}
+                placeholder="Ex: FB-A7K9-X2M5"
+                className="w-full p-4 border-2 border-gray-200 rounded-2xl text-center text-xl font-mono font-bold tracking-widest focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition-all placeholder:text-gray-300 placeholder:text-base placeholder:font-normal placeholder:tracking-normal"
+                maxLength={12}
+              />
+              {redeemError && (
+                <p className="text-red-500 text-sm font-medium">{redeemError}</p>
+              )}
+            </div>
+
+            <button
+              onClick={onRedeemSubmit}
+              disabled={!redeemCode.trim() || isRedeeming}
+              className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              {isRedeeming ? 'Vérification...' : 'Récupérer ce lot'}
+            </button>
+
+            <button
+              onClick={onBack}
+              className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              ← Retour à l'accueil
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === RESULT ===
+  if (step === 'result' && spinResult) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md">

@@ -39,7 +39,7 @@ export interface SpinResult {
   message: string;
 }
 
-export type ClientStep = 'intro' | 'positive' | 'negative' | 'contact' | 'spin' | 'result';
+export type ClientStep = 'intro' | 'positive' | 'negative' | 'contact' | 'spin' | 'result' | 'claim' | 'redeem';
 
 export interface TemplateProps {
   step: ClientStep;
@@ -72,6 +72,22 @@ export interface TemplateProps {
   // Prize mapping for slot machine display
   prizeSymbolMap: Map<string, [SlotSymbol, SlotSymbol, SlotSymbol]>;
   assignedSymbols: [SlotSymbol, SlotSymbol, SlotSymbol] | null;
+  // Claim (server validation)
+  onClaim: () => void;
+  isClaiming: boolean;
+  claimSuccess: boolean;
+  claimError: string | null;
+  holdProgress: number;
+  onHoldStart: () => void;
+  onHoldEnd: () => void;
+  // Redeem (deferred pickup)
+  redeemCode: string;
+  onRedeemCodeChange: (code: string) => void;
+  onRedeemSubmit: () => void;
+  isRedeeming: boolean;
+  redeemResult: { prizeName: string; prizeDescription: string | null; code: string } | null;
+  redeemError: string | null;
+  onGoToRedeem: () => void;
 }
 
 // 24 slot symbols for supporting 20+ prizes

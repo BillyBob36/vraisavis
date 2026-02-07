@@ -87,6 +87,20 @@ export default function ClientExperiencePage() {
   const [canPlayMessage, setCanPlayMessage] = useState('');
   const spinResultRef = useRef<SpinResult | null>(null);
 
+  // Claim (server validation)
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [claimSuccess, setClaimSuccess] = useState(false);
+  const [claimError, setClaimError] = useState<string | null>(null);
+  const [holdProgress, setHoldProgress] = useState(0);
+  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const holdStartRef = useRef<number>(0);
+
+  // Redeem (deferred pickup)
+  const [redeemCode, setRedeemCode] = useState('');
+  const [isRedeeming, setIsRedeeming] = useState(false);
+  const [redeemResult, setRedeemResult] = useState<{ prizeName: string; prizeDescription: string | null; code: string } | null>(null);
+  const [redeemError, setRedeemError] = useState<string | null>(null);
+
   // Load restaurant data and register fingerprint
   useEffect(() => {
     async function init() {
@@ -184,6 +198,11 @@ export default function ClientExperiencePage() {
   }, [step, feedbackSubmitted, fingerprintId, restaurantId, positiveText, negativeText, wantNotifyOwn, wantNotifyOthers, contactEmail, contactPhone, canPlay, canPlayMessage]);
 
   const handleBack = useCallback(() => {
+    // Special case: redeem goes back to intro
+    if (step === 'redeem') {
+      setStep('intro');
+      return;
+    }
     const steps: ClientStep[] = ['intro', 'positive', 'negative', 'contact', 'spin', 'result'];
     const currentIndex = steps.indexOf(step);
     if (currentIndex > 0) {
@@ -233,12 +252,95 @@ export default function ClientExperiencePage() {
 
   const handleReelsFinished = useCallback(() => {
     setReelsFinished(true);
-    // SlotMachine already handles the win/lose delay internally
-    // Just transition to result screen
     setSpinResult(spinResultRef.current);
     setIsSpinning(false);
-    setStep('result');
+    // If won, go to claim screen instead of result
+    if (spinResultRef.current?.won && spinResultRef.current?.prize) {
+      setStep('claim');
+    } else {
+      setStep('result');
+    }
   }, []);
+
+  // Hold button handlers for claim validation
+  const handleHoldStart = useCallback(() => {
+    setClaimError(null);
+    holdStartRef.current = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - holdStartRef.current;
+      const progress = Math.min(elapsed / 2000, 1);
+      setHoldProgress(progress);
+      if (progress >= 1) {
+        clearInterval(interval);
+      }
+    }, 50);
+    holdTimerRef.current = interval;
+  }, []);
+
+  const handleHoldEnd = useCallback(() => {
+    if (holdTimerRef.current) {
+      clearInterval(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    if (holdProgress >= 1) {
+      // 2 seconds held — trigger claim
+      handleClaim();
+    } else {
+      setHoldProgress(0);
+    }
+  }, [holdProgress]);
+
+  const handleClaim = useCallback(async () => {
+    const code = spinResultRef.current?.prize?.code || redeemResult?.code;
+    if (!code) return;
+
+    setIsClaiming(true);
+    setClaimError(null);
+    try {
+      await apiFetch('/api/v1/client/claim', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+      });
+      setClaimSuccess(true);
+    } catch (err: any) {
+      setClaimError(err.message || 'Erreur lors de la validation');
+      setHoldProgress(0);
+    } finally {
+      setIsClaiming(false);
+    }
+  }, [redeemResult]);
+
+  const handleGoToRedeem = useCallback(() => {
+    setRedeemCode('');
+    setRedeemError(null);
+    setRedeemResult(null);
+    setClaimSuccess(false);
+    setClaimError(null);
+    setHoldProgress(0);
+    setStep('redeem');
+  }, []);
+
+  const handleRedeemSubmit = useCallback(async () => {
+    if (!redeemCode.trim()) return;
+    setIsRedeeming(true);
+    setRedeemError(null);
+    try {
+      const data = await apiFetch<{ valid: boolean; prize: { name: string; description: string | null } }>(
+        '/api/v1/client/claim/verify',
+        {
+          method: 'POST',
+          body: JSON.stringify({ code: redeemCode.trim().toUpperCase() }),
+        }
+      );
+      // Code is valid — show claim screen with hold button
+      setRedeemResult({ prizeName: data.prize.name, prizeDescription: data.prize.description, code: redeemCode.trim().toUpperCase() });
+      setStep('claim');
+    } catch (err: any) {
+      setRedeemError(err.message || 'Code invalide');
+    } finally {
+      setIsRedeeming(false);
+    }
+  }, [redeemCode]);
 
   // Loading state
   if (loading) {
@@ -291,6 +393,22 @@ export default function ClientExperiencePage() {
     isWin: !!(spinResultRef.current?.won),
     prizeSymbolMap,
     assignedSymbols,
+    // Claim
+    onClaim: handleClaim,
+    isClaiming,
+    claimSuccess,
+    claimError,
+    holdProgress,
+    onHoldStart: handleHoldStart,
+    onHoldEnd: handleHoldEnd,
+    // Redeem
+    redeemCode,
+    onRedeemCodeChange: setRedeemCode,
+    onRedeemSubmit: handleRedeemSubmit,
+    isRedeeming,
+    redeemResult,
+    redeemError,
+    onGoToRedeem: handleGoToRedeem,
   };
 
   // Render the appropriate template

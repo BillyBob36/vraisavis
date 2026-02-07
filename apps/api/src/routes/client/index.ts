@@ -402,6 +402,45 @@ export async function clientRoutes(fastify: FastifyInstance) {
     });
   });
 
+  // Vérifier un code cadeau (sans le consommer)
+  fastify.post('/claim/verify', async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = claimSchema.safeParse(request.body);
+    if (!body.success) {
+      return reply.status(400).send({ error: true, message: 'Code invalide' });
+    }
+
+    const { code } = body.data;
+
+    const claim = await prisma.prizeClaim.findUnique({
+      where: { code },
+      include: { prize: true },
+    });
+
+    if (!claim) {
+      return reply.status(404).send({ error: true, message: 'Code non trouvé' });
+    }
+
+    if (claim.status === 'CLAIMED') {
+      return reply.status(400).send({ error: true, message: 'Ce code a déjà été utilisé' });
+    }
+
+    if (claim.status === 'EXPIRED' || claim.expiresAt < new Date()) {
+      await prisma.prizeClaim.update({
+        where: { id: claim.id },
+        data: { status: 'EXPIRED' },
+      });
+      return reply.status(400).send({ error: true, message: 'Ce code a expiré' });
+    }
+
+    return reply.send({
+      valid: true,
+      prize: {
+        name: claim.prize.name,
+        description: claim.prize.description,
+      },
+    });
+  });
+
   // Réclamer un lot (validation par le personnel)
   fastify.post('/claim', async (request: FastifyRequest, reply: FastifyReply) => {
     const body = claimSchema.safeParse(request.body);

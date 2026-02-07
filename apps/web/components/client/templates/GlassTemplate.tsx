@@ -15,6 +15,10 @@ export default function GlassTemplate(props: TemplateProps) {
     isSpinning, onSpin, spinResult,
     reelsFinished, onReelsFinished, isWin,
     prizeSymbolMap, assignedSymbols,
+    onClaim, isClaiming, claimSuccess, claimError,
+    holdProgress, onHoldStart, onHoldEnd,
+    redeemCode, onRedeemCodeChange, onRedeemSubmit,
+    isRedeeming, redeemResult, redeemError, onGoToRedeem,
   } = props;
 
   const showContactFields = wantNotifyOwn || wantNotifyOthers;
@@ -77,6 +81,13 @@ export default function GlassTemplate(props: TemplateProps) {
             <p className="text-xs text-white/30">
               Votre avis aide {restaurant.name} à s'améliorer
             </p>
+
+            <button
+              onClick={onGoToRedeem}
+              className="w-full py-3 text-sm text-purple-300 font-medium border border-white/20 rounded-2xl hover:bg-white/5 transition-all"
+            >
+              Récupérer mes cadeaux
+            </button>
           </div>
         </div>
       </div>
@@ -369,50 +380,155 @@ export default function GlassTemplate(props: TemplateProps) {
     );
   }
 
-  // === RESULT ===
-  if (step === 'result' && spinResult) {
-    if (spinResult.won && spinResult.prize) {
+  // === CLAIM (server validation) ===
+  if (step === 'claim') {
+    const prizeName = spinResult?.prize?.name || redeemResult?.prizeName || '';
+    const prizeDesc = spinResult?.prize?.description || redeemResult?.prizeDescription || null;
+    const prizeCode = spinResult?.prize?.code || redeemResult?.code || '';
+    const expiresAt = spinResult?.prize?.expiresAt;
+
+    if (claimSuccess) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 flex items-center justify-center p-4 relative overflow-hidden">
-          <div className="absolute top-10 left-10 w-40 h-40 bg-yellow-400/30 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-10 right-10 w-40 h-40 bg-orange-400/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-yellow-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-green-900 to-teal-900 flex items-center justify-center p-4 relative overflow-hidden">
+          <div className="absolute top-10 left-10 w-40 h-40 bg-green-400/30 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-emerald-400/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
 
           <div className="w-full max-w-md relative z-10">
             <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 text-center space-y-6">
-              <div className="text-6xl animate-bounce">🎉</div>
-              <h2 className="text-2xl font-black text-white">Félicitations !</h2>
-              <p className="text-lg text-white/70">Vous avez gagné :</p>
-              
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-yellow-400/30">
-                <p className="text-xl font-bold text-yellow-300">{spinResult.prize.name}</p>
-                {spinResult.prize.description && (
-                  <p className="text-sm text-white/50 mt-1">{spinResult.prize.description}</p>
-                )}
+              <div className="text-6xl">✅</div>
+              <h2 className="text-2xl font-black text-white">Cadeau validé !</h2>
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-green-400/30">
+                <p className="text-xl font-bold text-green-300">{prizeName}</p>
+                {prizeDesc && <p className="text-sm text-white/50 mt-1">{prizeDesc}</p>}
               </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-white/50">Votre code :</p>
-                <div className="bg-black/40 backdrop-blur-xl text-yellow-400 font-mono text-2xl font-bold py-4 px-6 rounded-xl tracking-widest border border-yellow-400/20">
-                  {spinResult.prize.code}
-                </div>
-                <p className="text-xs text-white/40">
-                  Présentez ce code au personnel pour récupérer votre lot
-                </p>
-                <p className="text-xs text-white/40">
-                  Valable jusqu'au {new Date(spinResult.prize.expiresAt).toLocaleDateString('fr-FR')}
-                </p>
-              </div>
-
-              <p className="text-sm text-white/40">
-                Merci pour votre avis !
-              </p>
+              <p className="text-white/60">Bonne dégustation ! 🎉</p>
             </div>
           </div>
         </div>
       );
     }
 
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute top-10 left-10 w-40 h-40 bg-yellow-400/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-orange-400/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+
+        <div className="w-full max-w-md relative z-10">
+          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 text-center space-y-6">
+            <div className="text-5xl">�</div>
+            <h2 className="text-xl font-black text-white">Présentez cet écran au serveur</h2>
+
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-yellow-400/30">
+              <p className="text-xl font-bold text-yellow-300">{prizeName}</p>
+              {prizeDesc && <p className="text-sm text-white/50 mt-1">{prizeDesc}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-white/50">Code :</p>
+              <div className="bg-black/40 backdrop-blur-xl text-yellow-400 font-mono text-2xl font-bold py-4 px-6 rounded-xl tracking-widest border border-yellow-400/20">
+                {prizeCode}
+              </div>
+              {expiresAt && (
+                <p className="text-xs text-white/40">
+                  Valable jusqu'au {new Date(expiresAt).toLocaleDateString('fr-FR')}
+                </p>
+              )}
+            </div>
+
+            <div className="bg-red-500/20 border border-red-400/30 rounded-2xl p-4">
+              <p className="text-red-300 font-bold text-sm">
+                ⚠️ Attention ! Si vous appuyez sans responsable, votre lot sera perdu.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="relative">
+                <button
+                  onMouseDown={onHoldStart}
+                  onMouseUp={onHoldEnd}
+                  onMouseLeave={onHoldEnd}
+                  onTouchStart={onHoldStart}
+                  onTouchEnd={onHoldEnd}
+                  disabled={isClaiming}
+                  className="w-full py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-lg rounded-2xl shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 relative overflow-hidden border border-white/10"
+                >
+                  <div
+                    className="absolute inset-0 bg-green-500 transition-none"
+                    style={{ width: `${holdProgress * 100}%` }}
+                  />
+                  <span className="relative z-10">
+                    {isClaiming ? 'Validation...' : holdProgress > 0 && holdProgress < 1 ? 'Maintenez...' : 'Maintenir 2s pour valider'}
+                  </span>
+                </button>
+              </div>
+              {claimError && (
+                <p className="text-red-400 text-sm font-medium">{claimError}</p>
+              )}
+              <p className="text-xs text-white/40">
+                Le serveur du restaurant doit maintenir ce bouton enfoncé pendant 2 secondes
+              </p>
+            </div>
+
+            <p className="text-xs text-white/40">
+              Notez votre code <strong className="text-yellow-400">{prizeCode}</strong> — vous pourrez aussi récupérer votre lot un autre jour.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === REDEEM (deferred pickup) ===
+  if (step === 'redeem') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="absolute top-20 -left-20 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 -right-20 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+
+        <div className="w-full max-w-md relative z-10">
+          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 text-center space-y-6">
+            <div className="text-5xl">🎟️</div>
+            <h2 className="text-xl font-bold text-white">Récupérer mon cadeau</h2>
+            <p className="text-sm text-white/50">
+              Entrez le code que vous avez reçu lors de votre dernière visite
+            </p>
+
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={redeemCode}
+                onChange={(e) => onRedeemCodeChange(e.target.value.toUpperCase())}
+                placeholder="Ex: FB-A7K9-X2M5"
+                className="w-full p-4 bg-white/5 border border-white/20 rounded-2xl text-center text-xl font-mono font-bold tracking-widest text-white focus:border-purple-400/50 focus:ring-2 focus:ring-purple-400/20 outline-none transition-all placeholder:text-white/20 placeholder:text-base placeholder:font-normal placeholder:tracking-normal backdrop-blur-xl"
+                maxLength={12}
+              />
+              {redeemError && (
+                <p className="text-red-400 text-sm font-medium">{redeemError}</p>
+              )}
+            </div>
+
+            <button
+              onClick={onRedeemSubmit}
+              disabled={!redeemCode.trim() || isRedeeming}
+              className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg rounded-2xl shadow-lg shadow-purple-500/25 disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-white/10"
+            >
+              {isRedeeming ? 'Vérification...' : 'Récupérer ce lot'}
+            </button>
+
+            <button
+              onClick={onBack}
+              className="text-sm text-white/40 hover:text-white/60 transition-colors"
+            >
+              ← Retour à l'accueil
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === RESULT ===
+  if (step === 'result' && spinResult) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute top-20 -right-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
