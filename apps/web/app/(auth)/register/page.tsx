@@ -41,7 +41,7 @@ const formatBoldText = (text: string): React.ReactNode => {
   });
 };
 
-function CheckoutForm({ onSuccess, onSkip, trialEndsAt }: { onSuccess: () => void; onSkip: () => void; trialEndsAt: string | null }) {
+function CheckoutForm({ onSuccess, trialEndsAt }: { onSuccess: () => void; trialEndsAt: string | null }) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -82,16 +82,9 @@ function CheckoutForm({ onSuccess, onSkip, trialEndsAt }: { onSuccess: () => voi
           </>
         )}
       </Button>
-      <button
-        type="button"
-        onClick={onSkip}
-        className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        Passer cette étape →
-      </button>
       <p className="text-xs text-center text-muted-foreground">
         Essai gratuit 14 jours. Aucun prélèvement aujourd'hui.
-        {trialDate && <> Premier paiement le {trialDate}.</>}
+        {trialDate && <> Premier paiement le {trialDate} si vous ne résiliez pas avant.</>}
       </p>
     </form>
   );
@@ -264,13 +257,6 @@ function RegisterForm() {
                   toast({
                     title: 'Compte créé avec succès !',
                     description: 'Votre essai gratuit de 14 jours a commencé.',
-                  });
-                  router.push('/login');
-                }}
-                onSkip={() => {
-                  toast({
-                    title: 'Compte créé',
-                    description: 'Vous pourrez ajouter votre carte plus tard.',
                   });
                   router.push('/login');
                 }}
