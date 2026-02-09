@@ -24,8 +24,30 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [stripeLoading, setStripeLoading] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '' });
   const { toast } = useToast();
+
+  const handleStripeConnect = async () => {
+    setStripeLoading(true);
+    try {
+      const token = getToken();
+      const result = await apiFetch<{ url: string }>('/api/v1/vendor/stripe/connect', {
+        method: 'POST',
+        token: token || '',
+      });
+      if (result.url) {
+        window.location.href = result.url;
+      }
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Impossible de lancer l\'onboarding Stripe',
+        variant: 'destructive',
+      });
+      setStripeLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -141,15 +163,18 @@ export default function ProfilePage() {
             {profile?.stripeOnboarded ? (
               <div className="flex items-center gap-2 text-green-600">
                 <span>✓</span>
-                <span>Compte Stripe configuré</span>
+                <span>Compte Stripe configuré — vos commissions sont versées automatiquement.</span>
               </div>
             ) : (
               <div>
                 <p className="text-muted-foreground mb-4">
-                  Configurez votre compte Stripe pour recevoir vos commissions automatiquement.
+                  Configurez votre compte Stripe pour recevoir vos commissions (25€ par abonnement) automatiquement sur votre compte bancaire.
                 </p>
-                <Button disabled>
-                  Configurer Stripe (bientôt disponible)
+                <Button
+                  disabled={stripeLoading}
+                  onClick={handleStripeConnect}
+                >
+                  {stripeLoading ? 'Redirection...' : 'Configurer Stripe Connect'}
                 </Button>
               </div>
             )}
