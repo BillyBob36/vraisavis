@@ -35,6 +35,7 @@ export default function ProfilePage() {
       const result = await apiFetch<{ url: string }>('/api/v1/vendor/stripe/connect', {
         method: 'POST',
         token: token || '',
+        body: JSON.stringify({}),
       });
       if (result.url) {
         window.location.href = result.url;
