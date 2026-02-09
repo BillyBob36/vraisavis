@@ -25,6 +25,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeStatus, setStripeStatus] = useState<{ connected: boolean; onboarded: boolean } | null>(null);
   const [formData, setFormData] = useState({ name: '', phone: '' });
   const { toast } = useToast();
 
@@ -51,12 +52,25 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
         const token = getToken();
-        const result = await apiFetch<{ vendor: Profile }>('/api/v1/vendor/profile', { token: token || '' });
-        setProfile(result.vendor);
-        setFormData({ name: result.vendor.name, phone: result.vendor.phone || '' });
+        const [profileResult, statusResult] = await Promise.all([
+          apiFetch<{ vendor: Profile }>('/api/v1/vendor/profile', { token: token || '' }),
+          apiFetch<{ connected: boolean; onboarded: boolean }>('/api/v1/vendor/stripe/status', { token: token || '' }).catch(() => ({ connected: false, onboarded: false })),
+        ]);
+        setProfile(profileResult.vendor);
+        setFormData({ name: profileResult.vendor.name, phone: profileResult.vendor.phone || '' });
+        setStripeStatus(statusResult);
+
+        // Si retour de Stripe onboarding avec ?stripe=success
+        if (typeof window !== 'undefined' && window.location.search.includes('stripe=success') && statusResult.onboarded) {
+          toast({
+            title: 'Stripe Connect configuré !',
+            description: 'Votre compte Stripe est prêt. Vos commissions seront versées automatiquement.',
+          });
+          window.history.replaceState({}, '', '/vendor/profile');
+        }
       } catch (error) {
         console.error('Erreur:', error);
       } finally {
@@ -64,7 +78,7 @@ export default function ProfilePage() {
       }
     };
 
-    fetchProfile();
+    fetchData();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -161,10 +175,22 @@ export default function ProfilePage() {
             <CardTitle>Stripe Connect</CardTitle>
           </CardHeader>
           <CardContent>
-            {profile?.stripeOnboarded ? (
+            {stripeStatus?.onboarded || profile?.stripeOnboarded ? (
               <div className="flex items-center gap-2 text-green-600">
                 <span>✓</span>
                 <span>Compte Stripe configuré — vos commissions sont versées automatiquement.</span>
+              </div>
+            ) : stripeStatus?.connected ? (
+              <div>
+                <p className="text-amber-600 mb-4">
+                  Votre compte Stripe est créé mais l&apos;onboarding n&apos;est pas terminé. Veuillez compléter la configuration.
+                </p>
+                <Button
+                  disabled={stripeLoading}
+                  onClick={handleStripeConnect}
+                >
+                  {stripeLoading ? 'Redirection...' : 'Compléter la configuration Stripe'}
+                </Button>
               </div>
             ) : (
               <div>
