@@ -53,6 +53,8 @@ await fastify.register(managerRoutes, { prefix: '/api/v1/manager' });
 await fastify.register(vendorRoutes, { prefix: '/api/v1/vendor' });
 await fastify.register(clientRoutes, { prefix: '/api/v1/client' });
 await fastify.register(webhookRoutes, { prefix: '/api/v1/webhooks' });
+// Stripe webhook also at /stripe (configured in Stripe Dashboard)
+await fastify.register(webhookRoutes, { prefix: '' });
 await fastify.register(telegramRoutes, { prefix: '/api/v1/telegram' });
 
 // Error handler

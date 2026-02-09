@@ -151,6 +151,9 @@ model Restaurant {
   thankYouMessage String?
   clientTemplate  String  @default("classic") @map("client_template")
 
+  // Stripe
+  stripeCustomerId String? @unique @map("stripe_customer_id")
+
   // Acceptation CGU/CGV
   cguAcceptedAt DateTime? @map("cgu_accepted_at")
   cguAcceptedIP String?   @map("cgu_accepted_ip")
@@ -183,8 +186,8 @@ model Subscription {
   currentPeriodEnd     DateTime
   trialEndsAt          DateTime?
   cancelAtPeriodEnd    Boolean            @default(false)
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
+  canceledAt           DateTime?
+  stripeSubscriptionId String?            @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

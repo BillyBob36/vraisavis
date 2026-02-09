@@ -6,6 +6,7 @@ import { requireManager } from '../../middleware/auth.js';
 import { config } from '../../config/env.js';
 import { notifyClient } from '../../services/notifications/sender.js';
 import { backfillFeedbacks } from '../../services/feedback-ai/index.js';
+import { stripe } from '../../services/stripe.js';
 
 const updateRestaurantSchema = z.object({
   name: z.string().min(2).optional(),
@@ -555,16 +556,52 @@ export async function managerRoutes(fastify: FastifyInstance) {
     return reply.send({ message: 'Telegram délié' });
   });
 
-  // Upgrade - placeholder pour Stripe
-  fastify.post('/subscription/upgrade', async (request: FastifyRequest, reply: FastifyReply) => {
-    // TODO: Implémenter avec Stripe Checkout
-    return reply.status(501).send({ error: true, message: 'Stripe non configuré' });
+  // Portail client Stripe (gérer abonnement, factures, annuler)
+  fastify.post('/subscription/billing-portal', async (request: FastifyRequest, reply: FastifyReply) => {
+    const restaurant = await getManagerRestaurant(request.user.id);
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
+
+    if (!restaurant.stripeCustomerId || !config.STRIPE_SECRET_KEY) {
+      return reply.status(400).send({ error: true, message: 'Pas d\'abonnement Stripe actif' });
+    }
+
+    try {
+      const session = await stripe.billingPortal.sessions.create({
+        customer: restaurant.stripeCustomerId,
+        return_url: `${config.FRONTEND_URL}/dashboard`,
+      });
+      return reply.send({ url: session.url });
+    } catch (err: any) {
+      return reply.status(500).send({ error: true, message: err.message });
+    }
   });
 
-  // Cancel - placeholder pour Stripe
+  // Annuler l'abonnement (fin de période)
   fastify.post('/subscription/cancel', async (request: FastifyRequest, reply: FastifyReply) => {
-    // TODO: Implémenter avec Stripe
-    return reply.status(501).send({ error: true, message: 'Stripe non configuré' });
+    const restaurant = await getManagerRestaurant(request.user.id);
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
+
+    const sub = await prisma.subscription.findUnique({ where: { restaurantId: restaurant.id } });
+    if (!sub?.stripeSubscriptionId || !config.STRIPE_SECRET_KEY) {
+      return reply.status(400).send({ error: true, message: 'Pas d\'abonnement Stripe actif' });
+    }
+
+    try {
+      await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+        cancel_at_period_end: true,
+      });
+      await prisma.subscription.update({
+        where: { id: sub.id },
+        data: { cancelAtPeriodEnd: true },
+      });
+      return reply.send({ message: 'Abonnement sera annulé à la fin de la période en cours' });
+    } catch (err: any) {
+      return reply.status(500).send({ error: true, message: err.message });
+    }
   });
 
   // === STATS ===

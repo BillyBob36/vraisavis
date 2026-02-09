@@ -10,7 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { apiFetch } from '@/lib/api';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, CreditCard } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 const LocationPicker = dynamic(
   () => import('@/components/ui/location-picker').then((mod) => mod.LocationPicker),
@@ -35,12 +41,70 @@ const formatBoldText = (text: string): React.ReactNode => {
   });
 };
 
+function CheckoutForm({ onSuccess, onSkip, trialEndsAt }: { onSuccess: () => void; onSkip: () => void; trialEndsAt: string | null }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setLoading(true);
+    setError('');
+
+    const { error: submitError } = await stripe.confirmPayment({
+      elements,
+      confirmParams: { return_url: `${window.location.origin}/login` },
+      redirect: 'if_required',
+    });
+
+    if (submitError) {
+      setError(submitError.message || 'Erreur lors de la validation');
+      setLoading(false);
+    } else {
+      onSuccess();
+    }
+  };
+
+  const trialDate = trialEndsAt ? new Date(trialEndsAt).toLocaleDateString('fr-FR') : null;
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <PaymentElement />
+      {error && <p className="text-red-600 text-sm">{error}</p>}
+      <Button type="submit" disabled={!stripe || loading} className="w-full">
+        {loading ? 'Traitement...' : (
+          <>
+            <CreditCard className="h-4 w-4 mr-2" />
+            Démarrer l'essai gratuit
+          </>
+        )}
+      </Button>
+      <button
+        type="button"
+        onClick={onSkip}
+        className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        Passer cette étape →
+      </button>
+      <p className="text-xs text-center text-muted-foreground">
+        Essai gratuit 14 jours. Aucun prélèvement aujourd'hui.
+        {trialDate && <> Premier paiement le {trialDate}.</>}
+      </p>
+    </form>
+  );
+}
+
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'form' | 'cgu'>('form');
+  const [step, setStep] = useState<'form' | 'cgu' | 'payment'>('form');
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [trialEndsAt, setTrialEndsAt] = useState<string | null>(null);
   const [cguData, setCguData] = useState<CGUData | null>(null);
   const [cguLoading, setCguLoading] = useState(false);
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
@@ -140,7 +204,7 @@ function RegisterForm() {
     setLoading(true);
 
     try {
-      await apiFetch('/api/v1/auth/register', {
+      const result = await apiFetch<{ message: string; clientSecret?: string; trialEndsAt?: string }>('/api/v1/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           ...formData,
@@ -149,12 +213,19 @@ function RegisterForm() {
         }),
       });
 
-      toast({
-        title: 'Compte créé',
-        description: 'Vous pouvez maintenant vous connecter',
-      });
-
-      router.push('/login');
+      // Si Stripe est configuré et qu'on a un clientSecret, aller à l'étape paiement
+      if (result.clientSecret && stripePromise) {
+        setClientSecret(result.clientSecret);
+        setTrialEndsAt(result.trialEndsAt || null);
+        setStep('payment');
+      } else {
+        // Pas de Stripe, rediriger directement
+        toast({
+          title: 'Compte créé',
+          description: 'Vous pouvez maintenant vous connecter',
+        });
+        router.push('/login');
+      }
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -172,6 +243,45 @@ function RegisterForm() {
       [e.target.name]: e.target.value,
     }));
   };
+
+  // Étape Paiement (collecte de carte)
+  if (step === 'payment' && clientSecret && stripePromise) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <h1 className="text-2xl font-bold text-center mb-2">🍽️ VraisAvis</h1>
+            <CardTitle>Moyen de paiement</CardTitle>
+            <CardDescription>
+              Ajoutez votre carte pour démarrer votre essai gratuit de 14 jours.
+              Aucun prélèvement avant la fin de l'essai.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+              <CheckoutForm
+                onSuccess={() => {
+                  toast({
+                    title: 'Compte créé avec succès !',
+                    description: 'Votre essai gratuit de 14 jours a commencé.',
+                  });
+                  router.push('/login');
+                }}
+                onSkip={() => {
+                  toast({
+                    title: 'Compte créé',
+                    description: 'Vous pourrez ajouter votre carte plus tard.',
+                  });
+                  router.push('/login');
+                }}
+                trialEndsAt={trialEndsAt}
+              />
+            </Elements>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Étape CGU
   if (step === 'cgu') {

@@ -4,6 +4,7 @@ import { prisma } from '../../lib/prisma.js';
 import { requireVendor } from '../../middleware/auth.js';
 import { config } from '../../config/env.js';
 import { vendorContractRoutes } from './contracts.js';
+import { stripe } from '../../services/stripe.js';
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
@@ -298,10 +299,85 @@ export async function vendorRoutes(fastify: FastifyInstance) {
     return reply.send({ message: 'Restaurant désactivé (visible admin)' });
   });
 
-  // Stripe Connect onboarding - placeholder
+  // Stripe Connect — créer compte Express + lien d'onboarding
   fastify.post('/stripe/connect', async (request: FastifyRequest, reply: FastifyReply) => {
-    // TODO: Implémenter Stripe Connect onboarding
-    return reply.status(501).send({ error: true, message: 'Stripe non configuré' });
+    if (!config.STRIPE_SECRET_KEY) {
+      return reply.status(503).send({ error: true, message: 'Stripe non configuré' });
+    }
+
+    const vendorId = request.user.id;
+    const vendor = await prisma.vendor.findUnique({ where: { id: vendorId } });
+    if (!vendor) {
+      return reply.status(404).send({ error: true, message: 'Vendeur non trouvé' });
+    }
+
+    try {
+      let accountId = vendor.stripeAccountId;
+
+      // Créer le compte Express s'il n'existe pas encore
+      if (!accountId) {
+        const account = await stripe.accounts.create({
+          type: 'express',
+          country: 'FR',
+          email: vendor.email,
+          capabilities: { transfers: { requested: true } },
+          metadata: { vendorId },
+        });
+        accountId = account.id;
+
+        await prisma.vendor.update({
+          where: { id: vendorId },
+          data: { stripeAccountId: accountId },
+        });
+      }
+
+      // Générer le lien d'onboarding
+      const accountLink = await stripe.accountLinks.create({
+        account: accountId,
+        refresh_url: `${config.FRONTEND_URL}/vendor/profile?stripe=refresh`,
+        return_url: `${config.FRONTEND_URL}/vendor/profile?stripe=success`,
+        type: 'account_onboarding',
+      });
+
+      return reply.send({ url: accountLink.url });
+    } catch (err: any) {
+      console.error('Erreur Stripe Connect:', err.message);
+      return reply.status(500).send({ error: true, message: err.message });
+    }
+  });
+
+  // Stripe Connect — vérifier le statut du compte
+  fastify.get('/stripe/status', async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!config.STRIPE_SECRET_KEY) {
+      return reply.send({ connected: false, onboarded: false });
+    }
+
+    const vendor = await prisma.vendor.findUnique({ where: { id: request.user.id } });
+    if (!vendor?.stripeAccountId) {
+      return reply.send({ connected: false, onboarded: false });
+    }
+
+    try {
+      const account = await stripe.accounts.retrieve(vendor.stripeAccountId);
+      const onboarded = account.charges_enabled && account.payouts_enabled;
+
+      // Mettre à jour le flag si l'onboarding est terminé
+      if (onboarded && !vendor.stripeOnboarded) {
+        await prisma.vendor.update({
+          where: { id: vendor.id },
+          data: { stripeOnboarded: true },
+        });
+      }
+
+      return reply.send({
+        connected: true,
+        onboarded,
+        chargesEnabled: account.charges_enabled,
+        payoutsEnabled: account.payouts_enabled,
+      });
+    } catch (err: any) {
+      return reply.send({ connected: false, onboarded: false, error: err.message });
+    }
   });
 
   // Enregistrer les routes contracts

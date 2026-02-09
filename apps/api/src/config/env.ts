@@ -13,7 +13,9 @@ export const config = {
   // Stripe
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
+  STRIPE_PRICE_ID: process.env.STRIPE_PRICE_ID || '',
   STRIPE_CONNECT_CLIENT_ID: process.env.STRIPE_CONNECT_CLIENT_ID || '',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'https://app.vraisavis.fr',
   
   // URLs
   API_URL: process.env.API_URL || 'http://localhost:3001',

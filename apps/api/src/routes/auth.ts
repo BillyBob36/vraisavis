@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { prisma } from '../lib/prisma.js';
 import { authenticate } from '../middleware/auth.js';
 import { config } from '../config/env.js';
+import { stripe } from '../services/stripe.js';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -144,10 +145,52 @@ export async function authRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ error: true, message: 'Configuration manquante' });
     }
 
-    // Créer le manager + restaurant + subscription (trial)
+    // 1. Créer customer Stripe
+    let stripeCustomerId: string | null = null;
+    let stripeSubscriptionId: string | null = null;
+    let clientSecret: string | null = null;
+    let stripeTrialEnd: Date | null = null;
+
+    if (config.STRIPE_SECRET_KEY && config.STRIPE_PRICE_ID) {
+      try {
+        const customer = await stripe.customers.create({
+          email,
+          name: restaurantName,
+          phone: phone || undefined,
+          metadata: { restaurantName, referralCode: referralCode || 'none' },
+        });
+        stripeCustomerId = customer.id;
+
+        const subscription = await stripe.subscriptions.create({
+          customer: customer.id,
+          items: [{ price: config.STRIPE_PRICE_ID }],
+          trial_period_days: 14,
+          payment_behavior: 'default_incomplete',
+          payment_settings: { save_default_payment_method: 'on_subscription' },
+          expand: ['latest_invoice.payment_intent'],
+          metadata: {
+            restaurantName,
+            vendorId: vendorId || 'none',
+            referralCode: referralCode || 'none',
+          },
+        });
+        stripeSubscriptionId = subscription.id;
+        stripeTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+
+        // Récupérer le clientSecret pour la collecte de carte
+        const latestInvoice = subscription.latest_invoice as any;
+        if (latestInvoice?.payment_intent?.client_secret) {
+          clientSecret = latestInvoice.payment_intent.client_secret;
+        }
+      } catch (stripeErr: any) {
+        console.error('Erreur Stripe lors de l\'inscription:', stripeErr.message);
+        // On continue sans Stripe — le resto fonctionnera en mode trial local
+      }
+    }
+
+    // 2. Créer le manager + restaurant + subscription (trial)
     const now = new Date();
-    const trialEnd = new Date(now);
-    trialEnd.setDate(trialEnd.getDate() + 14); // 14 jours d'essai
+    const trialEnd = stripeTrialEnd || new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
     const user = await prisma.user.create({
       data: {
@@ -165,6 +208,7 @@ export async function authRoutes(fastify: FastifyInstance) {
             vendorId,
             status: 'ACTIVE',
             geoRadius: 100,
+            stripeCustomerId,
             cguAcceptedAt: new Date(),
             cguAcceptedIP: clientIP,
             cguVersion: cguVersion || '1.0',
@@ -176,6 +220,7 @@ export async function authRoutes(fastify: FastifyInstance) {
               create: {
                 planId: starterPlan.id,
                 status: 'TRIAL',
+                stripeSubscriptionId,
                 currentPeriodStart: now,
                 currentPeriodEnd: trialEnd,
                 trialEndsAt: trialEnd,
@@ -189,7 +234,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       },
     });
 
-    // Générer le QR code automatiquement
+    // 3. Générer le QR code automatiquement
     const restaurant = user.managedRestaurants[0];
     if (restaurant) {
       const clientUrl = `${config.CLIENT_URL}/${restaurant.id}`;
@@ -211,6 +256,8 @@ export async function authRoutes(fastify: FastifyInstance) {
         email: user.email,
         name: user.name,
       },
+      clientSecret,
+      trialEndsAt: trialEnd.toISOString(),
     });
   });
 
