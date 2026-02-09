@@ -301,13 +301,17 @@ export async function vendorRoutes(fastify: FastifyInstance) {
 
   // Stripe Connect — créer compte Express + lien d'onboarding
   fastify.post('/stripe/connect', async (request: FastifyRequest, reply: FastifyReply) => {
+    console.log('🔗 Stripe Connect: début, user:', request.user?.id, 'type:', request.user?.type);
+
     if (!config.STRIPE_SECRET_KEY) {
+      console.log('🔗 Stripe Connect: STRIPE_SECRET_KEY manquante');
       return reply.status(503).send({ error: true, message: 'Stripe non configuré' });
     }
 
     const vendorId = request.user.id;
     const vendor = await prisma.vendor.findUnique({ where: { id: vendorId } });
     if (!vendor) {
+      console.log('🔗 Stripe Connect: vendeur non trouvé pour id:', vendorId);
       return reply.status(404).send({ error: true, message: 'Vendeur non trouvé' });
     }
 
@@ -316,6 +320,7 @@ export async function vendorRoutes(fastify: FastifyInstance) {
 
       // Créer le compte Express s'il n'existe pas encore
       if (!accountId) {
+        console.log('🔗 Stripe Connect: création compte Express pour', vendor.email);
         const account = await stripe.accounts.create({
           type: 'express',
           country: 'FR',
@@ -329,9 +334,11 @@ export async function vendorRoutes(fastify: FastifyInstance) {
           where: { id: vendorId },
           data: { stripeAccountId: accountId },
         });
+        console.log('🔗 Stripe Connect: compte créé:', accountId);
       }
 
       // Générer le lien d'onboarding
+      console.log('🔗 Stripe Connect: génération lien onboarding pour', accountId);
       const accountLink = await stripe.accountLinks.create({
         account: accountId,
         refresh_url: `${config.FRONTEND_URL}/vendor/profile?stripe=refresh`,
@@ -339,9 +346,10 @@ export async function vendorRoutes(fastify: FastifyInstance) {
         type: 'account_onboarding',
       });
 
+      console.log('🔗 Stripe Connect: lien généré OK');
       return reply.send({ url: accountLink.url });
     } catch (err: any) {
-      console.error('Erreur Stripe Connect:', err.message);
+      console.error('❌ Erreur Stripe Connect:', err.message, err.type, err.statusCode);
       return reply.status(500).send({ error: true, message: err.message });
     }
   });
