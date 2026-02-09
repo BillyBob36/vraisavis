@@ -54,7 +54,7 @@ function CheckoutForm({ onSuccess, onSkip, trialEndsAt }: { onSuccess: () => voi
     setLoading(true);
     setError('');
 
-    const { error: submitError } = await stripe.confirmPayment({
+    const { error: submitError } = await stripe.confirmSetup({
       elements,
       confirmParams: { return_url: `${window.location.origin}/login` },
       redirect: 'if_required',

@@ -167,7 +167,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           trial_period_days: 14,
           payment_behavior: 'default_incomplete',
           payment_settings: { save_default_payment_method: 'on_subscription' },
-          expand: ['latest_invoice.payment_intent'],
+          expand: ['pending_setup_intent'],
           metadata: {
             restaurantName,
             vendorId: vendorId || 'none',
@@ -177,10 +177,10 @@ export async function authRoutes(fastify: FastifyInstance) {
         stripeSubscriptionId = subscription.id;
         stripeTrialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
 
-        // Récupérer le clientSecret pour la collecte de carte
-        const latestInvoice = subscription.latest_invoice as any;
-        if (latestInvoice?.payment_intent?.client_secret) {
-          clientSecret = latestInvoice.payment_intent.client_secret;
+        // Pendant le trial, Stripe crée un SetupIntent (pas de PaymentIntent car 0€)
+        const setupIntent = subscription.pending_setup_intent as any;
+        if (setupIntent?.client_secret) {
+          clientSecret = setupIntent.client_secret;
         }
       } catch (stripeErr: any) {
         console.error('Erreur Stripe lors de l\'inscription:', stripeErr.message);
