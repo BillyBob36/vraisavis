@@ -159,18 +159,29 @@ export async function webhookRoutes(fastify: FastifyInstance) {
 }
 
 async function handleVendorPayout(invoice: any, subscription: any) {
-  const vendorAmount = subscription.restaurant.vendor.commissionAmount || 2500; // centimes
+  const vendor = subscription.restaurant.vendor;
+  const invoiceAmountHT = invoice.amount_paid; // montant en centimes (HT si pas de TVA sur Stripe)
+
+  // Commission en pourcentage (commissionRate = 50 → 50% HT)
+  const rate = vendor.commissionRate || 50;
+  const vendorAmount = Math.round(invoiceAmountHT * rate / 100);
+
+  if (vendorAmount <= 0) {
+    console.log(`⚠️ Commission vendeur calculée à 0 (rate=${rate}%, invoice=${invoiceAmountHT}ct)`);
+    return;
+  }
 
   try {
     const transfer = await stripe.transfers.create({
       amount: vendorAmount,
       currency: 'eur',
-      destination: subscription.restaurant.vendor.stripeAccountId,
+      destination: vendor.stripeAccountId,
       transfer_group: `SUB_${subscription.id}`,
       metadata: {
         restaurantId: subscription.restaurant.id,
         vendorId: subscription.restaurant.vendorId,
         invoiceId: invoice.id,
+        commissionRate: String(rate),
       },
     });
 
@@ -185,7 +196,7 @@ async function handleVendorPayout(invoice: any, subscription: any) {
       },
     });
 
-    console.log(`💰 Commission vendeur: ${vendorAmount / 100}€ → ${transfer.id}`);
+    console.log(`💰 Commission vendeur: ${vendorAmount / 100}€ (${rate}% de ${invoiceAmountHT / 100}€) → ${transfer.id}`);
   } catch (error: any) {
     console.error('Erreur transfert vendeur:', error.message);
 

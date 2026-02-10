@@ -247,15 +247,18 @@ export async function contractRoutes(fastify: FastifyInstance) {
     const contractDate = contract.signedAt ? new Date(contract.signedAt).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
     
     let contractContent = contract.template.contractContent
-      .replace(/\[NOM PRÉNOM ou RAISON SOCIALE de l'apporteur\]/g, contract.vendorName)
-      .replace(/\[Si personne physique : adresse complète\]/g, contract.vendorAddress || 'Non renseigné')
-      .replace(/\[Si personne morale : forme juridique, siège social, RCS, SIRET\]/g, contract.vendorSIRET || '')
-      .replace(/\[EMAIL APPORTEUR\]/g, contract.vendorEmail)
-      .replace(/\[ADRESSE APPORTEUR\]/g, contract.vendorAddress || 'Non renseigné')
-      .replace(/\[VILLE\]/g, 'Paris')
-      .replace(/\[DATE\]/g, contractDate)
-      .replace(/\[CODE_UNIQUE_APPORTEUR\]/g, contract.vendor.referralCode || 'NON_GENERE')
-      .replace(/\[CODE_UNIQUE\]/g, contract.vendor.referralCode || 'NON_GENERE');
+      .replace(/<<APPORTEUR_NOM>>/g, contract.vendorName)
+      .replace(/<<APPORTEUR_ADRESSE>>/g, contract.vendorAddress || 'Non renseigné')
+      .replace(/<<APPORTEUR_EMAIL>>/g, contract.vendorEmail)
+      .replace(/<<APPORTEUR_TEL>>/g, contract.vendorPhone || 'Non renseigné')
+      .replace(/<<APPORTEUR_STATUT>>/g, contract.vendorStatut || 'Non renseigné')
+      .replace(/<<APPORTEUR_SIRET>>/g, contract.vendorSIRET || 'N/A')
+      .replace(/<<APPORTEUR_TVA>>/g, contract.vendorTVA || 'Non')
+      .replace(/<<APPORTEUR_TVA_NUMBER>>/g, contract.vendorTVANumber || 'N/A')
+      .replace(/<<APPORTEUR_CODE>>/g, contract.vendor.referralCode || 'NON_GENERE')
+      .replace(/<<TAUX_COMMISSION>>/g, String(contract.template.commissionRate || 50))
+      .replace(/<<VILLE_SIGNATURE>>/g, contract.vendorCity || 'Paris')
+      .replace(/<<DATE_SIGNATURE>>/g, contractDate);
 
     // Créer les pages
     let page = pdfDoc.addPage([pageWidth, pageHeight]);

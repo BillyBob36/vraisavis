@@ -99,6 +99,7 @@ model Vendor {
   phone            String?
   referralCode     String?   @unique
   commissionAmount Int       @default(5000)
+  commissionRate   Float     @default(50) // % HT du montant abonnement
   stripeAccountId  String?
   stripeOnboarded  Boolean   @default(false)
   isActive         Boolean   @default(true)
@@ -514,11 +515,16 @@ model VendorContract {
   signatureData String?   @db.Text
 
   // Informations vendeur au moment de la signature
-  vendorName    String
-  vendorEmail   String
-  vendorAddress String?
-  vendorSIRET   String?
-  vendorIBAN    String?
+  vendorName      String
+  vendorEmail     String
+  vendorAddress   String?
+  vendorPhone     String?
+  vendorStatut    String?  // Micro-entreprise / Société / EI / Particulier
+  vendorSIRET     String?
+  vendorTVA       String?  // Assujetti TVA: Oui/Non
+  vendorTVANumber String?  // N° TVA intracommunautaire
+  vendorIBAN      String?
+  vendorCity      String?  // Ville de signature
 
   // Suivi
   sentAt          DateTime?

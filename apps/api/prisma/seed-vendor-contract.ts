@@ -2,384 +2,308 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const contractContent = `# CONTRAT D'APPORTEUR D'AFFAIRES
+const contractContent = `# CONTRAT D'APPORTEUR D'AFFAIRES (MISE EN RELATION UNIQUEMENT)
+Version : v3.0
 
-**ENTRE LES SOUSSIGNÉS :**
+> IMPORTANT — Pas de mandat / pas d'agent commercial / pas de contrat de travail
+> L'Apporteur intervient uniquement comme apporteur d'affaires (mise en relation).
+> Il n'a aucun mandat et aucun pouvoir de négocier, représenter, engager ou conclure un contrat au nom et pour le compte de la Société.
 
-**D'UNE PART,**
+---
 
-KAISER JOHANN (KAISER CO)
-Entrepreneur individuel (Micro-entreprise)
+## ENTRE LES SOUSSIGNÉS
+
+### 1) La Société
+Dénomination : KAISER JOHANN (KAISER CO)
+Forme : Entrepreneur individuel – Micro-entreprise
 Siège social : 61 RUE DE LYON, 75012 PARIS
 SIRET : 791 069 610 00032
-N° TVA intracommunautaire : FR52791069610
+TVA intracommunautaire : FR52791069610
+Représentée par : KAISER JOHANN, en qualité de Chef d'entreprise
 
-Représentée par KAISER JOHANN, en qualité de Chef d'entreprise
+Ci-après dénommée « la Société »
 
-Ci-après dénommée « **la Société** »
+### 2) L'Apporteur d'affaires
+Nom / Prénom ou Raison sociale : <<APPORTEUR_NOM>>
+Adresse : <<APPORTEUR_ADRESSE>>
+Email : <<APPORTEUR_EMAIL>>
+Téléphone : <<APPORTEUR_TEL>>
 
-**ET D'AUTRE PART,**
+Statut : <<APPORTEUR_STATUT>>
+SIRET (si applicable) : <<APPORTEUR_SIRET>>
+TVA intracommunautaire (si applicable) : <<APPORTEUR_TVA_NUMBER>>
+Assujetti à TVA : <<APPORTEUR_TVA>>
 
-[NOM PRÉNOM ou RAISON SOCIALE de l'apporteur]
-[Si personne physique : adresse complète]
-[Si personne morale : forme juridique, siège social, RCS, SIRET]
+Ci-après dénommé(e) « l'Apporteur »
 
-Ci-après dénommé(e) « **l'Apporteur** »
-
-Ci-après désignées ensemble « les Parties » et individuellement « la Partie »
+La Société et l'Apporteur sont ci-après désignés ensemble « les Parties ».
 
 ---
 
 ## PRÉAMBULE
+La Société édite et commercialise une plateforme web destinée aux restaurants professionnels, accessible à l'adresse https://app.vraisavis.fr (ci-après la « Plateforme »), proposant des services de gestion d'avis clients et de réputation en ligne.
 
-La Société édite et commercialise une plateforme web destinée aux restaurants professionnels, accessible à l'adresse https://vraisavis.fr (ci-après la « **Plateforme** »). Cette plateforme propose des services de gestion d'avis clients et de réputation en ligne pour les restaurateurs.
-
-Dans le cadre du développement de son activité, la Société souhaite recourir aux services d'apporteurs d'affaires pour identifier et mettre en relation avec de nouveaux clients restaurateurs.
-
-L'Apporteur déclare disposer des compétences et du réseau nécessaires pour accomplir cette mission.
+Dans le cadre du développement de son activité, la Société souhaite recourir à des apporteurs d'affaires pour identifier et mettre en relation de nouveaux clients restaurateurs.
 
 ---
 
-## ARTICLE 1 - OBJET DU CONTRAT
+## ARTICLE 1 — OBJET (MISE EN RELATION UNIQUEMENT)
 
-Le présent contrat a pour objet de définir les conditions dans lesquelles l'Apporteur s'engage à effectuer des **mises en relation ponctuelles** entre la Société et des clients potentiels (restaurateurs professionnels).
+### 1.1 Mission strictement limitée
+La mission de l'Apporteur se limite strictement à :
+- Identifier des restaurateurs susceptibles d'être intéressés par la Plateforme.
+- Présenter à titre informatif l'offre de la Société (sans négociation ni engagement).
+- Transmettre au prospect le lien d'inscription fourni par la Société (le « Lien de Parrainage »).
+- Encourager le prospect à effectuer lui-même l'inscription et l'acceptation des CGU/CGV.
 
-**La mission de l'Apporteur se limite strictement à :**
-- Identifier des restaurateurs susceptibles d'être intéressés par la Plateforme
-- Présenter l'offre commerciale de la Société à ces prospects
-- Communiquer au prospect le lien d'inscription personnalisé fourni par la Société
-- Encourager le prospect à s'inscrire sur la Plateforme
+### 1.2 Exclusions (interdictions expresses)
+Il est expressément convenu que l'Apporteur :
+- Ne négocie pas les prix, remises, conditions contractuelles ou CGU/CGV.
+- Ne conclut pas et ne signe pas de contrat au nom de la Société.
+- N'encaisse aucun paiement pour le compte de la Société.
+- Ne peut accorder aucun avantage non expressément prévu par les supports officiels de la Société.
 
-## ARTICLE 2 - STATUT DE L'APPORTEUR
+---
 
-### 2.1 Indépendance
-L'Apporteur intervient en toute indépendance, sans lien de subordination avec la Société. Il organise librement son activité, ses horaires et ses méthodes de travail.
+## ARTICLE 2 — STATUT DE L'APPORTEUR (INDÉPENDANT)
 
-Le présent contrat ne constitue pas un contrat de travail et ne crée aucun lien de subordination entre les Parties.
+### 2.1 Indépendance — absence de lien de subordination
+L'Apporteur agit en toute indépendance, sans lien de subordination.
+Il organise librement son activité, ses horaires, ses méthodes, ses moyens et sa prospection.
 
-### 2.2 Qualification juridique
-Le présent contrat est un **contrat d'apporteur d'affaires** au sens de la jurisprudence française. L'Apporteur n'a pas la qualité d'agent commercial au sens des articles L134-1 et suivants du Code de commerce.
+Le présent contrat ne constitue pas un contrat de travail et ne crée aucune relation de type CDD/CDI.
 
-### 2.3 Obligations déclaratives
-L'Apporteur est responsable de ses propres obligations fiscales, sociales et administratives. Il s'engage à :
-- Déclarer ses revenus issus de ce contrat aux administrations compétentes
-- S'acquitter de toutes cotisations sociales et fiscales applicables
-- Fournir à la Société tout justificatif nécessaire (numéro SIRET si applicable, attestation URSSAF, etc.)
+### 2.2 Absence de mandat / absence de représentation
+L'Apporteur n'est investi d'aucun mandat. Il ne peut engager la Société d'aucune manière.
 
-La Société ne saurait être tenue responsable du non-respect par l'Apporteur de ses obligations déclaratives.
+### 2.3 Obligations fiscales et sociales
+L'Apporteur est seul responsable de ses obligations fiscales, sociales et administratives liées aux sommes perçues au titre du présent contrat.
 
 ### 2.4 Absence d'exclusivité
-L'Apporteur est libre d'exercer toute autre activité professionnelle, y compris pour le compte de tiers, dès lors que cette activité n'est pas directement concurrente de la Société au sens de l'article 6.4 du présent contrat.
+L'Apporteur reste libre d'exercer toute autre activité, sous réserve de l'article 6.4 (loyauté / non-concurrence pendant le contrat).
 
-L'Apporteur n'a aucune obligation de résultat, ni d'exclusivité, ni de quota à atteindre.
+Aucune obligation de résultat, de quota, ni de fidélisation n'est due par l'Apporteur.
 
-## ARTICLE 3 - MODALITÉS D'EXÉCUTION
+---
 
-### 3.1 Lien de parrainage personnalisé
-La Société fournit à l'Apporteur un lien d'inscription personnalisé unique permettant de tracer les inscriptions provenant de ses mises en relation.
+## ARTICLE 3 — MODALITÉS D'EXÉCUTION
 
-Format : https://app.vraisavis.fr/register?ref=[CODE_UNIQUE]
+### 3.1 Lien de Parrainage — attribution, validité, activation
+La Société attribue à l'Apporteur un lien d'inscription personnalisé traçable (le « Lien de Parrainage ») :
+https://app.vraisavis.fr/register?ref=<<APPORTEUR_CODE>>
+
+Le Lien de Parrainage demeure valide tant que le compte Apporteur est actif sur la Plateforme, sauf suspension/désactivation dans les cas prévus au contrat.
+
+**Activation du lien :** la Société peut conditionner l'activation (ou le maintien de l'activation) du Lien de Parrainage à la finalisation des étapes nécessaires au versement des commissions, notamment la communication de coordonnées de paiement valides et, le cas échéant, la réalisation de vérifications imposées par un prestataire de paiement.
 
 ### 3.2 Validation de l'apport
-Un apport est considéré comme validé lorsque :
-1. Le prospect s'est inscrit via le Lien de Parrainage de l'Apporteur
-2. Le prospect a complété son inscription
-3. Le prospect a accepté les CGU/CGV de la Société
-4. Le premier paiement a été effectué avec succès
+Un apport est validé lorsque toutes les conditions suivantes sont réunies :
+1. Le restaurant s'est inscrit via le Lien de Parrainage.
+2. Le restaurant a complété son inscription.
+3. Le restaurant a accepté les CGU/CGV de la Société.
+4. Un premier paiement a été effectivement encaissé par la Société.
 
-## ARTICLE 4 - RÉMUNÉRATION
+---
 
-### 4.1 Taux de commission
-Le taux de commission est fixé à **25% HT** du montant de l'abonnement mensuel (hors taxes) payé par le client.
+## ARTICLE 4 — RÉMUNÉRATION (ANNÉE 1 + PRIME DE LONGÉVITÉ ANNÉE 2)
 
-**Base de calcul :**
-- Abonnement client : 49€ HT / mois
-- Commission apporteur : 12,25€ HT / mois (soit 25%)
+### 4.1 Taux Année 1 (mois 1 à 12)
+Le taux de commission Année 1 est fixé à **<<TAUX_COMMISSION>>** % HT du montant HT de l'abonnement mensuel payé par le client, uniquement sur les paiements effectivement et définitivement encaissés.
 
-### 4.2 Durée de validité de l'apport
+### 4.2 Durée Année 1 — 12 mois maximum par client
+Pour chaque client apporté, la commission Année 1 est due pendant une durée maximale de 12 (douze) mois consécutifs à compter de la date de validation de l'apport (article 3.2), sous réserve que le client reste abonné et payant.
 
-**La commission est due uniquement pendant une durée maximale de 12 (douze) mois consécutifs à compter de la date de validation de l'inscription du client apporté** (ci-après la « Période de Commission »).
+### 4.3 Condition d'encaissement / régularisations
+Aucune commission n'est due sur des sommes non encaissées.
+En cas de remboursement, impayé, contestation de paiement (chargeback) ou annulation, la commission correspondante n'est pas due ou est régularisée.
 
-**À l'issue de cette Période de Commission de 12 mois, aucune commission ne sera due à l'Apporteur, même si la relation commerciale entre la Société et le client apporté se poursuit.**
+### 4.4 Arrêt si le client arrête
+En cas de résiliation du client (quelle qu'en soit la cause) ou de cessation de paiement, le versement des commissions cesse immédiatement pour les périodes non payées/non encaissées.
 
-### 4.3 Conditionnement au paiement effectif
-**La commission n'est due que sur les paiements effectivement et définitivement encaissés par la Société.**
+### 4.5 Plafond (optionnel)
+Plafond total de commission Année 1 par client : non applicable.
 
-En cas de remboursement, d'impayé, de contestation de paiement (chargeback) ou d'annulation de transaction, la commission correspondante ne sera pas due ou sera déduite des commissions futures.
+---
 
-### 4.4 Plafonnement
-Le montant total maximum de commission par client apporté est plafonné à **147€ HT** (soit 12 mois × 12,25€ HT).
+### 4.6 Prime de longévité Année 2 (mois 13 à 24) — engagement dès le départ
+En complément de la commission Année 1, la Société s'engage à verser une « Prime de longévité » Année 2, pour chaque client apporté qui demeure abonné et payant après la fin des 12 mois de l'Année 1.
 
-### 4.5 Résiliation anticipée par le client - CLAUSE ESSENTIELLE
+Cette prime :
+- N'implique aucune obligation de fidélisation, support, relance ou reporting.
+- Ne modifie pas la nature « mise en relation uniquement » de la mission.
 
-**En cas de résiliation du contrat par le client apporté avant l'expiration de la Période de Commission de 12 mois, quelle qu'en soit la raison (résiliation volontaire, non-paiement, fermeture d'établissement, etc.), le versement de la commission cesse immédiatement à la date effective de résiliation.**
+### 4.7 Taux Année 2
+Le taux de Prime de longévité Année 2 est fixé à **<<TAUX_COMMISSION>>** % HT du montant HT de l'abonnement mensuel payé par le client, uniquement sur les paiements effectivement et définitivement encaissés.
 
-L'Apporteur ne peut prétendre à aucune indemnité, dommages et intérêts ou compensation pour la perte des commissions futures non encore acquises.
+### 4.8 Durée Année 2 — 12 mois maximum par client
+Pour chaque client apporté, la Prime de longévité Année 2 est due pendant une durée maximale de 12 (douze) mois consécutifs, correspondant aux mois 13 à 24 suivant la validation de l'apport, sous réserve que le client reste abonné et payant.
 
-### 4.6 Non-utilisation du service
+À l'issue de l'Année 2, aucune prime supplémentaire n'est due au titre du présent contrat (aucun engagement Années 3–5).
 
-Si un client apporté s'inscrit mais n'utilise jamais activement la Plateforme (aucune connexion, aucune utilisation des fonctionnalités) et cesse ses paiements dans les 3 premiers mois suivant son inscription, la Société se réserve le droit de considérer l'apport comme non qualifié et de cesser le versement de la commission, sans que l'Apporteur puisse prétendre à un quelconque dédommagement.
+### 4.9 Arrêt et régularisations Année 2
+Les règles de l'article 4.3 et 4.4 s'appliquent à la Prime de longévité Année 2 (arrêt si client arrête, pas de prime sur non-encaissé, régularisations en cas de remboursements/chargebacks).
 
-## ARTICLE 5 - MODALITÉS DE PAIEMENT
+---
+
+## ARTICLE 5 — MODALITÉS DE PAIEMENT & FACTURATION
 
 ### 5.1 Périodicité
-Les commissions sont calculées et versées **mensuellement**, au cours du mois M+1 suivant le mois durant lequel les paiements ont été encaissés.
+Les commissions/primes sont calculées et versées mensuellement, au cours du mois M+1 suivant le mois durant lequel les paiements ont été encaissés.
 
-Le paiement des commissions s'effectue par virement bancaire sur le compte communiqué par l'Apporteur dans l'Annexe 1.
+### 5.2 Facturation / note d'honoraires
+Avant tout versement, l'Apporteur doit remettre un document comptable conforme :
+- Facture (si professionnel).
+- Note d'honoraires/justificatif conforme (si non immatriculé), avec les mentions nécessaires.
 
-### 5.2 Facturation
+En l'absence de document conforme, la Société peut suspendre le versement jusqu'à réception.
 
-L'Apporteur est tenu d'émettre un document comptable conforme à la législation en vigueur pour chaque versement de commission.
+### 5.3 Paiement — coordonnées de paiement et prestataire de paiement éventuel
+Le versement des commissions/primes est effectué par virement sur les coordonnées de paiement communiquées par l'Apporteur.
 
-**Si l'Apporteur est une personne physique non immatriculée**, il doit établir une note d'honoraires mentionnant ses coordonnées complètes, le détail des apports et le montant de la commission.
+L'Apporteur reconnaît que le versement des commissions/primes est conditionné :
+- À la communication de coordonnées de paiement valides, et
+- Le cas échéant, au respect des exigences de vérification imposées par le prestataire de paiement utilisé par la Société.
 
-**Si l'Apporteur est un professionnel (micro-entreprise, société, etc.)**, il doit émettre une facture comportant toutes les mentions légales obligatoires (SIRET, numéro de facture, date, TVA si applicable).
+À défaut, les versements pourront être temporairement suspendus jusqu'à régularisation, sans que cela ne constitue un manquement de la Société.
 
-Le paiement intervient dans un délai de 30 jours suivant réception du document comptable conforme. En l'absence de document conforme, la Société se réserve le droit de suspendre le versement jusqu'à réception.
+---
 
-## ARTICLE 6 - OBLIGATIONS DE L'APPORTEUR
+## ARTICLE 6 — OBLIGATIONS DE L'APPORTEUR
 
-### 6.1 Obligations générales
-L'Apporteur s'engage à :
-- Agir avec loyauté et bonne foi
-- Présenter de manière exacte et non trompeuse l'offre de la Société
-- Respecter la législation en vigueur (RGPD, démarchage commercial)
-- Ne pas porter atteinte à l'image et à la réputation de la Société
+### 6.1 Loyauté et bonne foi
+L'Apporteur agit avec loyauté, bonne foi, et ne porte pas atteinte à l'image de la Société.
 
-### 6.2 Méthodes de prospection
-L'Apporteur s'interdit tout démarchage abusif, agressif ou contraire aux bonnes pratiques commerciales. Il s'engage notamment à respecter les règles relatives au démarchage téléphonique et à la prospection par voie électronique.
+### 6.2 Prospection
+L'Apporteur s'interdit tout démarchage abusif ou agressif et respecte la réglementation applicable à la prospection.
 
 ### 6.3 Utilisation de la marque
-L'Apporteur est autorisé à utiliser le nom et le logo de la Société uniquement dans le cadre de sa mission d'apporteur d'affaires et dans le respect des directives communiquées par la Société. Toute autre utilisation est interdite sans accord préalable écrit.
+Utilisation du nom/logo uniquement pour la mission, sans modification, et cessation immédiate à la fin du contrat.
 
-### 6.4 Non-concurrence pendant le contrat
+### 6.4 Loyauté / non-concurrence pendant le contrat (limitée)
+Pendant la durée du contrat, l'Apporteur s'interdit d'apporter des clients à des services directement concurrents dans le champ « gestion d'avis clients et e-réputation pour restaurants ».
 
-Pendant la durée du présent contrat, l'Apporteur s'interdit d'apporter des clients à des sociétés proposant des services directement concurrents de la Plateforme dans le secteur de la gestion d'avis clients et de réputation en ligne pour les restaurants.
+### 6.5 Interdiction d'inscrire à la place du restaurant (clause essentielle)
+Interdictions strictes :
+- Remplir le formulaire d'inscription à la place du restaurateur.
+- Utiliser une adresse email contrôlée par l'Apporteur pour l'inscription.
+- Créer un compte au nom d'un restaurateur sans accord exprès.
+- Valider/signer un abonnement à la place du restaurateur.
 
-**Cette clause ne constitue pas une obligation d'exclusivité** mais une simple obligation de loyauté limitée aux activités directement concurrentes.
+En cas de manquement :
+- Résiliation immédiate sans préavis.
+- Annulation des commissions/primes liées.
+- Remboursement des sommes indûment perçues.
+- Indemnisation du préjudice éventuel.
 
-### 6.5 Interdiction de signature à la place du client - CLAUSE ESSENTIELLE
+---
 
-L'Apporteur s'interdit formellement de :
-- Compléter le formulaire d'inscription à la place du restaurateur
-- Utiliser une adresse email qu'il contrôle pour l'inscription du client
-- Créer un compte au nom d'un restaurateur sans son accord préalable et exprès
-- Signer ou valider le contrat d'abonnement sans l'accord préalable et exprès du restaurateur
-- Fournir des informations fausses ou inexactes lors de l'inscription d'un prospect
+## ARTICLE 7 — CONFIDENTIALITÉ
+L'Apporteur conserve confidentielles les informations non publiques.
+Durée : pendant le contrat et 2 ans après sa cessation.
 
-**L'Apporteur s'engage à uniquement fournir au restaurateur le Lien de Parrainage et à laisser le restaurateur effectuer lui-même toutes les étapes d'inscription et de validation.**
+---
 
-**En cas de manquement à cette obligation :**
-- Résiliation immédiate du présent contrat sans préavis
-- Annulation de toutes les commissions liées aux clients frauduleusement inscrits
-- Remboursement des commissions déjà versées pour ces clients
-- Responsabilité de l'Apporteur pour tout préjudice causé à la Société ou aux clients concernés
-
-## ARTICLE 7 - CONFIDENTIALITÉ
-
-### 7.1 Informations confidentielles
-L'Apporteur s'engage à conserver strictement confidentielles toutes les informations commerciales, techniques, financières ou stratégiques dont il pourrait avoir connaissance dans le cadre de l'exécution du présent contrat, notamment :
-- Les conditions commerciales et tarifaires de la Société
-- Les données relatives aux clients et prospects
-- Les méthodes et outils de la Société
-- Toute information désignée comme confidentielle par la Société
-
-### 7.2 Durée de l'obligation
-Cette obligation de confidentialité subsiste pendant toute la durée du contrat et pendant **2 (deux) ans après sa cessation**, quelle qu'en soit la cause.
-
-### 7.3 Exceptions
-Ne sont pas considérées comme confidentielles les informations :
-- Déjà connues du public au moment de leur communication
-- Devenues publiques sans faute de l'Apporteur
-- Reçues légitimement d'un tiers non tenu à confidentialité
-
-## ARTICLE 8 - DURÉE ET RÉSILIATION
+## ARTICLE 8 — DURÉE & RÉSILIATION
 
 ### 8.1 Durée
-Le présent contrat est conclu pour une **durée indéterminée** à compter de sa signature par les deux Parties.
+Contrat conclu pour une durée indéterminée à compter de la signature.
 
-### 8.2 Résiliation avec préavis
-Chaque Partie peut résilier le présent contrat à tout moment, moyennant un préavis de **30 jours calendaires**, notifié par email avec accusé de réception ou par lettre recommandée avec accusé de réception.
+### 8.2 Résiliation sans faute
+Chaque Partie peut résilier à tout moment avec un préavis de 30 jours calendaires, par notification (article 14), sous réserve des dispositions impératives applicables.
 
 ### 8.3 Résiliation pour faute
-En cas de manquement grave d'une Partie à ses obligations contractuelles, l'autre Partie pourra résilier le contrat de plein droit, sans préavis ni indemnité, après mise en demeure restée sans effet pendant 15 jours.
-
-Constituent notamment des manquements graves :
-- Pour l'Apporteur : violation de l'article 6.5 (inscription frauduleuse), violation de la confidentialité, atteinte à l'image de la Société
-- Pour la Société : non-paiement des commissions dues pendant plus de 60 jours
+En cas de manquement grave, résiliation possible après mise en demeure restée sans effet pendant 15 jours, sans indemnité.
 
 ### 8.4 Effets de la résiliation
-
-À la date effective de résiliation du contrat :
-
-**Concernant les commissions en cours :**
-- Les commissions déjà acquises et non encore versées seront payées conformément aux modalités habituelles, sous réserve de la réception d'un document comptable conforme
-- **Les clients apportés avant la résiliation continuent de générer des commissions jusqu'à l'expiration de leur Période de Commission de 12 mois respective**, sauf résiliation anticipée du client
-
-**Exemple :** Si le contrat d'apporteur est résilié le 1er juillet 2026 mais qu'un client a été apporté le 1er mars 2026, l'Apporteur continuera de percevoir les commissions sur ce client jusqu'au 28 février 2027 (sous réserve que le client reste abonné).
-
-**Obligations post-résiliation :**
-- L'Apporteur cesse immédiatement toute utilisation du nom, de la marque et des supports commerciaux de la Société
-- L'Apporteur détruit toutes les données personnelles de prospects en sa possession
-- Le Lien de Parrainage est désactivé (aucune nouvelle inscription ne générera de commission)
-
-### 8.5 Absence d'indemnité
-**Les Parties reconnaissent expressément que l'Apporteur n'a droit à aucune indemnité de fin de contrat**, conformément à son statut d'apporteur d'affaires distinct de celui d'agent commercial.
-
-## ARTICLE 9 - PROTECTION DES DONNÉES PERSONNELLES
-
-L'Apporteur s'engage à respecter le Règlement Général sur la Protection des Données (RGPD) et la loi Informatique et Libertés, et notamment à :
-- Ne collecter que les données strictement nécessaires à sa mission
-- Informer les prospects de la transmission de leurs coordonnées à la Société
-- Obtenir le consentement explicite des prospects avant toute transmission de données
-- Ne pas conserver les données personnelles au-delà de la durée nécessaire
-- Mettre en œuvre les mesures de sécurité appropriées
-
-En cas de violation de données personnelles, l'Apporteur en informe immédiatement la Société.
-
-## ARTICLE 10 - RESPONSABILITÉ
-
-### 10.1 Responsabilité de l'Apporteur
-L'Apporteur est seul responsable :
-- Des méthodes de prospection qu'il emploie
-- Du respect de la législation applicable (démarchage, RGPD, etc.)
-- De ses déclarations fiscales et sociales
-- De tout dommage causé à des tiers dans l'exercice de sa mission
-
-L'Apporteur garantit la Société contre tout recours de tiers résultant d'un manquement de sa part à ses obligations légales ou contractuelles.
-
-### 10.2 Responsabilité de la Société
-La Société est responsable du bon fonctionnement de la Plateforme et du paiement des commissions dues conformément au présent contrat.
-
-La Société ne saurait être tenue responsable :
-- De la résiliation anticipée d'un contrat par un client apporté
-- Du non-paiement par un client apporté
-- De l'utilisation ou non-utilisation de la Plateforme par le client
-- Des décisions commerciales du client apporté
-
-### 10.3 Limitation de responsabilité
-En tout état de cause, la responsabilité de chaque Partie au titre du présent contrat ne pourra excéder le montant total des commissions versées à l'Apporteur au cours des 12 derniers mois précédant le fait générateur de responsabilité.
-
-Cette limitation ne s'applique pas en cas de faute lourde ou intentionnelle.
-
-## ARTICLE 11 - ASSURANCE
-
-Chaque Partie s'engage à souscrire et maintenir en vigueur pendant toute la durée du contrat une assurance responsabilité civile professionnelle couvrant les dommages pouvant résulter de son activité.
-
-Sur demande, chaque Partie fournira à l'autre une attestation d'assurance en cours de validité dans un délai de 15 jours.
-
-## ARTICLE 12 - FORCE MAJEURE
-
-Aucune des Parties ne sera tenue responsable d'un retard ou d'une inexécution de ses obligations résultant d'un cas de force majeure au sens de l'article 1218 du Code civil.
-
-La Partie invoquant la force majeure doit en informer l'autre Partie dans les meilleurs délais et prendre toutes les mesures raisonnables pour en limiter les effets.
-
-Si le cas de force majeure perdure au-delà de 60 jours, chaque Partie pourra résilier le contrat de plein droit, sans indemnité, par lettre recommandée avec accusé de réception.
-
-## ARTICLE 13 - CONVENTION DE PREUVE
-
-Les Parties conviennent expressément que les registres informatisés de la Société (logs de connexion, enregistrements des inscriptions via Lien de Parrainage, historique des paiements, emails échangés) font foi entre elles et constituent une preuve recevable des apports réalisés et des commissions dues.
-
-En cas de contestation, les données enregistrées par la Société prévaudront, sauf preuve contraire apportée par l'Apporteur.
-
-## ARTICLE 14 - NOTIFICATIONS
-
-Toute notification au titre du présent contrat devra être effectuée :
-- Par email avec accusé de réception (ou confirmation de lecture)
-- Ou par lettre recommandée avec accusé de réception
-
-**Pour la Société :**
-Email : contact@vraisavis.fr
-Adresse postale : 61 RUE DE LYON, 75012 PARIS
-
-**Pour l'Apporteur :**
-Email : [EMAIL APPORTEUR]
-Adresse postale : [ADRESSE APPORTEUR]
-
-Tout changement d'adresse devra être notifié à l'autre Partie dans les meilleurs délais.
-
-## ARTICLE 15 - DISPOSITIONS GÉNÉRALES
-
-### 15.1 Intégralité
-Le présent contrat et ses annexes constituent l'intégralité de l'accord entre les Parties et remplacent tous accords antérieurs, écrits ou verbaux, relatifs à son objet.
-
-### 15.2 Modification
-Toute modification du présent contrat devra faire l'objet d'un avenant écrit signé par les deux Parties.
-
-### 15.3 Nullité partielle
-Si une ou plusieurs stipulations du présent contrat sont tenues pour non valides ou déclarées comme telles en application d'une loi, d'un règlement ou d'une décision définitive d'une juridiction compétente, les autres stipulations garderont toute leur force et leur portée.
-
-### 15.4 Non-renonciation
-Le fait pour l'une des Parties de ne pas se prévaloir d'un manquement de l'autre Partie à l'une quelconque des obligations visées au présent contrat ne saurait être interprété comme une renonciation à l'obligation en cause.
-
-### 15.5 Cession
-Le présent contrat est conclu intuitu personae. L'Apporteur ne peut céder tout ou partie de ses droits et obligations sans l'accord préalable écrit de la Société.
-
-## ARTICLE 16 - DROIT APPLICABLE ET JURIDICTION
-
-Le présent contrat est soumis au droit français.
-
-En cas de litige relatif à l'interprétation ou à l'exécution du présent contrat, les Parties s'efforceront de trouver une solution amiable. À défaut d'accord amiable dans un délai de 30 jours, compétence exclusive est attribuée aux **Tribunaux compétents de Paris**, même en cas de pluralité de défendeurs ou d'appel en garantie.
+À la date effective de résiliation :
+- Aucune nouvelle inscription ne donnera lieu à commission/primes.
+- La Société peut désactiver le Lien de Parrainage et/ou supprimer l'accès au compte.
+- Les commissions/primes déjà acquises (mois encaissés avant la date effective) restent dues sous réserve de facture/note conforme.
 
 ---
 
-**FAIT EN DEUX EXEMPLAIRES ORIGINAUX**
+## ARTICLE 9 — DONNÉES PERSONNELLES
+Principe : l'Apporteur privilégie la transmission du Lien de Parrainage afin que le restaurateur s'inscrive lui-même.
 
-**Fait à [VILLE], le [DATE]**
+Si l'Apporteur transmet exceptionnellement des coordonnées, il s'engage à :
+- Limiter aux données strictement nécessaires.
+- Informer le prospect de la transmission et de la finalité.
+- Ne pas conserver les données au-delà de ce qui est nécessaire.
 
-*(Chaque signature doit être précédée de la mention manuscrite "Lu et approuvé, bon pour accord")*
+---
 
-**Pour la Société**
-KAISER JOHANN (KAISER CO)
-KAISER JOHANN, Chef d'entreprise
+## ARTICLE 10 — RESPONSABILITÉ
+Sauf faute lourde/intentionnelle, la responsabilité totale de chaque Partie est limitée au total des commissions/primes versées sur les 12 derniers mois précédant le fait générateur.
 
+---
+
+## ARTICLE 11 — ASSURANCE (RECOMMANDÉE)
+Chaque Partie déclare être assurée de manière adaptée à son activité. La Société peut demander une attestation si pertinent.
+
+---
+
+## ARTICLE 12 — FORCE MAJEURE
+Force majeure au sens de l'article 1218 du Code civil.
+
+---
+
+## ARTICLE 13 — CONVENTION DE PREUVE
+Les enregistrements informatisés de la Société (inscriptions via lien, historiques de paiement, logs, emails) font foi entre les Parties, sauf preuve contraire.
+
+---
+
+## ARTICLE 14 — NOTIFICATIONS
+Pour la Société : contact@vraisavis.fr ; 61 RUE DE LYON, 75012 PARIS
+Pour l'Apporteur : <<APPORTEUR_EMAIL>> ; <<APPORTEUR_ADRESSE>>
+
+---
+
+## ARTICLE 15 — DISPOSITIONS GÉNÉRALES
+Intégralité, modification par avenant écrit, nullité partielle, non-renonciation, cession interdite sans accord écrit de la Société.
+
+---
+
+## ARTICLE 16 — DROIT APPLICABLE & JURIDICTION
+Droit français.
+
+Tentative amiable sous 30 jours.
+À défaut : tribunaux compétents de Paris, sous réserve des dispositions impératives applicables.
+
+---
+
+## SIGNATURES
+Fait à <<VILLE_SIGNATURE>>, le <<DATE_SIGNATURE>>, en deux exemplaires.
+
+Pour la Société
+Nom : KAISER JOHANN
+Qualité : Chef d'entreprise
 Signature : _______________________
 
-**Pour l'Apporteur**
-[NOM PRÉNOM ou RAISON SOCIALE de l'apporteur]
-
+Pour l'Apporteur
+Nom : <<APPORTEUR_NOM>>
 Signature : _______________________
 
 ---
 
-## ANNEXE 1 - INFORMATIONS APPORTEUR
+# ANNEXE — INFORMATIONS APPORTEUR (MINIMUM)
 
-**Identité complète :**
-- Nom/Prénom ou Raison sociale : [NOM PRÉNOM ou RAISON SOCIALE de l'apporteur]
-- Adresse complète : [ADRESSE APPORTEUR]
-- Email : [EMAIL APPORTEUR]
-- Téléphone : ____________________
+Identité :
+- Nom / Raison sociale : <<APPORTEUR_NOM>>
+- Adresse : <<APPORTEUR_ADRESSE>>
+- Email : <<APPORTEUR_EMAIL>>
+- Statut : <<APPORTEUR_STATUT>>
+- SIRET (si applicable) : <<APPORTEUR_SIRET>>
+- Assujetti TVA : <<APPORTEUR_TVA>>
+- TVA intracommunautaire (si applicable) : <<APPORTEUR_TVA_NUMBER>>
 
-**Statut professionnel :**
-☐ Micro-entreprise  ☐ Entreprise individuelle  ☐ Société  ☐ Particulier
+Coordonnées de paiement (à fournir avant tout premier versement) :
+- Versement via le prestataire de paiement de la Société (Stripe Connect)
 
-**Informations fiscales et sociales :**
-- Numéro SIRET (si applicable) : [Si personne morale : forme juridique, siège social, RCS, SIRET]
-- Numéro de TVA intracommunautaire (si applicable) : ____________________
-- Assujetti à TVA : ☐ Oui  ☐ Non
+Lien de Parrainage attribué :
+- https://app.vraisavis.fr/register?ref=<<APPORTEUR_CODE>>
 
-**Coordonnées bancaires pour virement des commissions :**
-- Titulaire du compte : ____________________
-- IBAN : ____________________
-- BIC/SWIFT : ____________________
-
-**Assurance responsabilité civile professionnelle :**
-- Compagnie d'assurance : ____________________
-- Numéro de contrat : ____________________
-
-**Lien de Parrainage attribué :**
-https://app.vraisavis.fr/register?ref=[CODE_UNIQUE_APPORTEUR]
-
----
-
-**L'Apporteur certifie l'exactitude des informations ci-dessus et s'engage à informer la Société de tout changement.**
-
-**Fait à [VILLE], le [DATE]**
-
-**Signature de l'Apporteur :**
-*(Précédée de la mention manuscrite "Lu et approuvé, bon pour accord")*
-
-_______________________`;
+Fait à <<VILLE_SIGNATURE>>, le <<DATE_SIGNATURE>>
+Signature Apporteur : _______________________`;
 
 async function main() {
   console.log('Création du template de contrat vendeur...');
@@ -393,7 +317,7 @@ async function main() {
     await prisma.contractTemplate.update({
       where: { id: existingTemplate.id },
       data: {
-        version: '2.0',
+        version: '3.0',
         companyName: 'KAISER JOHANN (KAISER CO)',
         companyLegalForm: 'Entrepreneur individuel (Micro-entreprise)',
         companyCapital: 'Non applicable (EI)',
@@ -410,8 +334,8 @@ async function main() {
         mediatorAddress: '27 avenue de la Libération, 42400 Saint-Chamond',
         mediatorWebsite: 'https://cnpm-mediation-consommation.eu',
         jurisdiction: 'Tribunaux compétents de Paris',
-        commissionRate: 25,
-        commissionDuration: 12,
+        commissionRate: 50,
+        commissionDuration: 24,
         contractContent,
       },
     });
@@ -420,7 +344,7 @@ async function main() {
     await prisma.contractTemplate.create({
       data: {
         type: 'VENDOR_CONTRACT',
-        version: '2.0',
+        version: '3.0',
         companyName: 'KAISER JOHANN (KAISER CO)',
         companyLegalForm: 'Entrepreneur individuel (Micro-entreprise)',
         companyCapital: 'Non applicable (EI)',
@@ -437,8 +361,8 @@ async function main() {
         mediatorAddress: '27 avenue de la Libération, 42400 Saint-Chamond',
         mediatorWebsite: 'https://cnpm-mediation-consommation.eu',
         jurisdiction: 'Tribunaux compétents de Paris',
-        commissionRate: 25,
-        commissionDuration: 12,
+        commissionRate: 50,
+        commissionDuration: 24,
         contractContent,
         isActive: true,
       },

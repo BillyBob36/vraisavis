@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
+import ReactMarkdown from 'react-markdown';
 
 interface VendorContract {
   id: string;
@@ -15,8 +15,13 @@ interface VendorContract {
   vendorName: string;
   vendorEmail: string;
   vendorAddress?: string;
+  vendorPhone?: string;
+  vendorStatut?: string;
   vendorSIRET?: string;
+  vendorTVA?: string;
+  vendorTVANumber?: string;
   vendorIBAN?: string;
+  vendorCity?: string;
   sentAt?: string;
   viewedAt?: string;
   signedAt?: string;
@@ -29,6 +34,7 @@ interface VendorContract {
     version: string;
     companyName: string;
     contractContent: string;
+    commissionRate?: number;
   };
 }
 
@@ -41,8 +47,13 @@ export default function VendorContractsPage() {
 
   const [signatureData, setSignatureData] = useState({
     vendorAddress: '',
+    vendorPhone: '',
+    vendorStatut: '',
     vendorSIRET: '',
+    vendorTVA: 'Non',
+    vendorTVANumber: '',
     vendorIBAN: '',
+    vendorCity: '',
     acceptTerms: false,
     fullName: '',
   });
@@ -72,8 +83,13 @@ export default function VendorContractsPage() {
       setSelectedContract(response.contract);
       setSignatureData({
         vendorAddress: response.contract.vendorAddress || '',
+        vendorPhone: response.contract.vendorPhone || '',
+        vendorStatut: response.contract.vendorStatut || '',
         vendorSIRET: response.contract.vendorSIRET || '',
+        vendorTVA: response.contract.vendorTVA || 'Non',
+        vendorTVANumber: response.contract.vendorTVANumber || '',
         vendorIBAN: response.contract.vendorIBAN || '',
+        vendorCity: response.contract.vendorCity || '',
         acceptTerms: false,
         fullName: response.contract.vendorName,
       });
@@ -110,8 +126,13 @@ export default function VendorContractsPage() {
         body: JSON.stringify({
           contractId: selectedContract.id,
           vendorAddress: signatureData.vendorAddress,
+          vendorPhone: signatureData.vendorPhone,
+          vendorStatut: signatureData.vendorStatut,
           vendorSIRET: signatureData.vendorSIRET,
+          vendorTVA: signatureData.vendorTVA,
+          vendorTVANumber: signatureData.vendorTVANumber,
           vendorIBAN: signatureData.vendorIBAN,
+          vendorCity: signatureData.vendorCity,
           signatureData: signatureString,
           acceptTerms: signatureData.acceptTerms,
         }),
@@ -198,74 +219,138 @@ export default function VendorContractsPage() {
             </p>
           </CardHeader>
           <CardContent>
-            <div className="prose max-w-none mb-6 p-4 bg-gray-50 rounded max-h-96 overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-sm">
+            <div className="prose prose-sm max-w-none mb-6 p-6 bg-gray-50 border rounded-lg max-h-[500px] overflow-y-auto prose-headings:text-gray-900 prose-h1:text-xl prose-h1:border-b prose-h1:pb-2 prose-h2:text-lg prose-h3:text-base prose-blockquote:border-l-4 prose-blockquote:border-amber-400 prose-blockquote:bg-amber-50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:text-amber-800 prose-hr:my-4 prose-strong:text-gray-900 prose-li:my-0.5">
+              <ReactMarkdown>
                 {selectedContract.template.contractContent}
-              </pre>
+              </ReactMarkdown>
             </div>
 
             {selectedContract.status === 'SENT' && (
-              <form onSubmit={handleSignContract} className="space-y-4 border-t pt-6">
-                <h3 className="font-semibold text-lg">Informations pour la signature</h3>
-
-                <div className="space-y-2">
-                  <Label htmlFor="vendorAddress">Adresse complète</Label>
-                  <Input
-                    id="vendorAddress"
-                    value={signatureData.vendorAddress}
-                    onChange={(e) => setSignatureData(prev => ({ ...prev, vendorAddress: e.target.value }))}
-                    placeholder="Adresse complète"
-                  />
+              <form onSubmit={handleSignContract} className="space-y-6 border-t pt-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg text-blue-900 mb-1">Vos informations</h3>
+                  <p className="text-sm text-blue-700">Ces informations seront intégrées au contrat. Les champs marqués * sont obligatoires.</p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="vendorSIRET">SIRET (optionnel)</Label>
-                  <Input
-                    id="vendorSIRET"
-                    value={signatureData.vendorSIRET}
-                    onChange={(e) => setSignatureData(prev => ({ ...prev, vendorSIRET: e.target.value }))}
-                    placeholder="Numéro SIRET si applicable"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Nom complet / Raison sociale *</Label>
+                    <Input
+                      id="fullName"
+                      value={signatureData.fullName}
+                      onChange={(e) => setSignatureData(prev => ({ ...prev, fullName: e.target.value }))}
+                      placeholder="Nom Prénom ou Raison sociale"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="vendorAddress">Adresse complète *</Label>
+                    <Input
+                      id="vendorAddress"
+                      value={signatureData.vendorAddress}
+                      onChange={(e) => setSignatureData(prev => ({ ...prev, vendorAddress: e.target.value }))}
+                      placeholder="Adresse complète"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="vendorPhone">Téléphone</Label>
+                    <Input
+                      id="vendorPhone"
+                      value={signatureData.vendorPhone}
+                      onChange={(e) => setSignatureData(prev => ({ ...prev, vendorPhone: e.target.value }))}
+                      placeholder="+33 6 XX XX XX XX"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="vendorStatut">Statut *</Label>
+                    <select
+                      id="vendorStatut"
+                      value={signatureData.vendorStatut}
+                      onChange={(e) => setSignatureData(prev => ({ ...prev, vendorStatut: e.target.value }))}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      required
+                    >
+                      <option value="">Sélectionnez votre statut</option>
+                      <option value="Micro-entreprise">Micro-entreprise</option>
+                      <option value="Entreprise individuelle">Entreprise individuelle</option>
+                      <option value="Société">Société (SARL, SAS, etc.)</option>
+                      <option value="Particulier">Particulier</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="vendorSIRET">SIRET (si applicable)</Label>
+                    <Input
+                      id="vendorSIRET"
+                      value={signatureData.vendorSIRET}
+                      onChange={(e) => setSignatureData(prev => ({ ...prev, vendorSIRET: e.target.value }))}
+                      placeholder="XXX XXX XXX XXXXX"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="vendorTVA">Assujetti à la TVA</Label>
+                    <select
+                      id="vendorTVA"
+                      value={signatureData.vendorTVA}
+                      onChange={(e) => setSignatureData(prev => ({ ...prev, vendorTVA: e.target.value }))}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                    >
+                      <option value="Non">Non</option>
+                      <option value="Oui">Oui</option>
+                    </select>
+                  </div>
+
+                  {signatureData.vendorTVA === 'Oui' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="vendorTVANumber">N° TVA intracommunautaire</Label>
+                      <Input
+                        id="vendorTVANumber"
+                        value={signatureData.vendorTVANumber}
+                        onChange={(e) => setSignatureData(prev => ({ ...prev, vendorTVANumber: e.target.value }))}
+                        placeholder="FRXX XXXXXXXXX"
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="vendorCity">Ville de signature *</Label>
+                    <Input
+                      id="vendorCity"
+                      value={signatureData.vendorCity}
+                      onChange={(e) => setSignatureData(prev => ({ ...prev, vendorCity: e.target.value }))}
+                      placeholder="Paris"
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="vendorIBAN">IBAN pour versement des commissions</Label>
-                  <Input
-                    id="vendorIBAN"
-                    value={signatureData.vendorIBAN}
-                    onChange={(e) => setSignatureData(prev => ({ ...prev, vendorIBAN: e.target.value }))}
-                    placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Nom complet pour signature</Label>
-                  <Input
-                    id="fullName"
-                    value={signatureData.fullName}
-                    onChange={(e) => setSignatureData(prev => ({ ...prev, fullName: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                <div className="flex items-start space-x-2 p-4 bg-yellow-50 rounded">
+                <div className="flex items-start space-x-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                   <input
                     type="checkbox"
                     id="acceptTerms"
                     checked={signatureData.acceptTerms}
                     onChange={(e) => setSignatureData(prev => ({ ...prev, acceptTerms: e.target.checked }))}
-                    className="mt-1"
+                    className="mt-1 h-4 w-4"
                   />
                   <label htmlFor="acceptTerms" className="text-sm">
                     <strong>Lu et approuvé, bon pour accord.</strong><br />
-                    Je certifie avoir lu et compris l'intégralité du contrat ci-dessus et j'accepte sans réserve 
-                    tous ses termes et conditions. Je comprends que cette signature électronique a la même valeur 
-                    juridique qu'une signature manuscrite.
+                    Je certifie avoir lu et compris l&apos;intégralité du contrat ci-dessus et j&apos;accepte sans réserve
+                    tous ses termes et conditions. Je comprends que cette signature électronique a la même valeur
+                    juridique qu&apos;une signature manuscrite conformément au règlement eIDAS.
                   </label>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={signing || !signatureData.acceptTerms}>
+                <div className="flex gap-3">
+                  <Button
+                    type="submit"
+                    disabled={signing || !signatureData.acceptTerms || !signatureData.vendorAddress || !signatureData.vendorStatut || !signatureData.vendorCity}
+                    className="flex-1"
+                  >
                     {signing ? 'Signature en cours...' : 'Signer électroniquement'}
                   </Button>
                   <Button
@@ -273,33 +358,32 @@ export default function VendorContractsPage() {
                     variant="destructive"
                     onClick={() => handleRejectContract(selectedContract.id)}
                   >
-                    Rejeter le contrat
+                    Rejeter
                   </Button>
                 </div>
 
-                <p className="text-xs text-gray-500 mt-4">
-                  Votre signature sera horodatée et votre adresse IP sera enregistrée conformément 
-                  aux exigences légales de signature électronique.
+                <p className="text-xs text-gray-500">
+                  Votre signature sera horodatée et votre adresse IP sera enregistrée conformément
+                  aux exigences légales de signature électronique (règlement eIDAS).
                 </p>
               </form>
             )}
 
             {selectedContract.status === 'SIGNED' && (
               <div className="border-t pt-6">
-                <div className="bg-green-50 p-4 rounded">
+                <div className="bg-green-50 border border-green-200 p-4 rounded-lg space-y-1">
                   <p className="font-semibold text-green-800">✓ Contrat signé</p>
-                  <p className="text-sm text-green-700 mt-2">
+                  <p className="text-sm text-green-700">
                     Signé le {new Date(selectedContract.signedAt!).toLocaleString('fr-FR')}
                   </p>
                   {selectedContract.vendorAddress && (
-                    <p className="text-sm text-green-700 mt-1">
-                      Adresse: {selectedContract.vendorAddress}
-                    </p>
+                    <p className="text-sm text-green-700">Adresse : {selectedContract.vendorAddress}</p>
+                  )}
+                  {selectedContract.vendorStatut && (
+                    <p className="text-sm text-green-700">Statut : {selectedContract.vendorStatut}</p>
                   )}
                   {selectedContract.vendorSIRET && (
-                    <p className="text-sm text-green-700 mt-1">
-                      SIRET: {selectedContract.vendorSIRET}
-                    </p>
+                    <p className="text-sm text-green-700">SIRET : {selectedContract.vendorSIRET}</p>
                   )}
                 </div>
                 <Button
@@ -315,14 +399,14 @@ export default function VendorContractsPage() {
 
             {selectedContract.status === 'REJECTED' && (
               <div className="border-t pt-6">
-                <div className="bg-red-50 p-4 rounded">
+                <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
                   <p className="font-semibold text-red-800">✗ Contrat rejeté</p>
                   <p className="text-sm text-red-700 mt-2">
                     Rejeté le {new Date(selectedContract.rejectedAt!).toLocaleString('fr-FR')}
                   </p>
                   {selectedContract.rejectionReason && (
                     <p className="text-sm text-red-700 mt-1">
-                      Raison: {selectedContract.rejectionReason}
+                      Raison : {selectedContract.rejectionReason}
                     </p>
                   )}
                 </div>

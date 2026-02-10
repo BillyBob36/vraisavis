@@ -6,9 +6,14 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 const signContractSchema = z.object({
   contractId: z.string(),
-  vendorAddress: z.string().optional(),
+  vendorAddress: z.string().min(1, 'Adresse requise'),
+  vendorPhone: z.string().optional(),
+  vendorStatut: z.string().min(1, 'Statut requis'),
   vendorSIRET: z.string().optional(),
+  vendorTVA: z.string().optional(),
+  vendorTVANumber: z.string().optional(),
   vendorIBAN: z.string().optional(),
+  vendorCity: z.string().min(1, 'Ville de signature requise'),
   signatureData: z.string(),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Vous devez accepter les termes du contrat',
@@ -74,7 +79,7 @@ export async function vendorContractRoutes(fastify: FastifyInstance) {
       return reply.status(400).send({ error: true, message: 'Données invalides', details: body.error.errors });
     }
 
-    const { contractId, vendorAddress, vendorSIRET, vendorIBAN, signatureData } = body.data;
+    const { contractId, vendorAddress, vendorPhone, vendorStatut, vendorSIRET, vendorTVA, vendorTVANumber, vendorIBAN, vendorCity, signatureData } = body.data;
     const vendorId = request.user.id;
 
     // Vérifier que le contrat existe et appartient au vendeur
@@ -103,8 +108,13 @@ export async function vendorContractRoutes(fastify: FastifyInstance) {
         signatureIP,
         signatureData,
         vendorAddress: vendorAddress || contract.vendorAddress,
+        vendorPhone: vendorPhone || contract.vendorPhone,
+        vendorStatut: vendorStatut || contract.vendorStatut,
         vendorSIRET: vendorSIRET || contract.vendorSIRET,
+        vendorTVA: vendorTVA || contract.vendorTVA,
+        vendorTVANumber: vendorTVANumber || contract.vendorTVANumber,
         vendorIBAN: vendorIBAN || contract.vendorIBAN,
+        vendorCity: vendorCity || contract.vendorCity,
       },
       include: {
         template: true,
@@ -211,15 +221,18 @@ export async function vendorContractRoutes(fastify: FastifyInstance) {
     const contractDate = contract.signedAt ? new Date(contract.signedAt).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
     
     let contractContent = contract.template.contractContent
-      .replace(/\[NOM PRÉNOM ou RAISON SOCIALE de l'apporteur\]/g, contract.vendorName)
-      .replace(/\[Si personne physique : adresse complète\]/g, contract.vendorAddress || 'Non renseigné')
-      .replace(/\[Si personne morale : forme juridique, siège social, RCS, SIRET\]/g, contract.vendorSIRET || '')
-      .replace(/\[EMAIL APPORTEUR\]/g, contract.vendorEmail)
-      .replace(/\[ADRESSE APPORTEUR\]/g, contract.vendorAddress || 'Non renseigné')
-      .replace(/\[VILLE\]/g, 'Paris')
-      .replace(/\[DATE\]/g, contractDate)
-      .replace(/\[CODE_UNIQUE_APPORTEUR\]/g, contract.vendor.referralCode || 'NON_GENERE')
-      .replace(/\[CODE_UNIQUE\]/g, contract.vendor.referralCode || 'NON_GENERE');
+      .replace(/<<APPORTEUR_NOM>>/g, contract.vendorName)
+      .replace(/<<APPORTEUR_ADRESSE>>/g, contract.vendorAddress || 'Non renseigné')
+      .replace(/<<APPORTEUR_EMAIL>>/g, contract.vendorEmail)
+      .replace(/<<APPORTEUR_TEL>>/g, contract.vendorPhone || 'Non renseigné')
+      .replace(/<<APPORTEUR_STATUT>>/g, contract.vendorStatut || 'Non renseigné')
+      .replace(/<<APPORTEUR_SIRET>>/g, contract.vendorSIRET || 'N/A')
+      .replace(/<<APPORTEUR_TVA>>/g, contract.vendorTVA || 'Non')
+      .replace(/<<APPORTEUR_TVA_NUMBER>>/g, contract.vendorTVANumber || 'N/A')
+      .replace(/<<APPORTEUR_CODE>>/g, contract.vendor.referralCode || 'NON_GENERE')
+      .replace(/<<TAUX_COMMISSION>>/g, String(contract.template.commissionRate || 50))
+      .replace(/<<VILLE_SIGNATURE>>/g, contract.vendorCity || 'Paris')
+      .replace(/<<DATE_SIGNATURE>>/g, contractDate);
 
     let page = pdfDoc.addPage([pageWidth, pageHeight]);
     let y = pageHeight - margin;

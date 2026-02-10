@@ -243,6 +243,7 @@ export async function vendorRoutes(fastify: FastifyInstance) {
         phone: true,
         referralCode: true,
         commissionAmount: true,
+        commissionRate: true,
         stripeAccountId: true,
         stripeOnboarded: true,
         createdAt: true,

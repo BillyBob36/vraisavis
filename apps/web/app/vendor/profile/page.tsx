@@ -15,7 +15,7 @@ interface Profile {
   name: string;
   phone: string | null;
   referralCode: string;
-  commissionAmount: number;
+  commissionRate: number;
   stripeOnboarded: boolean;
   createdAt: string;
 }
@@ -161,7 +161,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Commission par restaurant</p>
-              <p className="font-bold text-lg">{formatCurrency(profile?.commissionAmount || 0)}</p>
+              <p className="font-bold text-lg">{profile?.commissionRate || 50}% HT de l&apos;abonnement</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Membre depuis</p>

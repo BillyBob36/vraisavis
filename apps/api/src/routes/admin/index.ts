@@ -12,6 +12,7 @@ const createVendorSchema = z.object({
   name: z.string().min(2),
   phone: z.string().optional(),
   commissionAmount: z.number().int().min(0).default(5000),
+  commissionRate: z.number().min(0).max(100).default(50),
 });
 
 const updateVendorSchema = z.object({
@@ -20,6 +21,7 @@ const updateVendorSchema = z.object({
   password: z.string().min(6).optional(),
   phone: z.string().optional(),
   commissionAmount: z.number().int().min(0).optional(),
+  commissionRate: z.number().min(0).max(100).optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -118,7 +120,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
       return reply.status(400).send({ error: true, message: 'Données invalides', details: body.error.errors });
     }
 
-    const { email, password, name, phone, commissionAmount } = body.data;
+    const { email, password, name, phone, commissionAmount, commissionRate } = body.data;
 
     const existing = await prisma.vendor.findUnique({ where: { email } });
     if (existing) {
@@ -136,6 +138,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         phone,
         referralCode: null,
         commissionAmount,
+        commissionRate,
         isValidated: false,
       },
     });

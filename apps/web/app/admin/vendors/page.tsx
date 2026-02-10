@@ -24,6 +24,7 @@ interface Vendor {
   phone: string | null;
   referralCode: string | null;
   commissionAmount: number;
+  commissionRate: number;
   isActive: boolean;
   isValidated: boolean;
   validatedAt: string | null;
@@ -43,7 +44,7 @@ export default function VendorsPage() {
     password: '',
     name: '',
     phone: '',
-    commissionAmount: 50,
+    commissionRate: 50,
   });
   const { toast } = useToast();
 
@@ -71,7 +72,6 @@ export default function VendorsPage() {
       const token = getToken();
       const dataToSend = {
         ...formData,
-        commissionAmount: Math.round(formData.commissionAmount * 100),
       };
 
       if (editingVendor) {
@@ -92,7 +92,7 @@ export default function VendorsPage() {
 
       setShowForm(false);
       setEditingVendor(null);
-      setFormData({ email: '', password: '', name: '', phone: '', commissionAmount: 50 });
+      setFormData({ email: '', password: '', name: '', phone: '', commissionRate: 50 });
       fetchVendors();
     } catch (error) {
       toast({
@@ -112,7 +112,7 @@ export default function VendorsPage() {
       password: '',
       name: vendor.name,
       phone: vendor.phone || '',
-      commissionAmount: vendor.commissionAmount / 100,
+      commissionRate: vendor.commissionRate || 50,
     });
     setShowForm(true);
   };
@@ -186,7 +186,7 @@ export default function VendorsPage() {
         <Button onClick={() => {
           setShowForm(!showForm);
           setEditingVendor(null);
-          setFormData({ email: '', password: '', name: '', phone: '', commissionAmount: 50 });
+          setFormData({ email: '', password: '', name: '', phone: '', commissionRate: 50 });
         }}>
           {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
           {showForm ? 'Annuler' : 'Nouveau vendeur'}
@@ -239,14 +239,15 @@ export default function VendorsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="commission">Commission (€)</Label>
+                <Label htmlFor="commission">Commission (% HT)</Label>
                 <Input
                   id="commission"
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
-                  value={formData.commissionAmount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, commissionAmount: parseFloat(e.target.value) }))}
+                  max="100"
+                  value={formData.commissionRate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, commissionRate: parseFloat(e.target.value) }))}
                 />
               </div>
               <div className="flex items-end">
@@ -285,7 +286,7 @@ export default function VendorsPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Commission</p>
-                  <p>{formatCurrency(vendor.commissionAmount)}</p>
+                  <p>{vendor.commissionRate || 50}% HT</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Restaurants</p>
