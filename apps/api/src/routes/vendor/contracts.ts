@@ -54,6 +54,7 @@ export async function vendorContractRoutes(fastify: FastifyInstance) {
       where: { id, vendorId },
       include: {
         template: true,
+        vendor: { select: { referralCode: true } },
       },
     });
 
@@ -67,6 +68,27 @@ export async function vendorContractRoutes(fastify: FastifyInstance) {
         where: { id },
         data: { viewedAt: new Date() },
       });
+    }
+
+    // Remplacer les placeholders par les vraies infos si le contrat est signé
+    if (contract.status === 'SIGNED' && contract.template.contractContent) {
+      const contractDate = contract.signedAt
+        ? new Date(contract.signedAt).toLocaleDateString('fr-FR')
+        : new Date().toLocaleDateString('fr-FR');
+
+      contract.template.contractContent = contract.template.contractContent
+        .replace(/<<APPORTEUR_NOM>>/g, contract.vendorName || '')
+        .replace(/<<APPORTEUR_ADRESSE>>/g, contract.vendorAddress || 'Non renseigné')
+        .replace(/<<APPORTEUR_EMAIL>>/g, contract.vendorEmail || '')
+        .replace(/<<APPORTEUR_TEL>>/g, contract.vendorPhone || 'Non renseigné')
+        .replace(/<<APPORTEUR_STATUT>>/g, contract.vendorStatut || 'Non renseigné')
+        .replace(/<<APPORTEUR_SIRET>>/g, contract.vendorSIRET || 'N/A')
+        .replace(/<<APPORTEUR_TVA>>/g, contract.vendorTVA || 'Non')
+        .replace(/<<APPORTEUR_TVA_NUMBER>>/g, contract.vendorTVANumber || 'N/A')
+        .replace(/<<APPORTEUR_CODE>>/g, contract.vendor?.referralCode || 'NON_GENERE')
+        .replace(/<<TAUX_COMMISSION>>/g, String(contract.template.commissionRate || 50))
+        .replace(/<<VILLE_SIGNATURE>>/g, contract.vendorCity || 'Paris')
+        .replace(/<<DATE_SIGNATURE>>/g, contractDate);
     }
 
     return reply.send({ contract });

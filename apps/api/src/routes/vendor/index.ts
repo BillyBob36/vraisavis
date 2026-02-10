@@ -327,6 +327,9 @@ export async function vendorRoutes(fastify: FastifyInstance) {
           country: 'FR',
           email: vendor.email,
           capabilities: { transfers: { requested: true } },
+          business_profile: {
+            product_description: 'Apporteur d\'affaires — commissions sur abonnements VraisAvis',
+          },
           metadata: { vendorId },
         });
         accountId = account.id;

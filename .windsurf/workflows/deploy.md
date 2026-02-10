@@ -69,8 +69,29 @@ docker logs --tail 10 $(docker ps --format '{{.Names}}' | grep x840o4o8 | head -
 curl -sI -X OPTIONS -H 'Origin: https://app.vraisavis.fr' -H 'Access-Control-Request-Method: POST' https://api.vraisavis.fr/api/v1/auth/login | head -5
 ```
 
+### 6. Ajouter une variable d'environnement (si nécessaire)
+**IMPORTANT** : Coolify **écrase** le fichier `.env` à chaque déploiement avec les variables stockées dans sa DB. Modifier le fichier `.env` directement ne sert à rien — il faut utiliser l'API Coolify.
+
+```bash
+# Ajouter une variable à l'app API
+curl -s -X POST "http://localhost:8000/api/v1/applications/x840o4o8gwgccsoscs0gckok/envs" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"key":"MA_VARIABLE","value":"ma_valeur","is_preview":false}'
+
+# Ajouter une variable à l'app Web
+curl -s -X POST "http://localhost:8000/api/v1/applications/y4cokwkkcks8k4k8wcw440cc/envs" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"key":"MA_VARIABLE","value":"ma_valeur","is_preview":false,"is_build_time":true}'
+```
+Note: Pour le Web (Next.js), les variables `NEXT_PUBLIC_*` doivent avoir `is_build_time: true`.
+
+Pour lister les variables existantes :
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" "http://localhost:8000/api/v1/applications/<uuid>/envs" | python3 -m json.tool | grep '"key"'
+```
+
 ## Règles critiques — NE JAMAIS FAIRE :
 1. **NE JAMAIS** `docker stop/rm/run` un container Coolify manuellement → Coolify perd le contrôle et affiche "Exited"
-2. **NE JAMAIS** inventer ou reconstruire les variables d'env → elles sont dans `/data/coolify/applications/<uuid>/.env`
+2. **NE JAMAIS** modifier `/data/coolify/applications/<uuid>/.env` directement → Coolify l'écrase à chaque déploiement. Utiliser l'API `/envs` à la place
 3. **NE JAMAIS** utiliser des noms de colonnes en snake_case dans les migrations SQL → la DB utilise du camelCase
 4. **NE JAMAIS** mettre le port 3000 pour l'API dans les labels Traefik → l'API écoute sur 3001
