@@ -359,6 +359,34 @@ export default function ClientExperiencePage() {
     }
   }, [redeemCode]);
 
+  // Google review handlers
+  const handleGoogleReview = useCallback(() => {
+    if (!restaurantRef.current?.googleReviewUrl) return;
+    // Copy positive text to clipboard
+    const textToCopy = positiveText;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy).catch(() => {});
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = textToCopy;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    // Open Google review URL
+    window.open(restaurantRef.current.googleReviewUrl, '_blank');
+    // Then show result
+    setStep('result');
+  }, [positiveText]);
+
+  const handleSkipGoogleReview = useCallback(() => {
+    setStep('result');
+  }, []);
+
   // Loading state
   if (loading) {
     return (
@@ -383,34 +411,6 @@ export default function ClientExperiencePage() {
       </div>
     );
   }
-
-  // Google review handlers
-  const handleGoogleReview = useCallback(() => {
-    if (!restaurant?.googleReviewUrl) return;
-    // Copy positive text to clipboard
-    const textToCopy = positiveText;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(textToCopy).catch(() => {});
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = textToCopy;
-      ta.style.position = 'fixed';
-      ta.style.left = '-9999px';
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-    // Open Google review URL
-    window.open(restaurant.googleReviewUrl, '_blank');
-    // Then show result
-    setStep('result');
-  }, [restaurant, positiveText]);
-
-  const handleSkipGoogleReview = useCallback(() => {
-    setStep('result');
-  }, []);
 
   // Template props
   const templateProps: TemplateProps = {
