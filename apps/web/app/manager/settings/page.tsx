@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { apiFetch, getToken } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { Save, Bot, Loader2 } from 'lucide-react';
+import { Save, Bot, Loader2, Search, MapPin, X } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -35,6 +35,119 @@ interface Restaurant {
     lunch: { start: string; end: string };
     dinner: { start: string; end: string };
   };
+}
+
+interface GooglePlaceResult {
+  placeId: string;
+  name: string;
+  address: string;
+  googleReviewUrl: string;
+}
+
+function GooglePlacesCard({ googleReviewUrl, onSelect, onClear }: { googleReviewUrl: string | null; onSelect: (url: string) => void; onClear: () => void }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<GooglePlaceResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSearch = useCallback(async (q: string) => {
+    setQuery(q);
+    if (q.length < 3) {
+      setResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const data = await apiFetch(`/api/v1/manager/google-places/search?query=${encodeURIComponent(q)}`) as { results: GooglePlaceResult[] };
+        setResults(data.results);
+        setShowResults(true);
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+  }, []);
+
+  const handleSelect = (place: GooglePlaceResult) => {
+    onSelect(place.googleReviewUrl);
+    setQuery('');
+    setResults([]);
+    setShowResults(false);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Avis Google</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {googleReviewUrl ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
+              <MapPin className="h-5 w-5 text-green-600 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-green-800">Restaurant Google lié</p>
+                <p className="text-xs text-green-600 truncate">{googleReviewUrl}</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={onClear} className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Les clients ayant donné 5/5 positif et 0/5 négatif seront invités à laisser un avis Google.
+              Leur commentaire sera copié automatiquement dans le presse-papier.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="relative">
+              <Label htmlFor="googlePlacesSearch">Rechercher votre restaurant sur Google</Label>
+              <div className="relative mt-1.5">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="googlePlacesSearch"
+                  value={query}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  placeholder="Tapez le nom de votre restaurant..."
+                  className="pl-9"
+                />
+                {searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+              </div>
+              {showResults && results.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                  {results.map((place) => (
+                    <button
+                      key={place.placeId}
+                      type="button"
+                      onClick={() => handleSelect(place)}
+                      className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b last:border-b-0"
+                    >
+                      <p className="text-sm font-semibold text-gray-900">{place.name}</p>
+                      <p className="text-xs text-gray-500">{place.address}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {showResults && results.length === 0 && !searching && query.length >= 3 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-4 text-center">
+                  <p className="text-sm text-gray-500">Aucun restaurant trouvé</p>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Recherchez votre restaurant pour activer automatiquement la redirection vers les avis Google.
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function SettingsPage() {
@@ -291,27 +404,11 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Avis Google</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="googleReviewUrl">Lien vers le formulaire d'avis Google</Label>
-              <Input
-                id="googleReviewUrl"
-                type="url"
-                value={restaurant.googleReviewUrl || ''}
-                onChange={(e) => setRestaurant({ ...restaurant, googleReviewUrl: e.target.value || null })}
-                placeholder="https://search.google.com/local/writereview?placeid=ChIJ..."
-              />
-              <p className="text-xs text-muted-foreground">
-                Si renseigné, les clients ayant donné 5/5 positif et 0/5 négatif seront invités à laisser un avis Google après le jeu.
-                Leur commentaire positif sera copié automatiquement dans le presse-papier.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <GooglePlacesCard
+          googleReviewUrl={restaurant.googleReviewUrl}
+          onSelect={(url) => setRestaurant({ ...restaurant, googleReviewUrl: url })}
+          onClear={() => setRestaurant({ ...restaurant, googleReviewUrl: null })}
+        />
 
         <Card>
           <CardHeader>

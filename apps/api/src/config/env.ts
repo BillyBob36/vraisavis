@@ -48,6 +48,9 @@ export const config = {
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
   OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-4.1-mini',
 
+  // Google Places
+  GOOGLE_PLACES_API_KEY: process.env.GOOGLE_PLACES_API_KEY || '',
+
   // Azure OpenAI (legacy)
   AZURE_OPENAI_ENDPOINT: process.env.AZURE_OPENAI_ENDPOINT || '',
   AZURE_OPENAI_API_KEY: process.env.AZURE_OPENAI_API_KEY || '',

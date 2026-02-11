@@ -441,6 +441,52 @@ export async function managerRoutes(fastify: FastifyInstance) {
     return reply.send({ qrCodeUrl: qrDataUrl, url });
   });
 
+  // === GOOGLE PLACES ===
+  fastify.get('/google-places/search', async (request: FastifyRequest<{ Querystring: { query: string } }>, reply: FastifyReply) => {
+    const { query } = request.query;
+    if (!query || query.length < 3) {
+      return reply.status(400).send({ error: true, message: 'Query trop courte (min 3 caractères)' });
+    }
+
+    if (!config.GOOGLE_PLACES_API_KEY) {
+      return reply.status(500).send({ error: true, message: 'Clé API Google Places non configurée' });
+    }
+
+    try {
+      const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': config.GOOGLE_PLACES_API_KEY,
+          'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.googleMapsUri',
+        },
+        body: JSON.stringify({
+          textQuery: query,
+          languageCode: 'fr',
+          includedType: 'restaurant',
+          maxResultCount: 5,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.text();
+        return reply.status(502).send({ error: true, message: 'Erreur Google Places', details: err });
+      }
+
+      const data = await response.json() as { places?: Array<{ id: string; displayName: { text: string }; formattedAddress: string; googleMapsUri: string }> };
+      const results = (data.places || []).map((p: { id: string; displayName: { text: string }; formattedAddress: string; googleMapsUri: string }) => ({
+        placeId: p.id,
+        name: p.displayName.text,
+        address: p.formattedAddress,
+        googleReviewUrl: `https://search.google.com/local/writereview?placeid=${p.id}`,
+      }));
+
+      return reply.send({ results });
+    } catch (err: any) {
+      return reply.status(500).send({ error: true, message: err.message || 'Erreur lors de la recherche' });
+    }
+  });
+
   // === SUBSCRIPTION ===
   fastify.get('/subscription', async (request: FastifyRequest, reply: FastifyReply) => {
     const restaurant = await getManagerRestaurant(request.user.id);
