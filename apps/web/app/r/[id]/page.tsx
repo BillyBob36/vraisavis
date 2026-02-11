@@ -88,6 +88,14 @@ export default function ClientExperiencePage() {
   const [canPlay, setCanPlay] = useState(true);
   const [canPlayMessage, setCanPlayMessage] = useState('');
   const spinResultRef = useRef<SpinResult | null>(null);
+  const positiveRatingRef = useRef(0);
+  const negativeRatingRef = useRef(0);
+  const restaurantRef = useRef<Restaurant | null>(null);
+
+  // Keep refs in sync
+  positiveRatingRef.current = positiveRating;
+  negativeRatingRef.current = negativeRating;
+  restaurantRef.current = restaurant;
 
   // Claim (server validation)
   const [isClaiming, setIsClaiming] = useState(false);
@@ -263,13 +271,13 @@ export default function ClientExperiencePage() {
       setStep('claim');
     } else {
       // Check if perfect score (5/5 positive AND 0/5 negative) → propose Google review
-      if (positiveRating === 5 && negativeRating === 0 && restaurant?.googleReviewUrl) {
+      if (positiveRatingRef.current === 5 && negativeRatingRef.current === 0 && restaurantRef.current?.googleReviewUrl) {
         setStep('google-review');
       } else {
         setStep('result');
       }
     }
-  }, [positiveRating, negativeRating, restaurant]);
+  }, []);
 
   // Hold button handlers for claim validation
   const handleHoldStart = useCallback(() => {
