@@ -18,6 +18,7 @@ interface Restaurant {
   latitude: number;
   longitude: number;
   geoRadius: number;
+  googleReviewUrl: string | null;
   status: string;
 }
 
@@ -35,6 +36,7 @@ export default function EditRestaurantPage() {
     latitude: 48.8566,
     longitude: 2.3522,
     geoRadius: 100,
+    googleReviewUrl: '',
   });
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function EditRestaurantPage() {
           latitude: resto.latitude,
           longitude: resto.longitude,
           geoRadius: resto.geoRadius,
+          googleReviewUrl: resto.googleReviewUrl || '',
         });
       }
     } catch (error) {
@@ -142,6 +145,20 @@ export default function EditRestaurantPage() {
                 onChange={(e) => setFormData(prev => ({ ...prev, geoRadius: parseInt(e.target.value) }))}
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="googleReviewUrl">Lien avis Google</Label>
+              <Input
+                id="googleReviewUrl"
+                type="url"
+                value={formData.googleReviewUrl}
+                onChange={(e) => setFormData(prev => ({ ...prev, googleReviewUrl: e.target.value }))}
+                placeholder="https://search.google.com/local/writereview?placeid=ChIJ..."
+              />
+              <p className="text-sm text-muted-foreground">
+                URL du formulaire d'avis Google pour ce restaurant
+              </p>
             </div>
 
             <div className="space-y-2">

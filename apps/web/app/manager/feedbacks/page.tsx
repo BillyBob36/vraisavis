@@ -21,6 +21,8 @@ interface Feedback {
   id: string;
   positiveText: string;
   negativeText: string | null;
+  positiveRating: number | null;
+  negativeRating: number | null;
   serviceType: string;
   isRead: boolean;
   isProcessed: boolean;
@@ -129,6 +131,28 @@ export default function FeedbacksPage() {
           {totalAll} avis au total · {totalUnread} non lus
         </p>
       </div>
+
+      {/* Satisfaction average */}
+      {feedbacks.length > 0 && (() => {
+        const rated = feedbacks.filter(f => f.positiveRating != null && f.negativeRating != null);
+        if (rated.length === 0) return null;
+        const avgPos = rated.reduce((s, f) => s + (f.positiveRating ?? 0), 0) / rated.length;
+        const avgNeg = rated.reduce((s, f) => s + (f.negativeRating ?? 0), 0) / rated.length;
+        return (
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2">
+              <ThumbsUp className="h-4 w-4 text-green-500" />
+              <span className="text-sm font-semibold text-green-700">{avgPos.toFixed(1)}/5</span>
+              <span className="text-xs text-green-500">moy. positif</span>
+            </div>
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-2">
+              <ThumbsDown className="h-4 w-4 text-red-400" />
+              <span className="text-sm font-semibold text-red-600">{avgNeg.toFixed(1)}/5</span>
+              <span className="text-xs text-red-400">moy. négatif</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Search Bar */}
       <div className="flex gap-2">
@@ -295,10 +319,11 @@ export default function FeedbacksPage() {
       ) : (
         <div className="border rounded-xl overflow-hidden bg-white">
           {/* Desktop header */}
-          <div className="hidden md:grid md:grid-cols-[100px_1fr_1fr_80px_40px] gap-2 px-4 py-2 bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase">
+          <div className="hidden md:grid md:grid-cols-[100px_1fr_1fr_60px_80px_40px] gap-2 px-4 py-2 bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase">
             <span>Date</span>
             <span>👍 Positif</span>
             <span>👎 Négatif</span>
+            <span>Notes</span>
             <span>Service</span>
             <span></span>
           </div>
@@ -312,7 +337,7 @@ export default function FeedbacksPage() {
                 {/* Row */}
                 <div
                   onClick={() => setExpandedId(isExpanded ? null : fb.id)}
-                  className={`grid grid-cols-1 md:grid-cols-[100px_1fr_1fr_80px_40px] gap-1 md:gap-2 px-4 py-3 cursor-pointer hover:bg-blue-50/50 transition-colors ${
+                  className={`grid grid-cols-1 md:grid-cols-[100px_1fr_1fr_60px_80px_40px] gap-1 md:gap-2 px-4 py-3 cursor-pointer hover:bg-blue-50/50 transition-colors ${
                     i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                   } ${!fb.isRead ? 'border-l-4 border-l-blue-500' : 'border-l-4 border-l-transparent'}`}
                 >
@@ -359,6 +384,22 @@ export default function FeedbacksPage() {
                     )}
                   </div>
 
+                  {/* Ratings (desktop) */}
+                  <div className="hidden md:flex items-center gap-1">
+                    {fb.positiveRating != null && (
+                      <span className="text-xs font-semibold text-green-600">{fb.positiveRating}</span>
+                    )}
+                    {fb.positiveRating != null && fb.negativeRating != null && (
+                      <span className="text-xs text-gray-300">/</span>
+                    )}
+                    {fb.negativeRating != null && (
+                      <span className="text-xs font-semibold text-red-500">{fb.negativeRating}</span>
+                    )}
+                    {fb.positiveRating == null && fb.negativeRating == null && (
+                      <span className="text-xs text-gray-300">—</span>
+                    )}
+                  </div>
+
                   {/* Service (desktop) */}
                   <div className="hidden md:flex items-center">
                     <Badge variant={fb.serviceType === 'dejeuner' ? 'default' : 'secondary'} className="text-[10px]">
@@ -384,17 +425,23 @@ export default function FeedbacksPage() {
                   <div className="px-4 pb-4 bg-blue-50/30 border-b space-y-3">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="bg-green-50 rounded-lg p-3">
-                        <div className="flex items-center gap-1 mb-1">
+                        <div className="flex items-center gap-2 mb-1">
                           <ThumbsUp className="h-4 w-4 text-green-500" />
                           <span className="text-xs font-semibold text-green-700">Positif</span>
+                          {fb.positiveRating != null && (
+                            <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold">{fb.positiveRating}/5</span>
+                          )}
                         </div>
                         <p className="text-sm text-gray-700">{fb.positiveText}</p>
                       </div>
                       {fb.negativeText && (
                         <div className="bg-red-50 rounded-lg p-3">
-                          <div className="flex items-center gap-1 mb-1">
+                          <div className="flex items-center gap-2 mb-1">
                             <ThumbsDown className="h-4 w-4 text-red-400" />
                             <span className="text-xs font-semibold text-red-600">À améliorer</span>
+                            {fb.negativeRating != null && (
+                              <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-bold">{fb.negativeRating}/5</span>
+                            )}
                           </div>
                           <p className="text-sm text-gray-700">{fb.negativeText}</p>
                         </div>

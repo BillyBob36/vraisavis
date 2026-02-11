@@ -24,6 +24,8 @@ const feedbackSchema = z.object({
   restaurantId: z.string(),
   positiveText: z.string().min(10),
   negativeText: z.string().optional(),
+  positiveRating: z.number().int().min(1).max(5),
+  negativeRating: z.number().int().min(0).max(5),
 });
 
 const spinSchema = z.object({
@@ -150,7 +152,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
       return reply.status(400).send({ error: true, message: 'Données invalides' });
     }
 
-    const { fingerprintId, restaurantId, positiveText, negativeText } = body.data;
+    const { fingerprintId, restaurantId, positiveText, negativeText, positiveRating, negativeRating } = body.data;
 
     // Vérifier fingerprint
     const fingerprint = await prisma.fingerprint.findUnique({
@@ -206,6 +208,8 @@ export async function clientRoutes(fastify: FastifyInstance) {
         fingerprintId,
         positiveText,
         negativeText,
+        positiveRating,
+        negativeRating,
         serviceType,
       },
     });
@@ -506,6 +510,7 @@ export async function clientRoutes(fastify: FastifyInstance) {
         serviceHours: true,
         status: true,
         clientTemplate: true,
+        googleReviewUrl: true,
         prizes: {
           where: { isActive: true },
           select: {

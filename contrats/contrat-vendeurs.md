@@ -164,10 +164,12 @@ En l’absence de document conforme, la Société peut suspendre le versement ju
 Le versement des commissions/primes est effectué par virement sur les coordonnées de paiement communiquées par l’Apporteur.
 
 L’Apporteur reconnaît que le versement des commissions/primes est conditionné :
-- À la communication de coordonnées de paiement valides, et
-- Le cas échéant, au respect des exigences de vérification imposées par le prestataire de paiement utilisé par la Société.
 
-À défaut, les versements pourront être temporairement suspendus jusqu’à régularisation, sans que cela ne constitue un manquement de la Société.
+-À la communication de coordonnées de paiement valides, et
+
+-Le cas échéant, au respect des exigences de vérification, de conformité et/ou de fourniture de justificatifs imposées par le prestataire de paiement utilisé par la Société, lesquelles peuvent conduire à la suspension ou au blocage temporaire des versements tant que les informations requises ne sont pas fournies ou vérifiées.
+
+À défaut, les versements pourront être temporairement suspendus jusqu’à régularisation, sans que cela ne constitue un manquement de la Société. La Société en informera l’Apporteur dans un délai raisonnable.
 
 ---
 
@@ -298,13 +300,17 @@ Identité :
 - SIRET (si applicable) : <<EDIT: APPORTEUR_SIRET>>
 - Assujetti TVA : <<EDIT: APPORTEUR_TVA_OUI_NON>>
 - TVA intracommunautaire (si applicable) : <<EDIT: APPORTEUR_TVA>>
+- Identifiant Apporteur (interne plateforme) : <<EDIT: APPORTEUR_ID_INTERNE>>
 
-Coordonnées de paiement (à fournir avant tout premier versement) :
-- Titulaire : <<EDIT: IBAN_TITULAIRE>>
-- IBAN : <<EDIT: IBAN>>
+Coordonnées de paiement :
+- Les coordonnées de paiement ne sont pas collectées lors de la signature.
+- L’Apporteur s’engage à renseigner des coordonnées de paiement valides dans son espace en ligne avant tout premier versement.
+- À défaut, la Société pourra suspendre les versements jusqu’à régularisation.
 
-Lien de Parrainage attribué :
-- <<EDIT: LIEN_PARRAINAGE_APPORTEUR>>
+Lien de Parrainage :
+- Le Lien de Parrainage est attribué automatiquement par la Plateforme et est accessible dans l’espace Apporteur.
+- Le Lien de Parrainage peut être suspendu/désactivé dans les cas prévus au contrat (fraude, manquement, conformité).
+
 
 Fait à <<EDIT: VILLE_SIGNATURE>>, le <<EDIT: DATE_SIGNATURE>>  
 Signature Apporteur : _______________________

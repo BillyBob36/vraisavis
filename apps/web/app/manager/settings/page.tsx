@@ -29,6 +29,7 @@ interface Restaurant {
   welcomeMessage: string | null;
   thankYouMessage: string | null;
   clientTemplate: string;
+  googleReviewUrl: string | null;
   geoRadius: number;
   serviceHours: {
     lunch: { start: string; end: string };
@@ -156,6 +157,7 @@ export default function SettingsPage() {
           welcomeMessage: restaurant.welcomeMessage,
           thankYouMessage: restaurant.thankYouMessage,
           clientTemplate: restaurant.clientTemplate,
+          googleReviewUrl: restaurant.googleReviewUrl || null,
           geoRadius: restaurant.geoRadius,
           serviceHours: restaurant.serviceHours,
         }),
@@ -285,6 +287,28 @@ export default function SettingsPage() {
                   <p className="text-xs text-muted-foreground">Effet glassmorphism élégant avec transparences et reflets</p>
                 </div>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Avis Google</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="googleReviewUrl">Lien vers le formulaire d'avis Google</Label>
+              <Input
+                id="googleReviewUrl"
+                type="url"
+                value={restaurant.googleReviewUrl || ''}
+                onChange={(e) => setRestaurant({ ...restaurant, googleReviewUrl: e.target.value || null })}
+                placeholder="https://search.google.com/local/writereview?placeid=ChIJ..."
+              />
+              <p className="text-xs text-muted-foreground">
+                Si renseigné, les clients ayant donné 5/5 positif et 0/5 négatif seront invités à laisser un avis Google après le jeu.
+                Leur commentaire positif sera copié automatiquement dans le presse-papier.
+              </p>
             </div>
           </CardContent>
         </Card>

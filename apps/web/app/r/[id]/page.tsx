@@ -72,7 +72,9 @@ export default function ClientExperiencePage() {
   const [fingerprintId, setFingerprintId] = useState<string | null>(null);
   const [step, setStep] = useState<ClientStep>('intro');
   const [positiveText, setPositiveText] = useState('');
+  const [positiveRating, setPositiveRating] = useState(0);
   const [negativeText, setNegativeText] = useState('');
+  const [negativeRating, setNegativeRating] = useState(0);
   const [wantNotifyOwn, setWantNotifyOwn] = useState(false);
   const [wantNotifyOthers, setWantNotifyOthers] = useState(false);
   const [contactEmail, setContactEmail] = useState('');
@@ -170,6 +172,8 @@ export default function ClientExperiencePage() {
             restaurantId,
             positiveText,
             negativeText: negativeText || undefined,
+            positiveRating,
+            negativeRating,
           }),
         });
 
@@ -195,7 +199,7 @@ export default function ClientExperiencePage() {
     }
 
     setStep(steps[currentIndex + 1]);
-  }, [step, feedbackSubmitted, fingerprintId, restaurantId, positiveText, negativeText, wantNotifyOwn, wantNotifyOthers, contactEmail, contactPhone, canPlay, canPlayMessage]);
+  }, [step, feedbackSubmitted, fingerprintId, restaurantId, positiveText, negativeText, positiveRating, negativeRating, wantNotifyOwn, wantNotifyOthers, contactEmail, contactPhone, canPlay, canPlayMessage]);
 
   const handleBack = useCallback(() => {
     // Special case: redeem goes back to intro
@@ -258,9 +262,14 @@ export default function ClientExperiencePage() {
     if (spinResultRef.current?.won && spinResultRef.current?.prize) {
       setStep('claim');
     } else {
-      setStep('result');
+      // Check if perfect score (5/5 positive AND 0/5 negative) → propose Google review
+      if (positiveRating === 5 && negativeRating === 0 && restaurant?.googleReviewUrl) {
+        setStep('google-review');
+      } else {
+        setStep('result');
+      }
     }
-  }, []);
+  }, [positiveRating, negativeRating, restaurant]);
 
   // Hold button handlers for claim validation
   const handleHoldStart = useCallback(() => {
@@ -367,6 +376,34 @@ export default function ClientExperiencePage() {
     );
   }
 
+  // Google review handlers
+  const handleGoogleReview = useCallback(() => {
+    if (!restaurant?.googleReviewUrl) return;
+    // Copy positive text to clipboard
+    const textToCopy = positiveText;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy).catch(() => {});
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = textToCopy;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    // Open Google review URL
+    window.open(restaurant.googleReviewUrl, '_blank');
+    // Then show result
+    setStep('result');
+  }, [restaurant, positiveText]);
+
+  const handleSkipGoogleReview = useCallback(() => {
+    setStep('result');
+  }, []);
+
   // Template props
   const templateProps: TemplateProps = {
     step,
@@ -375,8 +412,12 @@ export default function ClientExperiencePage() {
     onBack: handleBack,
     positiveText,
     onPositiveChange: setPositiveText,
+    positiveRating,
+    onPositiveRatingChange: setPositiveRating,
     negativeText,
     onNegativeChange: setNegativeText,
+    negativeRating,
+    onNegativeRatingChange: setNegativeRating,
     wantNotifyOwn,
     onWantNotifyOwnChange: setWantNotifyOwn,
     wantNotifyOthers,
@@ -409,6 +450,9 @@ export default function ClientExperiencePage() {
     redeemResult,
     redeemError,
     onGoToRedeem: handleGoToRedeem,
+    // Google review
+    onGoogleReview: handleGoogleReview,
+    onSkipGoogleReview: handleSkipGoogleReview,
   };
 
   // Render the appropriate template

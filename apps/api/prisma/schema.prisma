@@ -152,6 +152,9 @@ model Restaurant {
   thankYouMessage String?
   clientTemplate  String  @default("classic") @map("client_template")
 
+  // Google Reviews
+  googleReviewUrl String? @map("google_review_url")
+
   // Stripe
   stripeCustomerId String? @unique @map("stripe_customer_id")
 
@@ -240,13 +243,15 @@ model Commission {
 // ============================================
 
 model Feedback {
-  id           String   @id @default(cuid())
-  positiveText String
-  negativeText String?
-  serviceType  String
-  isRead       Boolean  @default(false)
-  isProcessed  Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  id             String   @id @default(cuid())
+  positiveText   String
+  negativeText   String?
+  positiveRating Int?     @map("positive_rating")
+  negativeRating Int?     @map("negative_rating")
+  serviceType    String
+  isRead         Boolean  @default(false)
+  isProcessed    Boolean  @default(false)
+  createdAt      DateTime @default(now())
 
   // AI-enriched fields
   normalizedText String?  @map("normalized_text") @db.Text

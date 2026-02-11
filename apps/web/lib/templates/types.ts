@@ -25,6 +25,7 @@ export interface Restaurant {
   welcomeMessage: string | null;
   thankYouMessage: string | null;
   clientTemplate: TemplateId;
+  googleReviewUrl: string | null;
   prizes: Prize[];
 }
 
@@ -39,7 +40,7 @@ export interface SpinResult {
   message: string;
 }
 
-export type ClientStep = 'intro' | 'positive' | 'negative' | 'contact' | 'spin' | 'result' | 'claim' | 'redeem';
+export type ClientStep = 'intro' | 'positive' | 'negative' | 'contact' | 'spin' | 'result' | 'claim' | 'redeem' | 'google-review';
 
 export interface TemplateProps {
   step: ClientStep;
@@ -50,9 +51,15 @@ export interface TemplateProps {
   // Positive feedback
   positiveText: string;
   onPositiveChange: (text: string) => void;
+  // Positive rating (1-5 thumbs up)
+  positiveRating: number;
+  onPositiveRatingChange: (val: number) => void;
   // Negative feedback
   negativeText: string;
   onNegativeChange: (text: string) => void;
+  // Negative rating (0-5 thumbs down)
+  negativeRating: number;
+  onNegativeRatingChange: (val: number) => void;
   // Contact preferences
   wantNotifyOwn: boolean;
   onWantNotifyOwnChange: (val: boolean) => void;
@@ -88,6 +95,9 @@ export interface TemplateProps {
   redeemResult: { prizeName: string; prizeDescription: string | null; code: string } | null;
   redeemError: string | null;
   onGoToRedeem: () => void;
+  // Google review
+  onGoogleReview: () => void;
+  onSkipGoogleReview: () => void;
 }
 
 // 24 slot symbols for supporting 20+ prizes

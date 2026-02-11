@@ -20,6 +20,7 @@ const updateRestaurantSchema = z.object({
   welcomeMessage: z.string().nullable().optional(),
   thankYouMessage: z.string().nullable().optional(),
   clientTemplate: z.enum(['classic', 'glass']).optional(),
+  googleReviewUrl: z.string().url().nullable().optional(),
 });
 
 const createPrizeSchema = z.object({
@@ -673,6 +674,26 @@ export async function managerRoutes(fastify: FastifyInstance) {
     const daysActive = Math.max(1, Math.ceil((Date.now() - restaurant.createdAt.getTime()) / (1000 * 60 * 60 * 24)));
     const averageFeedbacksPerDay = totalFeedbacks / daysActive;
 
+    // Satisfaction score: average of (positiveRating/5 + (5-negativeRating)/5) / 2 * 5
+    const ratedFeedbacks = await prisma.feedback.findMany({
+      where: {
+        restaurantId: restaurant.id,
+        positiveRating: { not: null },
+        negativeRating: { not: null },
+      },
+      select: { positiveRating: true, negativeRating: true },
+    });
+
+    let satisfactionScore: number | null = null;
+    if (ratedFeedbacks.length > 0) {
+      const sum = ratedFeedbacks.reduce((acc: number, fb: { positiveRating: number | null; negativeRating: number | null }) => {
+        const pos = fb.positiveRating! / 5; // 5/5 = 1.0 (très positif)
+        const neg = (5 - fb.negativeRating!) / 5; // 0/5 négatif = 1.0 (pas de négatif = bien)
+        return acc + (pos + neg) / 2;
+      }, 0);
+      satisfactionScore = Math.round((sum / ratedFeedbacks.length) * 50) / 10; // sur 5, arrondi à 0.1
+    }
+
     return reply.send({
       totalFeedbacks,
       todayFeedbacks,
@@ -683,6 +704,8 @@ export async function managerRoutes(fastify: FastifyInstance) {
       feedbacksByDay,
       feedbacksByService,
       topPrizes,
+      satisfactionScore,
+      totalRatedFeedbacks: ratedFeedbacks.length,
     });
   });
 

@@ -33,6 +33,7 @@ const updateRestaurantSchema = z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   geoRadius: z.number().int().min(10).max(1000).optional(),
+  googleReviewUrl: z.string().url().nullable().optional(),
 });
 
 const createPlanSchema = z.object({
