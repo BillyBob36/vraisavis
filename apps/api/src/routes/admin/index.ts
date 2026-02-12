@@ -499,19 +499,35 @@ export async function adminRoutes(fastify: FastifyInstance) {
       return reply.status(400).send({ error: true, message: 'Date invalide (format YYYY-MM-DD)' });
     }
 
-    // Delete fingerprints matching restaurant + date + service
-    const deleted = await prisma.fingerprint.deleteMany({
-      where: {
-        restaurantId,
-        lastServiceType: serviceType,
-        lastPlayedAt: {
-          gte: dayStart,
-          lte: dayEnd,
-        },
+    const fpWhere = {
+      restaurantId,
+      lastServiceType: serviceType,
+      lastPlayedAt: {
+        gte: dayStart,
+        lte: dayEnd,
       },
-    });
+    };
 
-    return reply.send({ deleted: deleted.count, message: `${deleted.count} fingerprint(s) supprimé(s)` });
+    // Find matching fingerprint IDs first
+    const fingerprints = await prisma.fingerprint.findMany({
+      where: fpWhere,
+      select: { id: true },
+    });
+    const fpIds = fingerprints.map(f => f.id);
+
+    if (fpIds.length === 0) {
+      return reply.send({ deleted: 0, message: 'Aucun fingerprint trouvé pour ces critères' });
+    }
+
+    // Delete related records first (foreign key constraints)
+    await prisma.improvementNotification.deleteMany({ where: { fingerprintId: { in: fpIds } } });
+    await prisma.prizeClaim.deleteMany({ where: { fingerprintId: { in: fpIds } } });
+    await prisma.feedback.deleteMany({ where: { fingerprintId: { in: fpIds } } });
+
+    // Now delete fingerprints
+    const deleted = await prisma.fingerprint.deleteMany({ where: { id: { in: fpIds } } });
+
+    return reply.send({ deleted: deleted.count, message: `${deleted.count} fingerprint(s) supprimé(s) (+ feedbacks et claims associés)` });
   });
 
   // Enregistrer les routes contracts
