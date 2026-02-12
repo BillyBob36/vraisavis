@@ -266,16 +266,10 @@ export default function ClientExperiencePage() {
     setReelsFinished(true);
     setSpinResult(spinResultRef.current);
     setIsSpinning(false);
-    // If won, go to claim screen instead of result
     if (spinResultRef.current?.won && spinResultRef.current?.prize) {
       setStep('claim');
     } else {
-      // Check if perfect score (5/5 positive AND 0/5 negative) → propose Google review
-      if (positiveRatingRef.current === 5 && negativeRatingRef.current === 0 && restaurantRef.current?.googleReviewUrl) {
-        setStep('google-review');
-      } else {
-        setStep('result');
-      }
+      setStep('result');
     }
   }, []);
 
@@ -379,13 +373,7 @@ export default function ClientExperiencePage() {
     }
     // Open Google review URL
     window.open(restaurantRef.current.googleReviewUrl, '_blank');
-    // Then show result
-    setStep('result');
   }, [positiveText]);
-
-  const handleSkipGoogleReview = useCallback(() => {
-    setStep('result');
-  }, []);
 
   // Loading state
   if (loading) {
@@ -411,6 +399,9 @@ export default function ClientExperiencePage() {
       </div>
     );
   }
+
+  // Show Google review button if 5/5 positive AND ≤1/5 negative AND googleReviewUrl exists
+  const showGoogleReview = positiveRating === 5 && negativeRating <= 1 && !!restaurant.googleReviewUrl;
 
   // Template props
   const templateProps: TemplateProps = {
@@ -459,8 +450,8 @@ export default function ClientExperiencePage() {
     redeemError,
     onGoToRedeem: handleGoToRedeem,
     // Google review
+    showGoogleReview,
     onGoogleReview: handleGoogleReview,
-    onSkipGoogleReview: handleSkipGoogleReview,
   };
 
   // Render the appropriate template

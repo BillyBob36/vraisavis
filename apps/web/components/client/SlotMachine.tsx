@@ -15,8 +15,8 @@ interface SlotMachineProps {
 }
 
 const REEL_SIZE = 20;
-const SPIN_DURATION = 3500;
-const REEL_DELAYS = [0, 600, 1200];
+const AUTO_STOP_DELAY = 3000;
+const REEL_START_DELAYS = [0, 200, 400];
 
 function generateReelStrip(targetSymbol: SlotSymbol): SlotSymbol[] {
   const strip: SlotSymbol[] = [];
@@ -46,72 +46,96 @@ export default function SlotMachine({
   const [showLegend, setShowLegend] = useState(true);
   const [winFlash, setWinFlash] = useState(false);
   const animFrames = useRef<number[]>([0, 0, 0]);
-  const spinStartTime = useRef<number[]>([0, 0, 0]);
   const hasCompleted = useRef(false);
   const spinActive = useRef(false);
   const stoppedRef = useRef([true, true, true]);
+  const reelStrips = useRef<SlotSymbol[][]>([]);
+  const autoStopTimers = useRef<NodeJS.Timeout[]>([]);
+  const nextReelToStop = useRef(0);
 
-  const animateReel = useCallback((reelIdx: number, strip: SlotSymbol[], startTime: number) => {
-    const elapsed = Date.now() - startTime;
-    const duration = SPIN_DURATION + REEL_DELAYS[reelIdx] * 2;
-
-    if (elapsed < duration) {
-      const progress = elapsed / duration;
-      const eased = progress < 0.8 ? progress / 0.8 : 1;
-      const speed = Math.max(1, Math.floor((1 - eased * 0.9) * 8));
-      
-      setDisplayIndex(prev => {
-        const next = [...prev];
-        next[reelIdx] = (prev[reelIdx] + speed) % strip.length;
-        return next;
-      });
-
-      animFrames.current[reelIdx] = requestAnimationFrame(() => 
-        animateReel(reelIdx, strip, startTime)
-      );
-    } else {
+  const stopReel = useCallback((reelIdx: number) => {
+    if (stoppedRef.current[reelIdx]) return;
+    cancelAnimationFrame(animFrames.current[reelIdx]);
+    const strip = reelStrips.current[reelIdx];
+    if (strip) {
       setDisplayIndex(prev => {
         const next = [...prev];
         next[reelIdx] = strip.length - 1;
         return next;
       });
-      stoppedRef.current = [...stoppedRef.current];
-      stoppedRef.current[reelIdx] = true;
-      setStopped([...stoppedRef.current]);
-      setSpinning(prev => {
-        const next = [...prev];
-        next[reelIdx] = false;
-        return next;
-      });
     }
+    stoppedRef.current = [...stoppedRef.current];
+    stoppedRef.current[reelIdx] = true;
+    setStopped([...stoppedRef.current]);
+    setSpinning(prev => {
+      const next = [...prev];
+      next[reelIdx] = false;
+      return next;
+    });
+  }, []);
+
+  const handleTapStop = useCallback(() => {
+    if (!spinActive.current) return;
+    const idx = nextReelToStop.current;
+    if (idx > 2) return;
+    if (autoStopTimers.current[idx]) clearTimeout(autoStopTimers.current[idx]);
+    stopReel(idx);
+    nextReelToStop.current = idx + 1;
+  }, [stopReel]);
+
+  const animateReel = useCallback((reelIdx: number, strip: SlotSymbol[]) => {
+    if (stoppedRef.current[reelIdx]) return;
+
+    setDisplayIndex(prev => {
+      const next = [...prev];
+      next[reelIdx] = (prev[reelIdx] + 3) % strip.length;
+      return next;
+    });
+
+    animFrames.current[reelIdx] = requestAnimationFrame(() => 
+      animateReel(reelIdx, strip)
+    );
   }, []);
 
   useEffect(() => {
     if (isSpinning && targetSymbols) {
       hasCompleted.current = false;
       spinActive.current = true;
+      nextReelToStop.current = 0;
       stoppedRef.current = [false, false, false];
       setWinFlash(false);
       setShowLegend(false);
       const strips = targetSymbols.map(sym => generateReelStrip(sym));
+      reelStrips.current = strips;
       setReels(strips);
       setStopped([false, false, false]);
       setSpinning([true, true, true]);
 
+      // Clear any previous auto-stop timers
+      autoStopTimers.current.forEach(t => clearTimeout(t));
+      autoStopTimers.current = [];
+
       strips.forEach((strip, idx) => {
-        const delay = REEL_DELAYS[idx];
         setTimeout(() => {
-          const startTime = Date.now();
-          spinStartTime.current[idx] = startTime;
-          animateReel(idx, strip, startTime);
-        }, delay);
+          animateReel(idx, strip);
+          // Auto-stop after 3s if not manually stopped
+          autoStopTimers.current[idx] = setTimeout(() => {
+            if (!stoppedRef.current[idx]) {
+              stopReel(idx);
+              if (nextReelToStop.current <= idx) {
+                nextReelToStop.current = idx + 1;
+              }
+            }
+          }, AUTO_STOP_DELAY);
+        }, REEL_START_DELAYS[idx]);
       });
     }
 
     return () => {
       animFrames.current.forEach(id => cancelAnimationFrame(id));
+      autoStopTimers.current.forEach(t => clearTimeout(t));
     };
-  }, [isSpinning, targetSymbols, animateReel]);
+  }, [isSpinning, targetSymbols, animateReel, stopReel]);
 
   useEffect(() => {
     if (stopped[0] && stopped[1] && stopped[2] && !hasCompleted.current && spinActive.current) {
@@ -122,11 +146,11 @@ export default function SlotMachine({
         setWinFlash(true);
         setTimeout(() => {
           onSpinComplete();
-        }, 2500);
+        }, 2000);
       } else {
         setTimeout(() => {
           onSpinComplete();
-        }, 1500);
+        }, 1000);
       }
     }
   }, [stopped, isWin, onSpinComplete]);
@@ -158,12 +182,15 @@ export default function SlotMachine({
           </h3>
         </div>
 
-        {/* Reels */}
-        <div className={`flex justify-center gap-2 p-3 rounded-xl ${
-          isGlass 
-            ? 'bg-black/30 border border-white/10' 
-            : 'bg-white border-4 border-yellow-800'
-        }`}>
+        {/* Reels — clickable to stop */}
+        <div
+          className={`flex justify-center gap-2 p-3 rounded-xl cursor-pointer select-none ${
+            isGlass 
+              ? 'bg-black/30 border border-white/10' 
+              : 'bg-white border-4 border-yellow-800'
+          }`}
+          onClick={handleTapStop}
+        >
           {[0, 1, 2].map(reelIdx => (
             <div
               key={reelIdx}
@@ -195,13 +222,13 @@ export default function SlotMachine({
           </div>
         )}
 
-        {/* Spinning status */}
+        {/* Spinning status + tap hint */}
         {isSpinning && !stopped.every(Boolean) && (
-          <div className="text-center mt-2">
+          <div className="text-center mt-2 cursor-pointer" onClick={handleTapStop}>
             <p className={`text-sm font-semibold animate-pulse ${
               isGlass ? 'text-white/80' : 'text-yellow-900'
             }`}>
-              La roue tourne...
+              👆 Tapez pour arrêter !
             </p>
           </div>
         )}

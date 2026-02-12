@@ -40,7 +40,7 @@ export interface SpinResult {
   message: string;
 }
 
-export type ClientStep = 'intro' | 'positive' | 'negative' | 'contact' | 'spin' | 'result' | 'claim' | 'redeem' | 'google-review';
+export type ClientStep = 'intro' | 'positive' | 'negative' | 'contact' | 'spin' | 'result' | 'claim' | 'redeem';
 
 export interface TemplateProps {
   step: ClientStep;
@@ -96,8 +96,8 @@ export interface TemplateProps {
   redeemError: string | null;
   onGoToRedeem: () => void;
   // Google review
+  showGoogleReview: boolean;
   onGoogleReview: () => void;
-  onSkipGoogleReview: () => void;
 }
 
 // 24 slot symbols for supporting 20+ prizes

@@ -22,7 +22,7 @@ export default function ClassicTemplate(props: TemplateProps) {
     holdProgress, onHoldStart, onHoldEnd,
     redeemCode, onRedeemCodeChange, onRedeemSubmit,
     isRedeeming, redeemResult, redeemError, onGoToRedeem,
-    onGoogleReview, onSkipGoogleReview,
+    showGoogleReview, onGoogleReview,
   } = props;
 
   const showContactFields = wantNotifyOwn || wantNotifyOthers;
@@ -402,6 +402,14 @@ export default function ClassicTemplate(props: TemplateProps) {
                 {prizeDesc && <p className="text-sm text-gray-500 mt-1">{prizeDesc}</p>}
               </div>
               <p className="text-gray-500">Bonne dégustation ! 🎉</p>
+              {showGoogleReview && (
+                <button
+                  onClick={onGoogleReview}
+                  className="w-full py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold rounded-2xl shadow-md hover:shadow-lg transition-all text-sm"
+                >
+                  ⭐ Laisser un avis Google pour {restaurant.name}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -536,39 +544,14 @@ export default function ClassicTemplate(props: TemplateProps) {
             <p className="text-sm text-gray-400">
               Revenez la prochaine fois pour retenter votre chance !
             </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // === GOOGLE REVIEW ===
-  if (step === 'google-review') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-orange-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl p-8 text-center space-y-6">
-            <div className="text-5xl">⭐</div>
-            <h2 className="text-xl font-bold text-gray-900">Vous avez adoré ?</h2>
-            <p className="text-gray-600">
-              Vous êtes un client en or ! Aidez {restaurant.name} à briller sur Google — ça prend 30 secondes et ça leur fait la journée !
-            </p>
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 space-y-2">
-              <p className="text-sm text-yellow-800 font-medium">Votre avis sera copié automatiquement</p>
-              <p className="text-xs text-yellow-600">Il vous suffira de le coller sur Google et de mettre 5 étoiles !</p>
-            </div>
-            <button
-              onClick={onGoogleReview}
-              className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition-all"
-            >
-              Oui, je laisse un avis Google !
-            </button>
-            <button
-              onClick={onSkipGoogleReview}
-              className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              Non merci, une autre fois
-            </button>
+            {showGoogleReview && (
+              <button
+                onClick={onGoogleReview}
+                className="w-full py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold rounded-2xl shadow-md hover:shadow-lg transition-all text-sm"
+              >
+                ⭐ Laisser un avis Google pour {restaurant.name}
+              </button>
+            )}
           </div>
         </div>
       </div>

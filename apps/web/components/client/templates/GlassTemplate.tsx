@@ -22,7 +22,7 @@ export default function GlassTemplate(props: TemplateProps) {
     holdProgress, onHoldStart, onHoldEnd,
     redeemCode, onRedeemCodeChange, onRedeemSubmit,
     isRedeeming, redeemResult, redeemError, onGoToRedeem,
-    onGoogleReview, onSkipGoogleReview,
+    showGoogleReview, onGoogleReview,
   } = props;
 
   const showContactFields = wantNotifyOwn || wantNotifyOthers;
@@ -424,6 +424,14 @@ export default function GlassTemplate(props: TemplateProps) {
                 {prizeDesc && <p className="text-sm text-white/50 mt-1">{prizeDesc}</p>}
               </div>
               <p className="text-white/60">Bonne dégustation ! 🎉</p>
+              {showGoogleReview && (
+                <button
+                  onClick={onGoogleReview}
+                  className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-yellow-500/25 hover:shadow-xl transition-all border border-white/10 text-sm"
+                >
+                  ⭐ Laisser un avis Google pour {restaurant.name}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -566,42 +574,14 @@ export default function GlassTemplate(props: TemplateProps) {
             <p className="text-sm text-white/30">
               Revenez la prochaine fois pour retenter votre chance !
             </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // === GOOGLE REVIEW ===
-  if (step === 'google-review') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-yellow-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-        <div className="absolute top-10 -right-20 w-64 h-64 bg-yellow-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-10 -left-20 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
-
-        <div className="w-full max-w-md relative z-10">
-          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 text-center space-y-6">
-            <div className="text-5xl">⭐</div>
-            <h2 className="text-xl font-bold text-white">Vous avez adoré ?</h2>
-            <p className="text-white/60">
-              Vous êtes un client en or ! Aidez {restaurant.name} à briller sur Google — ça prend 30 secondes et ça leur fait la journée !
-            </p>
-            <div className="bg-yellow-500/10 border border-yellow-400/30 rounded-2xl p-4 space-y-2">
-              <p className="text-sm text-yellow-300 font-medium">Votre avis sera copié automatiquement</p>
-              <p className="text-xs text-yellow-400/60">Il vous suffira de le coller sur Google et de mettre 5 étoiles !</p>
-            </div>
-            <button
-              onClick={onGoogleReview}
-              className="w-full py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-lg rounded-2xl shadow-lg shadow-yellow-500/25 hover:shadow-xl transition-all border border-white/10"
-            >
-              Oui, je laisse un avis Google !
-            </button>
-            <button
-              onClick={onSkipGoogleReview}
-              className="text-sm text-white/30 hover:text-white/50 transition-colors"
-            >
-              Non merci, une autre fois
-            </button>
+            {showGoogleReview && (
+              <button
+                onClick={onGoogleReview}
+                className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-yellow-500/25 hover:shadow-xl transition-all border border-white/10 text-sm"
+              >
+                ⭐ Laisser un avis Google pour {restaurant.name}
+              </button>
+            )}
           </div>
         </div>
       </div>
