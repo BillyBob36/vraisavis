@@ -22,7 +22,7 @@ async function storeRuleEmbedding(ruleId: string, embedding: number[]): Promise<
  */
 async function confirmMatchesWithGPT(
   ruleDescription: string,
-  feedbacks: Array<{ id: string; positiveText: string; negativeText: string | null }>,
+  feedbacks: Array<{ id: string; normalizedText: string | null; positiveText: string; negativeText: string | null }>,
 ): Promise<string[]> {
   if (feedbacks.length === 0) return [];
 
@@ -34,6 +34,10 @@ async function confirmMatchesWithGPT(
   if (!azureEndpoint || !azureKey) return feedbacks.map(f => f.id);
 
   const feedbackList = feedbacks.map((f, i) => {
+    // Use normalizedText (AI-reformulated, no sarcasm) if available, fallback to raw texts
+    if (f.normalizedText) {
+      return `[${i}] "${f.normalizedText}"`;
+    }
     let text = `[${i}] POSITIF: "${f.positiveText}"`;
     if (f.negativeText) text += ` | NÉGATIF: "${f.negativeText}"`;
     return text;
@@ -87,6 +91,7 @@ export async function checkFeedbackAgainstExclusions(
   feedbackEmbedding: number[],
   positiveText: string,
   negativeText: string | null,
+  normalizedText: string | null,
 ): Promise<void> {
   // Get active exclusion rules with embeddings
   const rules = await prisma.$queryRawUnsafe(`
@@ -110,7 +115,7 @@ export async function checkFeedbackAgainstExclusions(
   for (const rule of rules) {
     const confirmed = await confirmMatchesWithGPT(
       rule.description,
-      [{ id: feedbackId, positiveText, negativeText }],
+      [{ id: feedbackId, normalizedText, positiveText, negativeText }],
     );
     if (confirmed.includes(feedbackId)) {
       exclusions.push({ ruleId: rule.id, ruleLabel: rule.label });
@@ -203,6 +208,7 @@ export async function gererExclusions(
         // Step 5: GPT confirms which ones truly match
         const feedbacksForGPT = candidates.map(c => ({
           id: c.id,
+          normalizedText: c.normalizedText,
           positiveText: c.positiveText,
           negativeText: c.negativeText,
         }));
@@ -275,6 +281,7 @@ export async function gererExclusions(
       if (candidates.length > 0) {
         const feedbacksForGPT = candidates.map(c => ({
           id: c.id,
+          normalizedText: c.normalizedText,
           positiveText: c.positiveText,
           negativeText: c.negativeText,
         }));

@@ -49,6 +49,7 @@ export async function processFeedbackAI(feedbackId: string): Promise<void> {
           feedbackEmbedding,
           feedback.positiveText,
           feedback.negativeText,
+          normalized.normalizedText,
         );
       } catch (exclErr) {
         console.error(`Exclusion check failed for feedback ${feedbackId}:`, exclErr);
