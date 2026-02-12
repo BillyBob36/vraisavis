@@ -481,6 +481,39 @@ export async function adminRoutes(fastify: FastifyInstance) {
     return reply.send({ subscriptions });
   });
 
+  // === FINGERPRINTS ===
+  fastify.delete('/fingerprints', async (request: FastifyRequest<{
+    Body: { restaurantId: string; date: string; serviceType: 'lunch' | 'dinner' }
+  }>, reply: FastifyReply) => {
+    const { restaurantId, date, serviceType } = request.body;
+
+    if (!restaurantId || !date || !serviceType) {
+      return reply.status(400).send({ error: true, message: 'restaurantId, date et serviceType requis' });
+    }
+
+    // Build date range for the given day
+    const dayStart = new Date(date + 'T00:00:00.000Z');
+    const dayEnd = new Date(date + 'T23:59:59.999Z');
+
+    if (isNaN(dayStart.getTime())) {
+      return reply.status(400).send({ error: true, message: 'Date invalide (format YYYY-MM-DD)' });
+    }
+
+    // Delete fingerprints matching restaurant + date + service
+    const deleted = await prisma.fingerprint.deleteMany({
+      where: {
+        restaurantId,
+        lastServiceType: serviceType,
+        lastPlayedAt: {
+          gte: dayStart,
+          lte: dayEnd,
+        },
+      },
+    });
+
+    return reply.send({ deleted: deleted.count, message: `${deleted.count} fingerprint(s) supprimé(s)` });
+  });
+
   // Enregistrer les routes contracts
   await fastify.register(contractRoutes, { prefix: '/contracts' });
 }
