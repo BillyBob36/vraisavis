@@ -487,6 +487,81 @@ export async function managerRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // Resolve a Google Maps URL (short or long) to a writereview URL with Place ID
+  fastify.post('/google-places/resolve-url', async (request: FastifyRequest<{ Body: { url: string } }>, reply: FastifyReply) => {
+    const { url } = request.body;
+    if (!url) {
+      return reply.status(400).send({ error: true, message: 'URL requise' });
+    }
+
+    if (!config.GOOGLE_PLACES_API_KEY) {
+      return reply.status(500).send({ error: true, message: 'Clé API Google Places non configurée' });
+    }
+
+    try {
+      // 1. Follow redirects to get the final Google Maps URL
+      const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+      const finalUrl = res.url;
+
+      // 2. Extract place name from the final URL
+      // Format: https://www.google.com/maps/place/Le+Dauphin/@48.86...
+      let placeName = '';
+      const placeMatch = finalUrl.match(/\/maps\/place\/([^/@]+)/);
+      if (placeMatch) {
+        placeName = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
+      }
+
+      if (!placeName) {
+        // Try to get it from the page title
+        const html = await res.text();
+        const titleMatch = html.match(/<title>([^<]+)<\/title>/);
+        if (titleMatch) {
+          placeName = titleMatch[1].replace(/ - Google Maps$/, '').trim();
+        }
+      }
+
+      if (!placeName) {
+        return reply.status(400).send({ error: true, message: 'Impossible d\'extraire le nom du lieu depuis cette URL' });
+      }
+
+      // 3. Search for the Place ID via Google Places API
+      const searchResponse = await fetch('https://places.googleapis.com/v1/places:searchText', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': config.GOOGLE_PLACES_API_KEY,
+          'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress',
+        },
+        body: JSON.stringify({
+          textQuery: placeName,
+          languageCode: 'fr',
+          maxResultCount: 1,
+        }),
+      });
+
+      if (!searchResponse.ok) {
+        const err = await searchResponse.text();
+        return reply.status(502).send({ error: true, message: 'Erreur Google Places', details: err });
+      }
+
+      const data = await searchResponse.json() as { places?: Array<{ id: string; displayName: { text: string }; formattedAddress: string }> };
+      const place = data.places?.[0];
+
+      if (!place) {
+        return reply.status(404).send({ error: true, message: `Aucun lieu trouvé pour "${placeName}"` });
+      }
+
+      return reply.send({
+        placeId: place.id,
+        name: place.displayName.text,
+        address: place.formattedAddress,
+        googleReviewUrl: `https://search.google.com/local/writereview?placeid=${place.id}`,
+      });
+    } catch (err: any) {
+      return reply.status(500).send({ error: true, message: err.message || 'Erreur lors de la résolution' });
+    }
+  });
+
   // === SUBSCRIPTION ===
   fastify.get('/subscription', async (request: FastifyRequest, reply: FastifyReply) => {
     const restaurant = await getManagerRestaurant(request.user.id);

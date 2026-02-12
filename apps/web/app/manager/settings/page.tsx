@@ -50,6 +50,10 @@ function GooglePlacesCard({ googleReviewUrl, onSelect, onClear }: { googleReview
   const [searching, setSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [pastedUrl, setPastedUrl] = useState('');
+  const [resolving, setResolving] = useState(false);
+  const [resolveError, setResolveError] = useState('');
+  const [resolvedPlace, setResolvedPlace] = useState<{ name: string; address: string; googleReviewUrl: string } | null>(null);
 
   const handleSearch = useCallback(async (q: string) => {
     setQuery(q);
@@ -81,13 +85,39 @@ function GooglePlacesCard({ googleReviewUrl, onSelect, onClear }: { googleReview
     setShowResults(false);
   };
 
+  const handlePasteUrl = async (url: string) => {
+    setPastedUrl(url);
+    setResolveError('');
+    setResolvedPlace(null);
+
+    if (!url || (!url.includes('maps.app.goo.gl') && !url.includes('google.com/maps') && !url.includes('goo.gl/maps'))) {
+      if (url.length > 5) setResolveError('Collez un lien Google Maps (ex: https://maps.app.goo.gl/...)');
+      return;
+    }
+
+    setResolving(true);
+    try {
+      const data = await apiFetch('/api/v1/manager/google-places/resolve-url', {
+        method: 'POST',
+        body: JSON.stringify({ url }),
+      }) as { name: string; address: string; googleReviewUrl: string };
+      setResolvedPlace(data);
+    } catch (err) {
+      setResolveError(err instanceof Error ? err.message : 'Impossible de résoudre cette URL');
+    } finally {
+      setResolving(false);
+    }
+  };
+
+  const isInvalidExisting = googleReviewUrl && !googleReviewUrl.includes('search.google.com/local/writereview?placeid=');
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Avis Google</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {googleReviewUrl ? (
+        {googleReviewUrl && !isInvalidExisting ? (
           <div className="space-y-3">
             <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
               <MapPin className="h-5 w-5 text-green-600 shrink-0" />
@@ -100,15 +130,58 @@ function GooglePlacesCard({ googleReviewUrl, onSelect, onClear }: { googleReview
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Les clients ayant donné 5/5 positif et 0/5 négatif seront invités à laisser un avis Google.
+              Les clients ayant donné 5/5 positif et ≤1/5 négatif seront invités à laisser un avis Google.
               Leur commentaire sera copié automatiquement dans le presse-papier.
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            <div className="relative">
-              <Label htmlFor="googlePlacesSearch">Rechercher votre restaurant sur Google</Label>
-              <div className="relative mt-1.5">
+          <div className="space-y-5">
+            {isInvalidExisting && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 space-y-2">
+                <p className="text-sm font-semibold text-orange-800">⚠️ Lien actuel invalide</p>
+                <p className="text-xs text-orange-600">Le lien actuel ({googleReviewUrl}) ne redirige pas vers le formulaire d&apos;avis Google. Utilisez une des méthodes ci-dessous pour le corriger.</p>
+              </div>
+            )}
+
+            {/* Method 1: Paste Google Maps URL */}
+            <div className="space-y-2">
+              <Label htmlFor="googleMapsUrl">Collez un lien Google Maps</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="googleMapsUrl"
+                  value={pastedUrl}
+                  onChange={(e) => handlePasteUrl(e.target.value)}
+                  placeholder="https://maps.app.goo.gl/... ou https://google.com/maps/..."
+                  className="pl-9"
+                />
+                {resolving && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+              </div>
+              {resolveError && <p className="text-xs text-red-500">{resolveError}</p>}
+              {resolvedPlace && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
+                  <p className="text-sm font-semibold text-blue-800">{resolvedPlace.name}</p>
+                  <p className="text-xs text-blue-600">{resolvedPlace.address}</p>
+                  <Button size="sm" onClick={() => onSelect(resolvedPlace.googleReviewUrl)} className="mt-1">
+                    Utiliser ce restaurant
+                  </Button>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Ouvrez Google Maps, cherchez votre restaurant, cliquez &quot;Partager&quot; et collez le lien ici.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-muted-foreground">ou</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {/* Method 2: Search by name */}
+            <div className="relative space-y-2">
+              <Label htmlFor="googlePlacesSearch">Rechercher par nom</Label>
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="googlePlacesSearch"
@@ -140,9 +213,6 @@ function GooglePlacesCard({ googleReviewUrl, onSelect, onClear }: { googleReview
                 </div>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Recherchez votre restaurant pour activer automatiquement la redirection vers les avis Google.
-            </p>
           </div>
         )}
       </CardContent>
