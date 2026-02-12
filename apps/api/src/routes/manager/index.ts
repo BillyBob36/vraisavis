@@ -503,12 +503,22 @@ export async function managerRoutes(fastify: FastifyInstance) {
       const res = await fetch(url, { method: 'GET', redirect: 'follow' });
       const finalUrl = res.url;
 
-      // 2. Extract place name from the final URL
-      // Format: https://www.google.com/maps/place/Le+Dauphin/@48.86...
+      // 2. Extract place name and GPS coordinates from the final URL
+      // Format: https://www.google.com/maps/place/Le+Dauphin/@48.86,2.37,...
       let placeName = '';
-      const placeMatch = finalUrl.match(/\/maps\/place\/([^/@]+)/);
+      let lat: number | null = null;
+      let lng: number | null = null;
+
+      const placeMatch = finalUrl.match(/\/maps\/place\/([^/@]+)\/@([\d.-]+),([\d.-]+)/);
       if (placeMatch) {
         placeName = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '));
+        lat = parseFloat(placeMatch[2]);
+        lng = parseFloat(placeMatch[3]);
+      } else {
+        const nameOnly = finalUrl.match(/\/maps\/place\/([^/@]+)/);
+        if (nameOnly) {
+          placeName = decodeURIComponent(nameOnly[1].replace(/\+/g, ' '));
+        }
       }
 
       if (!placeName) {
@@ -524,7 +534,18 @@ export async function managerRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: true, message: 'Impossible d\'extraire le nom du lieu depuis cette URL' });
       }
 
-      // 3. Search for the Place ID via Google Places API
+      // 3. Search for the Place ID via Google Places API (with locationBias if GPS available)
+      const searchBody: Record<string, unknown> = {
+        textQuery: placeName,
+        languageCode: 'fr',
+        maxResultCount: 1,
+      };
+      if (lat && lng) {
+        searchBody.locationBias = {
+          circle: { center: { latitude: lat, longitude: lng }, radius: 500.0 },
+        };
+      }
+
       const searchResponse = await fetch('https://places.googleapis.com/v1/places:searchText', {
         method: 'POST',
         headers: {
@@ -532,11 +553,7 @@ export async function managerRoutes(fastify: FastifyInstance) {
           'X-Goog-Api-Key': config.GOOGLE_PLACES_API_KEY,
           'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress',
         },
-        body: JSON.stringify({
-          textQuery: placeName,
-          languageCode: 'fr',
-          maxResultCount: 1,
-        }),
+        body: JSON.stringify(searchBody),
       });
 
       if (!searchResponse.ok) {
