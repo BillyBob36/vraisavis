@@ -400,8 +400,10 @@ export default function ClientExperiencePage() {
     );
   }
 
-  // Show Google review button if 5/5 positive AND ≤1/5 negative AND googleReviewUrl exists
-  const showGoogleReview = positiveRating === 5 && negativeRating <= 1 && !!restaurant.googleReviewUrl;
+  // Show Google review button if 5/5 positive AND ≤1/5 negative AND googleReviewUrl is a valid writereview URL
+  const showGoogleReview = positiveRating === 5 && negativeRating <= 1
+    && !!restaurant.googleReviewUrl
+    && restaurant.googleReviewUrl.includes('search.google.com/local/writereview?placeid=');
 
   // Template props
   const templateProps: TemplateProps = {

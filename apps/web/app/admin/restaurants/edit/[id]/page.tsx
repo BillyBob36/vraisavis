@@ -156,8 +156,13 @@ export default function EditRestaurantPage() {
                 onChange={(e) => setFormData(prev => ({ ...prev, googleReviewUrl: e.target.value }))}
                 placeholder="https://search.google.com/local/writereview?placeid=ChIJ..."
               />
+              {formData.googleReviewUrl && !formData.googleReviewUrl.includes('search.google.com/local/writereview?placeid=') && (
+                <p className="text-sm text-red-500 font-medium">
+                  ⚠️ Cette URL ne redirigera pas vers le formulaire d&apos;avis. Le format correct est : https://search.google.com/local/writereview?placeid=ChIJ...
+                </p>
+              )}
               <p className="text-sm text-muted-foreground">
-                URL du formulaire d'avis Google pour ce restaurant
+                Utilisez le <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Place ID Finder</a> pour trouver le Place ID (format ChIJ...), puis collez : https://search.google.com/local/writereview?placeid=VOTRE_PLACE_ID
               </p>
             </div>
 
