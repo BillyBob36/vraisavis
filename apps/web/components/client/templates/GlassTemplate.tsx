@@ -425,12 +425,22 @@ export default function GlassTemplate(props: TemplateProps) {
               </div>
               <p className="text-white/60">Bonne dégustation ! 🎉</p>
               {showGoogleReview && (
-                <button
-                  onClick={onGoogleReview}
-                  className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-yellow-500/25 hover:shadow-xl transition-all border border-white/10 text-sm"
-                >
-                  ⭐ Laisser un avis Google pour {restaurant.name}
-                </button>
+                <div className="space-y-2 mt-2">
+                  <p className="text-sm text-white/60 leading-snug">
+                    Votre commentaire nous fait chaud au c\u0153ur ! Vous pouvez nous donner un coup de pouce en le publiant aussi sur Google
+                  </p>
+                  <button
+                    onClick={onGoogleReview}
+                    className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-yellow-500/25 hover:shadow-xl transition-all border border-white/10 text-sm"
+                  >
+                    \u2460 Un clic pour copier
+                  </button>
+                  <p className="text-xs text-white/40 flex items-center justify-center gap-1">
+                    <span>\u2461</span>
+                    <span>Un clic pour coller</span>
+                    <span>\u2192</span>
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -575,12 +585,22 @@ export default function GlassTemplate(props: TemplateProps) {
               Revenez la prochaine fois pour retenter votre chance !
             </p>
             {showGoogleReview && (
-              <button
-                onClick={onGoogleReview}
-                className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-yellow-500/25 hover:shadow-xl transition-all border border-white/10 text-sm"
-              >
-                ⭐ Laisser un avis Google pour {restaurant.name}
-              </button>
+              <div className="space-y-2 mt-2">
+                <p className="text-sm text-white/60 leading-snug">
+                  Votre commentaire nous fait chaud au c\u0153ur ! Vous pouvez nous donner un coup de pouce en le publiant aussi sur Google
+                </p>
+                <button
+                  onClick={onGoogleReview}
+                  className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-yellow-500/25 hover:shadow-xl transition-all border border-white/10 text-sm"
+                >
+                  \u2460 Un clic pour copier
+                </button>
+                <p className="text-xs text-white/40 flex items-center justify-center gap-1">
+                  <span>\u2461</span>
+                  <span>Un clic pour coller</span>
+                  <span>\u2192</span>
+                </p>
+              </div>
             )}
           </div>
         </div>

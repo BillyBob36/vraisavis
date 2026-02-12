@@ -403,12 +403,22 @@ export default function ClassicTemplate(props: TemplateProps) {
               </div>
               <p className="text-gray-500">Bonne dégustation ! 🎉</p>
               {showGoogleReview && (
-                <button
-                  onClick={onGoogleReview}
-                  className="w-full py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold rounded-2xl shadow-md hover:shadow-lg transition-all text-sm"
-                >
-                  ⭐ Laisser un avis Google pour {restaurant.name}
-                </button>
+                <div className="space-y-2 mt-2">
+                  <p className="text-sm text-gray-500 leading-snug">
+                    Votre commentaire nous fait chaud au c\u0153ur ! Vous pouvez nous donner un coup de pouce en le publiant aussi sur Google
+                  </p>
+                  <button
+                    onClick={onGoogleReview}
+                    className="w-full py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold rounded-2xl shadow-md hover:shadow-lg transition-all text-sm"
+                  >
+                    \u2460 Un clic pour copier
+                  </button>
+                  <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
+                    <span>\u2461</span>
+                    <span>Un clic pour coller</span>
+                    <span>\u2192</span>
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -545,12 +555,22 @@ export default function ClassicTemplate(props: TemplateProps) {
               Revenez la prochaine fois pour retenter votre chance !
             </p>
             {showGoogleReview && (
-              <button
-                onClick={onGoogleReview}
-                className="w-full py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold rounded-2xl shadow-md hover:shadow-lg transition-all text-sm"
-              >
-                ⭐ Laisser un avis Google pour {restaurant.name}
-              </button>
+              <div className="space-y-2 mt-2">
+                <p className="text-sm text-gray-500 leading-snug">
+                  Votre commentaire nous fait chaud au c\u0153ur ! Vous pouvez nous donner un coup de pouce en le publiant aussi sur Google
+                </p>
+                <button
+                  onClick={onGoogleReview}
+                  className="w-full py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold rounded-2xl shadow-md hover:shadow-lg transition-all text-sm"
+                >
+                  \u2460 Un clic pour copier
+                </button>
+                <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
+                  <span>\u2461</span>
+                  <span>Un clic pour coller</span>
+                  <span>\u2192</span>
+                </p>
+              </div>
             )}
           </div>
         </div>
