@@ -224,6 +224,22 @@ export async function clientRoutes(fastify: FastifyInstance) {
     });
   });
 
+  // Récupérer le dernier commentaire positif d'un fingerprint (pour copier dans le presse-papier Google Review)
+  fastify.get('/feedback/positive-text', async (request: FastifyRequest<{ Querystring: { fingerprintId: string; restaurantId: string } }>, reply: FastifyReply) => {
+    const { fingerprintId, restaurantId } = request.query;
+    if (!fingerprintId || !restaurantId) {
+      return reply.status(400).send({ error: true, message: 'fingerprintId et restaurantId requis' });
+    }
+
+    const feedback = await prisma.feedback.findFirst({
+      where: { fingerprintId, restaurantId },
+      orderBy: { createdAt: 'desc' },
+      select: { positiveText: true },
+    });
+
+    return reply.send({ positiveText: feedback?.positiveText || '' });
+  });
+
   // Enregistrer les préférences de contact
   fastify.post('/contact-prefs', async (request: FastifyRequest, reply: FastifyReply) => {
     const body = contactPrefsSchema.safeParse(request.body);

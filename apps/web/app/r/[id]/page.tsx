@@ -354,26 +354,39 @@ export default function ClientExperiencePage() {
   }, [redeemCode]);
 
   // Google review handlers
-  const handleGoogleReview = useCallback(() => {
+  const handleGoogleReview = useCallback(async () => {
     if (!restaurantRef.current?.googleReviewUrl) return;
-    // Copy positive text to clipboard
-    const textToCopy = positiveText;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(textToCopy).catch(() => {});
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = textToCopy;
-      ta.style.position = 'fixed';
-      ta.style.left = '-9999px';
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+    // Get positive text: from local state first, or fetch from DB if empty (deferred pickup case)
+    let textToCopy = positiveText;
+    if (!textToCopy && fingerprintId && restaurantId) {
+      try {
+        const data = await apiFetch<{ positiveText: string }>(
+          `/api/v1/client/feedback/positive-text?fingerprintId=${fingerprintId}&restaurantId=${restaurantId}`
+        );
+        textToCopy = data.positiveText || '';
+      } catch {
+        // Silently fail — still open the review URL
+      }
+    }
+    // Copy to clipboard
+    if (textToCopy) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).catch(() => {});
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = textToCopy;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
     }
     // Open Google review URL
     window.open(restaurantRef.current.googleReviewUrl, '_blank');
-  }, [positiveText]);
+  }, [positiveText, fingerprintId, restaurantId]);
 
   // Loading state
   if (loading) {

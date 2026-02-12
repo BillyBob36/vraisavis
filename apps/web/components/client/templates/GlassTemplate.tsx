@@ -427,18 +427,18 @@ export default function GlassTemplate(props: TemplateProps) {
               {showGoogleReview && (
                 <div className="space-y-2 mt-2">
                   <p className="text-sm text-white/60 leading-snug">
-                    Votre commentaire nous fait chaud au c\u0153ur ! Vous pouvez nous donner un coup de pouce en le publiant aussi sur Google
+                    Votre commentaire nous fait chaud au cœur ! Vous pouvez nous donner un coup de pouce en le publiant aussi sur Google
                   </p>
                   <button
                     onClick={onGoogleReview}
                     className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-yellow-500/25 hover:shadow-xl transition-all border border-white/10 text-sm"
                   >
-                    \u2460 Un clic pour copier
+                    ① Un clic pour copier
                   </button>
                   <p className="text-xs text-white/40 flex items-center justify-center gap-1">
-                    <span>\u2461</span>
+                    <span>②</span>
                     <span>Un clic pour coller</span>
-                    <span>\u2192</span>
+                    <span>→</span>
                   </p>
                 </div>
               )}
@@ -587,18 +587,18 @@ export default function GlassTemplate(props: TemplateProps) {
             {showGoogleReview && (
               <div className="space-y-2 mt-2">
                 <p className="text-sm text-white/60 leading-snug">
-                  Votre commentaire nous fait chaud au c\u0153ur ! Vous pouvez nous donner un coup de pouce en le publiant aussi sur Google
+                  Votre commentaire nous fait chaud au cœur ! Vous pouvez nous donner un coup de pouce en le publiant aussi sur Google
                 </p>
                 <button
                   onClick={onGoogleReview}
                   className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-yellow-500/25 hover:shadow-xl transition-all border border-white/10 text-sm"
                 >
-                  \u2460 Un clic pour copier
+                  ① Un clic pour copier
                 </button>
                 <p className="text-xs text-white/40 flex items-center justify-center gap-1">
-                  <span>\u2461</span>
+                  <span>②</span>
                   <span>Un clic pour coller</span>
-                  <span>\u2192</span>
+                  <span>→</span>
                 </p>
               </div>
             )}
