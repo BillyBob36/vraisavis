@@ -70,6 +70,7 @@ export async function searchByEmbedding(
     dateFrom?: Date;
     dateTo?: Date;
     serviceType?: string;
+    excludeExcluded?: boolean;
   } = {},
 ): Promise<Array<{
   id: string;
@@ -113,6 +114,10 @@ export async function searchByEmbedding(
     conditions.push(`f."serviceType" = $${paramIdx}`);
     params.push(options.serviceType);
     paramIdx++;
+  }
+
+  if (options.excludeExcluded) {
+    conditions.push(`(f."excluded_by_rules" = '[]'::jsonb OR f."excluded_by_rules" IS NULL)`);
   }
 
   const whereClause = conditions.join(' AND ');
@@ -179,6 +184,7 @@ export async function getThemeCounts(
     WHERE f."restaurantId" = $1
       AND f."createdAt" >= $2
       AND f."createdAt" < $3
+      AND (f."excluded_by_rules" = '[]'::jsonb OR f."excluded_by_rules" IS NULL)
       ${sentimentFilter}
     GROUP BY theme
     ORDER BY count DESC

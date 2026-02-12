@@ -83,6 +83,7 @@ export async function consulterAvis(
   const where: Record<string, unknown> = {
     restaurantId,
     createdAt: { gte: start, lt: end },
+    excludedByRules: { equals: [] },
   };
 
   if (params.sentiment === 'negative') {
@@ -106,6 +107,7 @@ export async function consulterAvis(
         dateFrom: period !== 'all' ? start : undefined,
         dateTo: period !== 'all' ? end : undefined,
         serviceType: params.service,
+        excludeExcluded: true,
       });
 
       if (results.length > 0) {
@@ -572,6 +574,7 @@ export async function analyserTendances(
     where: {
       restaurantId,
       createdAt: { gte: s1, lt: e1 },
+      excludedByRules: { equals: [] },
       ...(sentiment === 'negative' ? { negativeText: { not: '' }, NOT: { negativeText: null } } : {}),
       ...(sentiment === 'positive' ? { OR: [{ negativeText: null }, { negativeText: '' }] } : {}),
       ...(params.service ? { serviceType: params.service } : {}),
@@ -586,6 +589,7 @@ export async function analyserTendances(
       where: {
         restaurantId,
         createdAt: { gte: s2, lt: e2 },
+        excludedByRules: { equals: [] },
         ...(sentiment === 'negative' ? { negativeText: { not: '' }, NOT: { negativeText: null } } : {}),
         ...(sentiment === 'positive' ? { OR: [{ negativeText: null }, { negativeText: '' }] } : {}),
         ...(params.service ? { serviceType: params.service } : {}),

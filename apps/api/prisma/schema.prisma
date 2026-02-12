@@ -50,6 +50,7 @@ enum ContractType {
 enum MessagingProvider {
   TELEGRAM
   WHATSAPP
+  WEB
 }
 
 enum SummaryPeriodType {
@@ -179,6 +180,7 @@ model Restaurant {
   dailyPrizePools   DailyPrizePool[]
   feedbackSummaries FeedbackSummary[]
   improvements      Improvement[]
+  exclusionRules    ExclusionRule[]
 
   @@map("restaurants")
 }
@@ -258,6 +260,7 @@ model Feedback {
   sentimentScore Float?   @map("sentiment_score")
   themes         Json     @default("[]")
   severity       String?
+  excludedByRules Json    @default("[]") @map("excluded_by_rules")
   // embedding column is managed via raw SQL (pgvector)
 
   // Relations
@@ -452,6 +455,27 @@ model ImprovementNotification {
   fingerprint   Fingerprint @relation(fields: [fingerprintId], references: [id])
 
   @@map("improvement_notifications")
+}
+
+// ============================================
+// EXCLUSION RULES
+// ============================================
+
+model ExclusionRule {
+  id          String   @id @default(cuid())
+  label       String
+  description String   @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // embedding column managed via raw SQL (pgvector) like feedbacks
+
+  // Relations
+  restaurantId String     @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@map("exclusion_rules")
 }
 
 // ============================================

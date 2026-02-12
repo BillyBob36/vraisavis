@@ -83,7 +83,7 @@ export async function findManagerByWhatsApp(phoneNumber: string) {
 export async function getOrCreateSession(
   managerId: string,
   restaurantId: string,
-  provider: 'TELEGRAM' | 'WHATSAPP',
+  provider: 'TELEGRAM' | 'WHATSAPP' | 'WEB',
 ) {
   const existing = await prisma.messagingSession.findUnique({
     where: {

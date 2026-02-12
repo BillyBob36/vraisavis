@@ -15,11 +15,13 @@ import {
   X,
   QrCode,
   BarChart3,
-  Sparkles
+  Sparkles,
+  Bot
 } from 'lucide-react';
 
 const navItems = [
   { href: '/manager', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/manager/agent', label: 'Agent IA', icon: Bot },
   { href: '/manager/feedbacks', label: 'Feedbacks', icon: MessageSquare },
   { href: '/manager/improvements', label: 'Améliorations', icon: Sparkles },
   { href: '/manager/prizes', label: 'Lots', icon: Gift },

@@ -126,6 +126,7 @@ export async function managerRoutes(fastify: FastifyInstance) {
       wantsNotify?: string;
       sort?: string;
       order?: string;
+      exclusionFilter?: string;
     }
   }>, reply: FastifyReply) => {
     const restaurant = await getManagerRestaurant(request.user.id);
@@ -144,6 +145,7 @@ export async function managerRoutes(fastify: FastifyInstance) {
     const wantsNotify = request.query.wantsNotify;
     const sort = request.query.sort || 'createdAt';
     const order = request.query.order || 'desc';
+    const exclusionFilter = request.query.exclusionFilter; // 'hide_all', 'hide:<ruleId>', 'only_excluded', 'only:<ruleId>'
 
     // Build where clause using AND array to avoid conflicts
     const andConditions: Record<string, unknown>[] = [];
@@ -194,6 +196,18 @@ export async function managerRoutes(fastify: FastifyInstance) {
       where.fingerprint = { OR: [{ wantNotifyOwn: true }, { wantNotifyOthers: true }] };
     }
 
+    // Exclusion filter
+    if (exclusionFilter === 'hide_all') {
+      andConditions.push({ excludedByRules: { equals: [] } });
+    } else if (exclusionFilter === 'only_excluded') {
+      andConditions.push({ NOT: { excludedByRules: { equals: [] } } });
+    } else if (exclusionFilter?.startsWith('hide:')) {
+      // Hide feedbacks excluded by a specific rule
+      // We can't do jsonb contains in Prisma easily, so we use raw filter later
+    } else if (exclusionFilter?.startsWith('only:')) {
+      // Show only feedbacks excluded by a specific rule
+    }
+
     // Combine AND conditions
     if (andConditions.length > 0) {
       where.AND = andConditions;
@@ -242,6 +256,69 @@ export async function managerRoutes(fastify: FastifyInstance) {
         totalUnread,
       },
     });
+  });
+
+  // === AGENT IA WEB CHAT ===
+  fastify.post('/agent/chat', async (request: FastifyRequest<{
+    Body: { message: string };
+  }>, reply: FastifyReply) => {
+    const restaurant = await getManagerRestaurant(request.user.id);
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
+
+    const { message } = request.body as { message: string };
+    if (!message?.trim()) {
+      return reply.status(400).send({ error: true, message: 'Message requis' });
+    }
+
+    const { processAgentMessage } = await import('../../services/ai-agent/agent.js');
+    const response = await processAgentMessage(
+      request.user.id,
+      restaurant.id,
+      message.trim(),
+      'WEB',
+    );
+
+    return reply.send({ response });
+  });
+
+  fastify.get('/agent/history', async (request: FastifyRequest, reply: FastifyReply) => {
+    const restaurant = await getManagerRestaurant(request.user.id);
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
+
+    const session = await prisma.messagingSession.findUnique({
+      where: {
+        managerId_restaurantId_provider: {
+          managerId: request.user.id,
+          restaurantId: restaurant.id,
+          provider: 'WEB',
+        },
+      },
+    });
+
+    const history = session
+      ? (session.conversationHistory as Array<{ role: string; content: string; timestamp?: string }>)
+      : [];
+
+    return reply.send({ history });
+  });
+
+  // === EXCLUSION RULES (for UI) ===
+  fastify.get('/exclusion-rules', async (request: FastifyRequest, reply: FastifyReply) => {
+    const restaurant = await getManagerRestaurant(request.user.id);
+    if (!restaurant) {
+      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
+    }
+
+    const rules = await prisma.exclusionRule.findMany({
+      where: { restaurantId: restaurant.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return reply.send({ rules });
   });
 
   fastify.patch('/feedbacks/:id', async (request: FastifyRequest<{

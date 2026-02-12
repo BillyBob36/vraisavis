@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   ThumbsUp, ThumbsDown, Search, X, ChevronDown, ChevronUp,
   Bell, BellOff, ChevronLeft, ChevronRight,
-  Sun, Moon, Coffee, Filter, Loader2, CalendarDays,
+  Sun, Moon, Coffee, Filter, Loader2, CalendarDays, EyeOff,
 } from 'lucide-react';
 
 interface FingerprintInfo {
@@ -15,6 +15,18 @@ interface FingerprintInfo {
   wantNotifyOthers: boolean;
   contactEmail: string | null;
   contactPhone: string | null;
+}
+
+interface ExclusionTag {
+  ruleId: string;
+  ruleLabel: string;
+}
+
+interface ExclusionRule {
+  id: string;
+  label: string;
+  description: string;
+  isActive: boolean;
 }
 
 interface Feedback {
@@ -28,6 +40,7 @@ interface Feedback {
   isProcessed: boolean;
   createdAt: string;
   fingerprint?: FingerprintInfo;
+  excludedByRules: ExclusionTag[];
 }
 
 type SentimentFilter = 'all' | 'positive' | 'negative';
@@ -53,6 +66,11 @@ export default function FeedbacksPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
+  // Exclusion filter
+  const [exclusionFilter, setExclusionFilter] = useState('');
+  const [exclusionRules, setExclusionRules] = useState<ExclusionRule[]>([]);
+  const [showExclusionMenu, setShowExclusionMenu] = useState(false);
+
   const buildQuery = useCallback(() => {
     const params = new URLSearchParams();
     params.set('page', page.toString());
@@ -63,9 +81,10 @@ export default function FeedbacksPage() {
     if (wantsNotify) params.set('wantsNotify', 'true');
     if (dateFrom) params.set('dateFrom', dateFrom);
     if (dateTo) params.set('dateTo', dateTo);
+    if (exclusionFilter) params.set('exclusionFilter', exclusionFilter);
 
     return params.toString();
-  }, [page, search, sentiment, service, wantsNotify, dateFrom, dateTo]);
+  }, [page, search, sentiment, service, wantsNotify, dateFrom, dateTo, exclusionFilter]);
 
   const loadFeedbacks = useCallback(async () => {
     setLoading(true);
@@ -89,6 +108,14 @@ export default function FeedbacksPage() {
   }, [buildQuery]);
 
   useEffect(() => { loadFeedbacks(); }, [loadFeedbacks]);
+
+  // Load exclusion rules
+  useEffect(() => {
+    apiFetch('/api/v1/manager/exclusion-rules').then((data: unknown) => {
+      const d = data as { rules: ExclusionRule[] };
+      setExclusionRules(d.rules || []);
+    }).catch(() => {});
+  }, []);
 
   const handleSearch = () => {
     setSearch(searchInput);
@@ -272,6 +299,61 @@ export default function FeedbacksPage() {
             <Bell className="h-3 w-3 inline mr-1" />Veulent être prévenus
           </Chip>
 
+          {/* Exclusion filter */}
+          {exclusionRules.length > 0 && (
+            <>
+              <div className="w-px h-6 bg-gray-200 self-center hidden sm:block" />
+              <div className="relative">
+                <button
+                  onClick={() => setShowExclusionMenu(!showExclusionMenu)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+                    exclusionFilter
+                      ? 'bg-orange-100 text-orange-700 border border-orange-300'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <EyeOff className="h-3 w-3" />
+                  Exclusions
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+                {showExclusionMenu && (
+                  <div className="absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg z-50 min-w-[220px] py-1">
+                    <button
+                      onClick={() => { setExclusionFilter(''); setShowExclusionMenu(false); setPage(1); }}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-50 ${!exclusionFilter ? 'font-bold text-blue-600' : ''}`}
+                    >
+                      Tout afficher
+                    </button>
+                    <button
+                      onClick={() => { setExclusionFilter('hide_all'); setShowExclusionMenu(false); setPage(1); }}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-50 ${exclusionFilter === 'hide_all' ? 'font-bold text-blue-600' : ''}`}
+                    >
+                      Masquer tous les exclus
+                    </button>
+                    <button
+                      onClick={() => { setExclusionFilter('only_excluded'); setShowExclusionMenu(false); setPage(1); }}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-50 ${exclusionFilter === 'only_excluded' ? 'font-bold text-blue-600' : ''}`}
+                    >
+                      Uniquement les exclus
+                    </button>
+                    {exclusionRules.length > 0 && (
+                      <div className="border-t my-1" />
+                    )}
+                    {exclusionRules.map(rule => (
+                      <button
+                        key={rule.id}
+                        onClick={() => { setExclusionFilter(`hide:${rule.id}`); setShowExclusionMenu(false); setPage(1); }}
+                        className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-50 ${exclusionFilter === `hide:${rule.id}` ? 'font-bold text-blue-600' : ''}`}
+                      >
+                        Masquer : {rule.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
           {/* Sentiment: only visible when search is active */}
           {search && (
             <>
@@ -331,6 +413,7 @@ export default function FeedbacksPage() {
           {feedbacks.map((fb, i) => {
             const isExpanded = expandedId === fb.id;
             const hasNotify = wantsNotifyBadge(fb.fingerprint);
+            const isExcluded = fb.excludedByRules && fb.excludedByRules.length > 0;
 
             return (
               <div key={fb.id}>
@@ -338,7 +421,8 @@ export default function FeedbacksPage() {
                 <div
                   onClick={() => setExpandedId(isExpanded ? null : fb.id)}
                   className={`grid grid-cols-1 md:grid-cols-[100px_1fr_1fr_60px_80px_40px] gap-1 md:gap-2 px-4 py-3 cursor-pointer hover:bg-blue-50/50 transition-colors ${
-                    i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                    isExcluded ? 'opacity-60' : ''
+                  } ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                   } ${!fb.isRead ? 'border-l-4 border-l-blue-500' : 'border-l-4 border-l-transparent'}`}
                 >
                   {/* Date */}
@@ -349,6 +433,11 @@ export default function FeedbacksPage() {
                     <span className="text-xs text-gray-400 md:block">
                       {new Date(fb.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                     </span>
+                    {isExcluded && (
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-100 text-orange-700 border border-orange-200 md:mt-1">
+                        <EyeOff className="h-2.5 w-2.5" />Exclu
+                      </span>
+                    )}
                     {/* Mobile: badges inline */}
                     <div className="flex gap-1 md:hidden ml-auto">
                       <Badge variant={fb.serviceType === 'dejeuner' ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
@@ -462,6 +551,20 @@ export default function FeedbacksPage() {
                       <span>·</span>
                       <span>{fb.isProcessed ? 'Traité' : 'Non traité'}</span>
                     </div>
+                    {isExcluded && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-2.5">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-700 mb-1">
+                          <EyeOff className="h-3.5 w-3.5" /> Avis exclu
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {fb.excludedByRules.map((rule) => (
+                            <span key={rule.ruleId} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-orange-100 text-orange-800 border border-orange-200">
+                              {rule.ruleLabel}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -1,6 +1,7 @@
 import { prisma } from '../../lib/prisma.js';
 import { normalizeFeedback } from './normalizer.js';
 import { generateEmbedding, storeEmbedding } from './embedder.js';
+import { checkFeedbackAgainstExclusions } from '../ai-agent/exclusions.js';
 
 /**
  * Process a newly created feedback: normalize with GPT + generate embedding.
@@ -10,7 +11,7 @@ export async function processFeedbackAI(feedbackId: string): Promise<void> {
   try {
     const feedback = await prisma.feedback.findUnique({
       where: { id: feedbackId },
-      select: { id: true, positiveText: true, negativeText: true },
+      select: { id: true, positiveText: true, negativeText: true, restaurantId: true },
     });
 
     if (!feedback) return;
@@ -30,12 +31,28 @@ export async function processFeedbackAI(feedbackId: string): Promise<void> {
     });
 
     // Step 3: Generate embedding on the normalized text
+    let feedbackEmbedding: number[] | null = null;
     try {
-      const embedding = await generateEmbedding(normalized.normalizedText);
-      await storeEmbedding(feedbackId, embedding);
+      feedbackEmbedding = await generateEmbedding(normalized.normalizedText);
+      await storeEmbedding(feedbackId, feedbackEmbedding);
     } catch (embErr) {
       console.error(`Embedding failed for feedback ${feedbackId}:`, embErr);
       // Normalization is saved even if embedding fails
+    }
+
+    // Step 4: Check against exclusion rules
+    if (feedbackEmbedding) {
+      try {
+        await checkFeedbackAgainstExclusions(
+          feedbackId,
+          feedback.restaurantId,
+          feedbackEmbedding,
+          feedback.positiveText,
+          feedback.negativeText,
+        );
+      } catch (exclErr) {
+        console.error(`Exclusion check failed for feedback ${feedbackId}:`, exclErr);
+      }
     }
 
     console.log(`AI processed feedback ${feedbackId}: sentiment=${normalized.sentimentScore}, themes=${normalized.themes.join(',')}`);

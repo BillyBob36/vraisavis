@@ -1,5 +1,6 @@
 import { config } from '../../config/env.js';
 import { consulterAvis, gererLots, stats, signalerAmelioration, analyserTendances } from './tools.js';
+import { gererExclusions } from './exclusions.js';
 import { getOrCreateSession, appendToSession } from '../messaging/router.js';
 
 function getSystemPrompt(): string {
@@ -15,6 +16,7 @@ Tu es l'assistant IA du restaurant. Tu aides le manager à :
 3. Gérer les lots de la machine à sous
 4. Voir les statistiques du restaurant
 5. Signaler des améliorations et notifier les clients concernés
+6. Gérer les exclusions d'avis (créer, lister, désactiver, supprimer des règles d'exclusion)
 
 RÈGLE ABSOLUE SUR LES CITATIONS D'AVIS :
 - Quand tu cites des avis clients, tu DOIS reproduire le texte EXACT entre guillemets, tel qu'il apparaît dans les données. NE REFORMULE JAMAIS un avis.
@@ -47,6 +49,10 @@ Règles générales :
 - Si le manager demande des chiffres/stats globaux, utilise la fonction stats
 - Si le manager signale une amélioration, utilise signaler_amelioration avec action=analyze
 - Si le manager confirme vouloir notifier les clients, utilise signaler_amelioration avec action=notify et l'improvementId
+- Si le manager veut exclure un type d'avis (ex: "je ne veux plus voir les avis qui parlent de X"), utilise gerer_exclusions avec action=create
+- Si le manager demande de lister, désactiver ou supprimer des exclusions, utilise gerer_exclusions
+- Si le manager demande de voir les avis exclus, utilise gerer_exclusions avec action=show_excluded
+- IMPORTANT : par défaut, les avis exclus ne sont PAS inclus dans tes analyses et bilans. Si le manager demande explicitement de les voir, utilise show_excluded.
 - Sois proactif : propose des actions concrètes basées sur les données
 - Formate tes réponses pour être lisibles sur mobile (messages courts, emojis)
 - Ne révèle jamais de données techniques (IDs, SQL, etc.)`;
@@ -167,6 +173,27 @@ const TOOLS_DEFINITION = [
   {
     type: 'function' as const,
     function: {
+      name: 'gerer_exclusions',
+      description: 'Gère les règles d\'exclusion d\'avis : créer une nouvelle règle (scan sémantique + tri GPT), lister les règles, désactiver/réactiver, supprimer, voir les avis exclus',
+      parameters: {
+        type: 'object',
+        properties: {
+          action: {
+            type: 'string',
+            enum: ['create', 'list', 'deactivate', 'delete', 'show_excluded'],
+            description: 'create = créer une règle, list = lister les règles, deactivate = activer/désactiver, delete = supprimer, show_excluded = voir les avis exclus',
+          },
+          description: { type: 'string', description: 'Description du type d\'avis à exclure (pour create). Ex: "les avis qui disent qu\'on ferme trop tôt le samedi"' },
+          ruleName: { type: 'string', description: 'Nom de la règle (pour deactivate/delete/show_excluded)' },
+          ruleId: { type: 'string', description: 'ID de la règle (pour deactivate/delete)' },
+        },
+        required: ['action'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
       name: 'signaler_amelioration',
       description: 'Signale une amélioration apportée au restaurant, trouve les commentaires négatifs correspondants et propose de notifier les clients concernés',
       parameters: {
@@ -205,7 +232,7 @@ export async function processAgentMessage(
   managerId: string,
   restaurantId: string,
   userMessage: string,
-  provider: 'TELEGRAM' | 'WHATSAPP',
+  provider: 'TELEGRAM' | 'WHATSAPP' | 'WEB',
 ): Promise<string> {
   if (!config.AZURE_OPENAI_API_KEY) {
     return '⚠️ L\'assistant IA n\'est pas encore configuré. Contactez le support.';
@@ -363,6 +390,13 @@ async function executeTool(
         return await signalerAmelioration(restaurantId, (args.action as 'analyze' | 'notify') || 'analyze', {
           description: args.description as string | undefined,
           improvementId: args.improvementId as string | undefined,
+        });
+
+      case 'gerer_exclusions':
+        return await gererExclusions(restaurantId, (args.action as 'create' | 'list' | 'deactivate' | 'delete' | 'show_excluded') || 'list', {
+          description: args.description as string | undefined,
+          ruleId: args.ruleId as string | undefined,
+          ruleName: args.ruleName as string | undefined,
         });
 
       default:
