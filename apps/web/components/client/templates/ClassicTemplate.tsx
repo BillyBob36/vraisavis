@@ -544,18 +544,15 @@ export default function ClassicTemplate(props: TemplateProps) {
         <div className="w-full sm:max-w-md">
           <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-xl p-6 sm:p-8 text-center space-y-6 flex flex-col justify-center sm:block">
             <div className="text-5xl">😊</div>
-            <h2 className="text-xl font-bold text-gray-900">Pas de lot cette fois</h2>
-            <p className="text-gray-500">
-              {restaurant.thankYouMessage || 'Merci pour votre participation ! Votre avis compte énormément pour nous.'}
-            </p>
+            <h2 className="text-xl font-bold text-gray-900">Dommage ! Pas de lot cette fois ci !</h2>
             <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mx-auto" />
             <p className="text-sm text-gray-400">
-              Revenez la prochaine fois pour retenter votre chance !
+              La prochaine fois sera la bonne !
             </p>
             {showGoogleReview && (
               <div className="space-y-2 mt-2">
                 <p className="text-sm text-gray-500 leading-snug">
-                  Votre commentaire nous fait chaud au cœur ! Vous pouvez nous donner un coup de pouce en le publiant aussi sur Google
+                  Aidez-nous en partageant votre avis positif sur Google en deux clics
                 </p>
                 <button
                   onClick={onGoogleReview}

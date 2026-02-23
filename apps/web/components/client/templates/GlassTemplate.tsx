@@ -574,18 +574,15 @@ export default function GlassTemplate(props: TemplateProps) {
         <div className="w-full sm:max-w-md relative z-10">
           <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl text-center space-y-6 flex flex-col justify-center sm:block">
             <div className="text-5xl">😊</div>
-            <h2 className="text-xl font-bold text-white">Pas de lot cette fois</h2>
-            <p className="text-white/50">
-              {restaurant.thankYouMessage || 'Merci pour votre participation ! Votre avis compte énormément pour nous.'}
-            </p>
+            <h2 className="text-xl font-bold text-white">Dommage ! Pas de lot cette fois ci !</h2>
             <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto" />
             <p className="text-sm text-white/30">
-              Revenez la prochaine fois pour retenter votre chance !
+              La prochaine fois sera la bonne !
             </p>
             {showGoogleReview && (
               <div className="space-y-2 mt-2">
                 <p className="text-sm text-white/60 leading-snug">
-                  Votre commentaire nous fait chaud au cœur ! Vous pouvez nous donner un coup de pouce en le publiant aussi sur Google
+                  Aidez-nous en partageant votre avis positif sur Google en deux clics
                 </p>
                 <button
                   onClick={onGoogleReview}
