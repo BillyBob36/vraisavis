@@ -84,6 +84,7 @@ export default function ClientExperiencePage() {
   const [prizeSymbolMap, setPrizeSymbolMap] = useState<Map<string, [SlotSymbol, SlotSymbol, SlotSymbol]>>(new Map());
   const [assignedSymbols, setAssignedSymbols] = useState<[SlotSymbol, SlotSymbol, SlotSymbol] | null>(null);
   const [reelsFinished, setReelsFinished] = useState(false);
+  const [isWin, setIsWin] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [canPlay, setCanPlay] = useState(true);
   const [canPlayMessage, setCanPlayMessage] = useState('');
@@ -235,6 +236,7 @@ export default function ClientExperiencePage() {
       });
 
       spinResultRef.current = result;
+      setIsWin(!!result.won);
 
       // Determine target symbols based on result
       if (result.won && result.prize) {
@@ -445,7 +447,7 @@ export default function ClientExperiencePage() {
     spinResult,
     reelsFinished,
     onReelsFinished: handleReelsFinished,
-    isWin: !!(spinResultRef.current?.won),
+    isWin,
     prizeSymbolMap,
     assignedSymbols,
     // Claim

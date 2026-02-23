@@ -366,20 +366,23 @@ export async function clientRoutes(fastify: FastifyInstance) {
       });
     }
 
-    // Tirage au sort pondéré par probabilité
-    // probability = 1 signifie 100% de chance de gagner ce lot
-    // On tire un nombre entre 0 et 1, puis on parcourt les lots
-    const random = Math.random();
-
-    // Trier par probabilité décroissante pour favoriser les lots à haute probabilité
-    const sortedPrizes = [...availablePrizes].sort((a, b) => b.probability - a.probability);
+    // Tirage au sort pondéré par probabilité (roulette cumulée)
+    // On calcule d'abord la somme totale des probabilités
+    // puis on tire un nombre entre 0 et cette somme.
+    // Chaque lot occupe une "tranche" proportionnelle à sa probabilité.
+    const totalProbability = availablePrizes.reduce((sum, p) => sum + p.probability, 0);
 
     let wonPrize = null;
 
-    for (const prize of sortedPrizes) {
-      if (random <= prize.probability) {
-        wonPrize = prize;
-        break;
+    if (totalProbability > 0) {
+      const random = Math.random() * totalProbability;
+      let cumulative = 0;
+      for (const prize of availablePrizes) {
+        cumulative += prize.probability;
+        if (random < cumulative) {
+          wonPrize = prize;
+          break;
+        }
       }
     }
 
