@@ -1,5 +1,8 @@
 'use client';
 
+const POSITIVE_LABELS = ['', 'Sympa', 'Satisfaisant', 'Réussi', 'Remarquable', 'Exceptionnel'];
+const NEGATIVE_LABELS = ['', 'Faible', 'Gênant', 'Décevant', 'Problématique', 'Inacceptable'];
+
 interface ThumbRatingProps {
   value: number;
   onChange: (val: number) => void;
@@ -19,6 +22,13 @@ export default function ThumbRating({ value, onChange, type, label, variant = 'c
     : 'bg-gray-50 border-gray-200 hover:bg-gray-100';
   const labelColor = variant === 'glass' ? 'text-white/60' : 'text-gray-500';
   const textColor = variant === 'glass' ? 'text-white/80' : 'text-gray-700';
+  const dynamicLabelColor = isPositive
+    ? variant === 'glass' ? 'text-emerald-300' : 'text-green-600'
+    : variant === 'glass' ? 'text-red-300' : 'text-red-500';
+
+  const dynamicLabel = value > 0
+    ? (isPositive ? POSITIVE_LABELS[value] : NEGATIVE_LABELS[value])
+    : null;
 
   return (
     <div className="space-y-2">
@@ -39,9 +49,15 @@ export default function ThumbRating({ value, onChange, type, label, variant = 'c
           </button>
         ))}
       </div>
-      <div className={`flex justify-between text-xs ${labelColor} px-1`}>
-        <span>{isPositive ? 'Bof' : 'Rien'}</span>
-        <span>{isPositive ? 'Incroyable !' : 'Catastrophe'}</span>
+      <div className="h-5 flex items-center justify-center">
+        {dynamicLabel && (
+          <span className={`text-sm font-semibold ${dynamicLabelColor} transition-all`}>
+            {dynamicLabel}
+          </span>
+        )}
+        {!dynamicLabel && (
+          <span className={`text-xs ${labelColor}`}>—</span>
+        )}
       </div>
     </div>
   );
