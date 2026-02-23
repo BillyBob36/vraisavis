@@ -182,7 +182,7 @@ export default function ClassicTemplate(props: TemplateProps) {
             {/* Question */}
             <div className="space-y-3">
               <label className="block text-sm font-semibold text-gray-700">
-                Qu'est-ce que vous avez le moins apprécié aujourd'hui ?
+                Qu'est-ce qu'on peut améliorer pour vous donner envie de revenir ?
               </label>
               <textarea
                 value={negativeText}
