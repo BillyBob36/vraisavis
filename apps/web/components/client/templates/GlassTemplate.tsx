@@ -62,7 +62,7 @@ export default function GlassTemplate(props: TemplateProps) {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400/30 to-emerald-400/30 backdrop-blur-xl border border-white/10 flex items-center justify-center shrink-0 text-lg">⚡</div>
                 <div>
                   <p className="font-semibold text-white/90">Moins d'une minute</p>
-                  <p className="text-xs text-white/50">2 questions rapides, puis c'est parti !</p>
+                  <p className="text-xs text-white/50">2 questions rapides, et c'est parti !</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 bg-white/5 rounded-2xl p-3 border border-white/10">
@@ -82,8 +82,8 @@ export default function GlassTemplate(props: TemplateProps) {
               C'est parti ! 🎉
             </button>
 
-            <p className="text-xs text-white/30">
-              Votre avis aide {restaurant.name} à s'améliorer
+            <p className="text-sm font-semibold text-white/60">
+              Vos avis nous aident à nous améliorer
             </p>
 
             <button
@@ -116,22 +116,19 @@ export default function GlassTemplate(props: TemplateProps) {
             {/* Header */}
             <div className="text-center space-y-2">
               <div className="text-4xl">😊</div>
-              <h2 className="text-xl font-bold text-white">Le positif</h2>
-              <p className="text-sm text-white/50">
-                Qu'est-ce qui vous a le plus plu aujourd'hui ?
-              </p>
+              <h2 className="text-xl font-bold text-white">D'abord le positif</h2>
             </div>
 
             {/* Question */}
             <div className="space-y-3">
               <label className="block text-sm font-semibold text-white/80">
-                Le ou les éléments positifs de votre expérience du jour chez nous ?
+                Qu'est-ce que vous avez le plus apprécié aujourd'hui ?
               </label>
               <textarea
                 value={positiveText}
                 onChange={(e) => onPositiveChange(e.target.value)}
-                placeholder="Ex: Le dessert était incroyable, l'accueil chaleureux..."
-                className="w-full h-32 p-4 bg-white/5 border border-white/20 rounded-2xl text-base text-white resize-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 outline-none transition-all placeholder:text-white/20 backdrop-blur-xl"
+                placeholder="Ex: Le dessert était délicieux, l'accueil très chaleureux, les sièges confortables, l'ambiance détendue, le serveur attentionné..."
+                className="w-full h-32 p-4 bg-white/5 border border-white/20 rounded-2xl text-base text-white resize-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 outline-none transition-all placeholder:text-white/30 backdrop-blur-xl"
                 maxLength={500}
               />
               <div className="flex justify-between text-xs text-white/30">
@@ -189,7 +186,7 @@ export default function GlassTemplate(props: TemplateProps) {
             {/* Header */}
             <div className="text-center space-y-2">
               <div className="text-4xl">🤔</div>
-              <h2 className="text-xl font-bold text-white">L'amélioration</h2>
+              <h2 className="text-xl font-bold text-white">À améliorer</h2>
               <p className="text-sm text-white/50">
                 Aidez-nous à nous améliorer — soyez honnête, c'est comme ça qu'on progresse !
               </p>
@@ -198,17 +195,17 @@ export default function GlassTemplate(props: TemplateProps) {
             {/* Question */}
             <div className="space-y-3">
               <label className="block text-sm font-semibold text-white/80">
-                Le ou les éléments négatifs de votre expérience du jour chez nous ?
+                Qu'est-ce que vous avez le moins apprécié aujourd'hui ?
               </label>
               <textarea
                 value={negativeText}
                 onChange={(e) => onNegativeChange(e.target.value)}
-                placeholder="Ex: L'attente était un peu longue, le bruit ambiant..."
-                className="w-full h-32 p-4 bg-white/5 border border-white/20 rounded-2xl text-base text-white resize-none focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all placeholder:text-white/20 backdrop-blur-xl"
+                placeholder="Ex: L'attente était trop longue, la table bruyante, la chaise inconfortable, le plat servi froid, l'accueil peu souriant..."
+                className="w-full h-32 p-4 bg-white/5 border border-white/20 rounded-2xl text-base text-white resize-none focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all placeholder:text-white/30 backdrop-blur-xl"
                 maxLength={500}
               />
               <div className="flex justify-between text-xs text-white/30">
-                <span>Optionnel mais apprécié</span>
+                <span>Minimum 10 caractères</span>
                 <span>{negativeText.length}/500</span>
               </div>
             </div>
@@ -232,7 +229,8 @@ export default function GlassTemplate(props: TemplateProps) {
               </button>
               <button
                 onClick={onNext}
-                className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-xl shadow-md shadow-blue-500/25 transition-all border border-white/10"
+                disabled={negativeText.trim().length < 10 || negativeRating === 0}
+                className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-xl shadow-md shadow-blue-500/25 disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-white/10"
               >
                 Suivant →
               </button>

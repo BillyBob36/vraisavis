@@ -15,8 +15,8 @@ interface SlotMachineProps {
 }
 
 const REEL_SIZE = 20;
-const AUTO_STOP_DELAY = 3000;
-const REEL_START_DELAYS = [0, 200, 400];
+const REEL_DURATION = 1500; // each reel spins for 1.5s
+const PAUSE_AFTER_STOP = 1500; // 1.5s pause before showing result
 
 function generateReelStrip(targetSymbol: SlotSymbol): SlotSymbol[] {
   const strip: SlotSymbol[] = [];
@@ -51,7 +51,6 @@ export default function SlotMachine({
   const stoppedRef = useRef([true, true, true]);
   const reelStrips = useRef<SlotSymbol[][]>([]);
   const autoStopTimers = useRef<NodeJS.Timeout[]>([]);
-  const nextReelToStop = useRef(0);
 
   const stopReel = useCallback((reelIdx: number) => {
     if (stoppedRef.current[reelIdx]) return;
@@ -74,15 +73,6 @@ export default function SlotMachine({
     });
   }, []);
 
-  const handleTapStop = useCallback(() => {
-    if (!spinActive.current) return;
-    const idx = nextReelToStop.current;
-    if (idx > 2) return;
-    if (autoStopTimers.current[idx]) clearTimeout(autoStopTimers.current[idx]);
-    stopReel(idx);
-    nextReelToStop.current = idx + 1;
-  }, [stopReel]);
-
   const animateReel = useCallback((reelIdx: number, strip: SlotSymbol[]) => {
     if (stoppedRef.current[reelIdx]) return;
 
@@ -101,7 +91,6 @@ export default function SlotMachine({
     if (isSpinning && targetSymbols) {
       hasCompleted.current = false;
       spinActive.current = true;
-      nextReelToStop.current = 0;
       stoppedRef.current = [false, false, false];
       setWinFlash(false);
       setShowLegend(false);
@@ -115,19 +104,12 @@ export default function SlotMachine({
       autoStopTimers.current.forEach(t => clearTimeout(t));
       autoStopTimers.current = [];
 
+      // Sequential auto-stop: reel 0 stops at 1.5s, reel 1 at 3s, reel 2 at 4.5s
       strips.forEach((strip, idx) => {
-        setTimeout(() => {
-          animateReel(idx, strip);
-          // Auto-stop after 3s if not manually stopped
-          autoStopTimers.current[idx] = setTimeout(() => {
-            if (!stoppedRef.current[idx]) {
-              stopReel(idx);
-              if (nextReelToStop.current <= idx) {
-                nextReelToStop.current = idx + 1;
-              }
-            }
-          }, AUTO_STOP_DELAY);
-        }, REEL_START_DELAYS[idx]);
+        animateReel(idx, strip);
+        autoStopTimers.current[idx] = setTimeout(() => {
+          stopReel(idx);
+        }, REEL_DURATION * (idx + 1));
       });
     }
 
@@ -144,14 +126,10 @@ export default function SlotMachine({
 
       if (isWin) {
         setWinFlash(true);
-        setTimeout(() => {
-          onSpinComplete();
-        }, 2000);
-      } else {
-        setTimeout(() => {
-          onSpinComplete();
-        }, 1000);
       }
+      setTimeout(() => {
+        onSpinComplete();
+      }, PAUSE_AFTER_STOP);
     }
   }, [stopped, isWin, onSpinComplete]);
 
@@ -182,14 +160,13 @@ export default function SlotMachine({
           </h3>
         </div>
 
-        {/* Reels — clickable to stop */}
+        {/* Reels */}
         <div
-          className={`flex justify-center gap-2 p-3 rounded-xl cursor-pointer select-none ${
+          className={`flex justify-center gap-2 p-3 rounded-xl select-none ${
             isGlass 
               ? 'bg-black/30 border border-white/10' 
               : 'bg-white border-4 border-yellow-800'
           }`}
-          onClick={handleTapStop}
         >
           {[0, 1, 2].map(reelIdx => (
             <div
@@ -222,13 +199,13 @@ export default function SlotMachine({
           </div>
         )}
 
-        {/* Spinning status + tap hint */}
+        {/* Spinning status */}
         {isSpinning && !stopped.every(Boolean) && (
-          <div className="text-center mt-2 cursor-pointer" onClick={handleTapStop}>
+          <div className="text-center mt-2">
             <p className={`text-sm font-semibold animate-pulse ${
               isGlass ? 'text-white/80' : 'text-yellow-900'
             }`}>
-              👆 Tapez pour arrêter !
+              🎰 En cours...
             </p>
           </div>
         )}

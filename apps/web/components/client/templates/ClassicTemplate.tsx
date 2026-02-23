@@ -55,7 +55,7 @@ export default function ClassicTemplate(props: TemplateProps) {
                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0 text-lg">⚡</div>
                 <div>
                   <p className="font-semibold text-gray-900">Moins d'une minute</p>
-                  <p className="text-sm text-gray-500">2 questions rapides, puis c'est parti !</p>
+                  <p className="text-sm text-gray-500">2 questions rapides, et c'est parti !</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -75,8 +75,8 @@ export default function ClassicTemplate(props: TemplateProps) {
               C'est parti ! 🎉
             </button>
 
-            <p className="text-xs text-gray-400">
-              Votre avis aide {restaurant.name} à s'améliorer
+            <p className="text-sm font-semibold text-gray-600">
+              Vos avis nous aident à nous améliorer
             </p>
 
             <button
@@ -106,22 +106,19 @@ export default function ClassicTemplate(props: TemplateProps) {
             {/* Header */}
             <div className="text-center space-y-2">
               <div className="text-4xl">😊</div>
-              <h2 className="text-xl font-bold text-gray-900">Le positif</h2>
-              <p className="text-sm text-gray-500">
-                Qu'est-ce qui vous a le plus plu aujourd'hui ?
-              </p>
+              <h2 className="text-xl font-bold text-gray-900">D'abord le positif</h2>
             </div>
 
             {/* Question */}
             <div className="space-y-3">
               <label className="block text-sm font-semibold text-gray-700">
-                Le ou les éléments positifs de votre expérience du jour chez nous ?
+                Qu'est-ce que vous avez le plus apprécié aujourd'hui ?
               </label>
               <textarea
                 value={positiveText}
                 onChange={(e) => onPositiveChange(e.target.value)}
-                placeholder="Ex: Le dessert était incroyable, l'accueil chaleureux..."
-                className="w-full h-32 p-4 border-2 border-gray-200 rounded-2xl text-base resize-none focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none transition-all placeholder:text-gray-300"
+                placeholder="Ex: Le dessert était délicieux, l'accueil très chaleureux, les sièges confortables, l'ambiance détendue, le serveur attentionné..."
+                className="w-full h-32 p-4 border-2 border-gray-200 rounded-2xl text-base resize-none focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none transition-all placeholder:text-gray-400"
                 maxLength={500}
               />
               <div className="flex justify-between text-xs text-gray-400">
@@ -176,7 +173,7 @@ export default function ClassicTemplate(props: TemplateProps) {
             {/* Header */}
             <div className="text-center space-y-2">
               <div className="text-4xl">🤔</div>
-              <h2 className="text-xl font-bold text-gray-900">L'amélioration</h2>
+              <h2 className="text-xl font-bold text-gray-900">À améliorer</h2>
               <p className="text-sm text-gray-500">
                 Aidez-nous à nous améliorer — soyez honnête, c'est comme ça qu'on progresse !
               </p>
@@ -185,17 +182,17 @@ export default function ClassicTemplate(props: TemplateProps) {
             {/* Question */}
             <div className="space-y-3">
               <label className="block text-sm font-semibold text-gray-700">
-                Le ou les éléments négatifs de votre expérience du jour chez nous ?
+                Qu'est-ce que vous avez le moins apprécié aujourd'hui ?
               </label>
               <textarea
                 value={negativeText}
                 onChange={(e) => onNegativeChange(e.target.value)}
-                placeholder="Ex: L'attente était un peu longue, le bruit ambiant..."
-                className="w-full h-32 p-4 border-2 border-gray-200 rounded-2xl text-base resize-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-gray-300"
+                placeholder="Ex: L'attente était trop longue, la table bruyante, la chaise inconfortable, le plat servi froid, l'accueil peu souriant..."
+                className="w-full h-32 p-4 border-2 border-gray-200 rounded-2xl text-base resize-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-gray-400"
                 maxLength={500}
               />
               <div className="flex justify-between text-xs text-gray-400">
-                <span>Optionnel mais apprécié</span>
+                <span>Minimum 10 caractères</span>
                 <span>{negativeText.length}/500</span>
               </div>
             </div>
@@ -219,7 +216,8 @@ export default function ClassicTemplate(props: TemplateProps) {
               </button>
               <button
                 onClick={onNext}
-                className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all"
+                disabled={negativeText.trim().length < 10 || negativeRating === 0}
+                className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-xl shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 Suivant →
               </button>
