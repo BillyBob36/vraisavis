@@ -30,14 +30,14 @@ export default function GlassTemplate(props: TemplateProps) {
   // === INTRO ===
   if (step === 'intro') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-start sm:items-center justify-center p-0 sm:p-4 relative overflow-hidden">
         {/* Animated background blobs */}
         <div className="absolute top-20 -left-20 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 -right-20 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
 
-        <div className="w-full max-w-md relative z-10">
-          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 text-center space-y-6">
+        <div className="w-full sm:max-w-md relative z-10">
+          <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl text-center space-y-6 flex flex-col justify-center sm:block">
             {/* Logo / Restaurant */}
             <div className="space-y-2">
               <div className="w-20 h-20 mx-auto rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-4xl">
@@ -101,12 +101,12 @@ export default function GlassTemplate(props: TemplateProps) {
   // === POSITIVE FEEDBACK ===
   if (step === 'positive') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900 flex items-start sm:items-center justify-center p-0 sm:p-4 relative overflow-hidden">
         <div className="absolute top-10 -right-20 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-10 -left-20 w-64 h-64 bg-green-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
 
-        <div className="w-full max-w-md relative z-10">
-          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 space-y-6">
+        <div className="w-full sm:max-w-md relative z-10">
+          <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl space-y-6">
             {/* Progress */}
             <div className="flex items-center gap-2">
               <div className="flex-1 h-1.5 bg-emerald-400/80 rounded-full shadow-sm shadow-emerald-400/50" />
@@ -171,12 +171,12 @@ export default function GlassTemplate(props: TemplateProps) {
   // === NEGATIVE FEEDBACK ===
   if (step === 'negative') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-start sm:items-center justify-center p-0 sm:p-4 relative overflow-hidden">
         <div className="absolute top-10 -left-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-10 -right-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
 
-        <div className="w-full max-w-md relative z-10">
-          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 space-y-6">
+        <div className="w-full sm:max-w-md relative z-10">
+          <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl space-y-6">
             {/* Progress */}
             <div className="flex items-center gap-2">
               <div className="flex-1 h-1.5 bg-emerald-400/80 rounded-full shadow-sm shadow-emerald-400/50" />
@@ -244,12 +244,12 @@ export default function GlassTemplate(props: TemplateProps) {
   // === CONTACT PREFERENCES ===
   if (step === 'contact') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-violet-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-violet-900 to-slate-900 flex items-start sm:items-center justify-center p-0 sm:p-4 relative overflow-hidden">
         <div className="absolute top-10 -left-20 w-64 h-64 bg-violet-500/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-10 -right-20 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
 
-        <div className="w-full max-w-md relative z-10">
-          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8 space-y-5">
+        <div className="w-full sm:max-w-md relative z-10">
+          <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl space-y-5">
             {/* Progress */}
             <div className="flex items-center gap-2">
               <div className="flex-1 h-1.5 bg-emerald-400/80 rounded-full shadow-sm shadow-emerald-400/50" />
@@ -363,11 +363,11 @@ export default function GlassTemplate(props: TemplateProps) {
   // === SPIN ===
   if (step === 'spin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-violet-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-violet-900 to-slate-900 flex items-start sm:items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute top-1/4 -left-20 w-80 h-80 bg-violet-500/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
 
-        <div className="w-full max-w-md relative z-10 space-y-6">
+        <div className="w-full sm:max-w-md relative z-10 space-y-6 pt-8 sm:pt-0">
           {/* Header */}
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-black text-white">Tentez votre chance !</h2>
@@ -409,12 +409,12 @@ export default function GlassTemplate(props: TemplateProps) {
 
     if (claimSuccess) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-green-900 to-teal-900 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-900 via-green-900 to-teal-900 flex items-start sm:items-center justify-center p-0 sm:p-4 relative overflow-hidden">
           <div className="absolute top-10 left-10 w-40 h-40 bg-green-400/30 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-10 right-10 w-40 h-40 bg-emerald-400/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
 
-          <div className="w-full max-w-md relative z-10">
-            <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 text-center space-y-6">
+          <div className="w-full sm:max-w-md relative z-10">
+            <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl text-center space-y-6 flex flex-col justify-center sm:block">
               <div className="text-6xl">✅</div>
               <h2 className="text-2xl font-black text-white">Cadeau validé !</h2>
               <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-green-400/30">
@@ -447,12 +447,12 @@ export default function GlassTemplate(props: TemplateProps) {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 flex items-start sm:items-center justify-center p-0 sm:p-4 relative overflow-hidden">
         <div className="absolute top-10 left-10 w-40 h-40 bg-yellow-400/30 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-10 right-10 w-40 h-40 bg-orange-400/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
 
-        <div className="w-full max-w-md relative z-10">
-          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 text-center space-y-6">
+        <div className="w-full sm:max-w-md relative z-10">
+          <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl text-center space-y-6">
             <div className="text-5xl">�</div>
             <h2 className="text-xl font-black text-white">Présentez cet écran au serveur</h2>
 
@@ -519,12 +519,12 @@ export default function GlassTemplate(props: TemplateProps) {
   // === REDEEM (deferred pickup) ===
   if (step === 'redeem') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-start sm:items-center justify-center p-0 sm:p-4 relative overflow-hidden">
         <div className="absolute top-20 -left-20 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 -right-20 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
 
-        <div className="w-full max-w-md relative z-10">
-          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 text-center space-y-6">
+        <div className="w-full sm:max-w-md relative z-10">
+          <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl text-center space-y-6 flex flex-col justify-center sm:block">
             <div className="text-5xl">🎟️</div>
             <h2 className="text-xl font-bold text-white">Récupérer mon cadeau</h2>
             <p className="text-sm text-white/50">
@@ -568,11 +568,11 @@ export default function GlassTemplate(props: TemplateProps) {
   // === RESULT ===
   if (step === 'result' && spinResult) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-start sm:items-center justify-center p-0 sm:p-4 relative overflow-hidden">
         <div className="absolute top-20 -right-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
 
-        <div className="w-full max-w-md relative z-10">
-          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl p-8 text-center space-y-6">
+        <div className="w-full sm:max-w-md relative z-10">
+          <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl text-center space-y-6 flex flex-col justify-center sm:block">
             <div className="text-5xl">😊</div>
             <h2 className="text-xl font-bold text-white">Pas de lot cette fois</h2>
             <p className="text-white/50">

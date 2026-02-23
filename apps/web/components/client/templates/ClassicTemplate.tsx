@@ -30,9 +30,9 @@ export default function ClassicTemplate(props: TemplateProps) {
   // === INTRO ===
   if (step === 'intro') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl p-8 text-center space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex items-start sm:items-center justify-center p-0 sm:p-4">
+        <div className="w-full sm:max-w-md">
+          <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-xl p-6 sm:p-8 text-center space-y-6 flex flex-col justify-center sm:block">
             {/* Logo / Restaurant */}
             <div className="space-y-2">
               <div className="text-5xl">🍽️</div>
@@ -94,9 +94,9 @@ export default function ClassicTemplate(props: TemplateProps) {
   // === POSITIVE FEEDBACK ===
   if (step === 'positive') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl p-8 space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 flex items-start sm:items-center justify-center p-0 sm:p-4">
+        <div className="w-full sm:max-w-md">
+          <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-xl p-6 sm:p-8 space-y-6">
             {/* Progress */}
             <div className="flex items-center gap-2">
               <div className="flex-1 h-2 bg-green-400 rounded-full" />
@@ -161,9 +161,9 @@ export default function ClassicTemplate(props: TemplateProps) {
   // === NEGATIVE FEEDBACK ===
   if (step === 'negative') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl p-8 space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-start sm:items-center justify-center p-0 sm:p-4">
+        <div className="w-full sm:max-w-md">
+          <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-xl p-6 sm:p-8 space-y-6">
             {/* Progress */}
             <div className="flex items-center gap-2">
               <div className="flex-1 h-2 bg-green-400 rounded-full" />
@@ -231,9 +231,9 @@ export default function ClassicTemplate(props: TemplateProps) {
   // === CONTACT PREFERENCES ===
   if (step === 'contact') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 space-y-5">
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 flex items-start sm:items-center justify-center p-0 sm:p-4">
+        <div className="w-full sm:max-w-md">
+          <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-xl p-6 sm:p-8 space-y-5">
             {/* Progress */}
             <div className="flex items-center gap-2">
               <div className="flex-1 h-2 bg-green-400 rounded-full" />
@@ -347,8 +347,8 @@ export default function ClassicTemplate(props: TemplateProps) {
   // === SPIN ===
   if (step === 'spin') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-violet-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-violet-900 flex items-start sm:items-center justify-center p-4 sm:p-4">
+        <div className="w-full sm:max-w-md space-y-6 pt-8 sm:pt-0">
           {/* Header */}
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-black text-white">Tentez votre chance !</h2>
@@ -390,9 +390,9 @@ export default function ClassicTemplate(props: TemplateProps) {
 
     if (claimSuccess) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-green-400 via-emerald-400 to-teal-400 flex items-center justify-center p-4">
-          <div className="w-full max-w-md">
-            <div className="bg-white rounded-3xl shadow-2xl p-8 text-center space-y-6">
+        <div className="min-h-screen bg-gradient-to-br from-green-400 via-emerald-400 to-teal-400 flex items-start sm:items-center justify-center p-0 sm:p-4">
+          <div className="w-full sm:max-w-md">
+            <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-2xl p-6 sm:p-8 text-center space-y-6 flex flex-col justify-center sm:block">
               <div className="text-6xl">✅</div>
               <h2 className="text-2xl font-black text-gray-900">Cadeau validé !</h2>
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200">
@@ -425,9 +425,9 @@ export default function ClassicTemplate(props: TemplateProps) {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 text-center space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 flex items-start sm:items-center justify-center p-0 sm:p-4">
+        <div className="w-full sm:max-w-md">
+          <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-2xl p-6 sm:p-8 text-center space-y-6">
             <div className="text-5xl">🎁</div>
             <h2 className="text-xl font-black text-gray-900">Présentez cet écran au serveur</h2>
 
@@ -494,9 +494,9 @@ export default function ClassicTemplate(props: TemplateProps) {
   // === REDEEM (deferred pickup) ===
   if (step === 'redeem') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl p-8 text-center space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex items-start sm:items-center justify-center p-0 sm:p-4">
+        <div className="w-full sm:max-w-md">
+          <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-xl p-6 sm:p-8 text-center space-y-6 flex flex-col justify-center sm:block">
             <div className="text-5xl">🎟️</div>
             <h2 className="text-xl font-bold text-gray-900">Récupérer mon cadeau</h2>
             <p className="text-sm text-gray-500">
@@ -540,9 +540,9 @@ export default function ClassicTemplate(props: TemplateProps) {
   // === RESULT ===
   if (step === 'result' && spinResult) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl p-8 text-center space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-start sm:items-center justify-center p-0 sm:p-4">
+        <div className="w-full sm:max-w-md">
+          <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-xl p-6 sm:p-8 text-center space-y-6 flex flex-col justify-center sm:block">
             <div className="text-5xl">😊</div>
             <h2 className="text-xl font-bold text-gray-900">Pas de lot cette fois</h2>
             <p className="text-gray-500">
