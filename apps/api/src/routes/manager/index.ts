@@ -772,6 +772,38 @@ export async function managerRoutes(fastify: FastifyInstance) {
     return reply.send({ message: 'Telegram délié' });
   });
 
+  // Generate WhatsApp link code
+  fastify.post('/messaging/whatsapp-link', async (request: FastifyRequest, reply: FastifyReply) => {
+    const managerId = request.user.id;
+
+    const code = `walink_${managerId}_${Date.now().toString(36)}`;
+
+    await prisma.messagingVerification.create({
+      data: {
+        managerId,
+        phoneNumber: 'whatsapp-link',
+        code,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+      },
+    });
+
+    return reply.send({ code });
+  });
+
+  // Unlink WhatsApp
+  fastify.delete('/messaging/whatsapp', async (request: FastifyRequest, reply: FastifyReply) => {
+    await prisma.user.update({
+      where: { id: request.user.id },
+      data: {
+        whatsappNumber: null,
+        whatsappVerified: false,
+        preferredMessaging: null,
+      },
+    });
+
+    return reply.send({ message: 'WhatsApp délié' });
+  });
+
   // Portail client Stripe (gérer abonnement, factures, annuler)
   fastify.post('/subscription/billing-portal', async (request: FastifyRequest, reply: FastifyReply) => {
     const restaurant = await getManagerRestaurant(request.user.id);

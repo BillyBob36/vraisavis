@@ -1,0 +1,17 @@
+{
+  "name": "@vraisavis/whatsapp",
+  "version": "1.0.0",
+  "description": "WhatsApp bridge via Evolution API for VraisAvis",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0"
+  }
+}

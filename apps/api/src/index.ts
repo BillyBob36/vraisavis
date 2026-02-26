@@ -11,6 +11,7 @@ import { vendorRoutes } from './routes/vendor/index.js';
 import { clientRoutes } from './routes/client/index.js';
 import { webhookRoutes } from './routes/webhooks.js';
 import { telegramRoutes } from './routes/telegram/index.js';
+import { whatsappRoutes } from './routes/whatsapp/index.js';
 import { startCronJobs } from './cron/scheduler.js';
 
 const fastify = Fastify({
@@ -56,6 +57,7 @@ await fastify.register(webhookRoutes, { prefix: '/api/v1/webhooks' });
 // Stripe webhook also at /stripe (configured in Stripe Dashboard)
 await fastify.register(webhookRoutes, { prefix: '' });
 await fastify.register(telegramRoutes, { prefix: '/api/v1/telegram' });
+await fastify.register(whatsappRoutes, { prefix: '/api/v1/whatsapp' });
 
 // Error handler
 fastify.setErrorHandler((error, request, reply) => {

@@ -34,10 +34,11 @@ export const config = {
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '',
   TELEGRAM_WEBHOOK_SECRET: process.env.TELEGRAM_WEBHOOK_SECRET || '',
   
-  // WhatsApp Cloud API
-  WHATSAPP_TOKEN: process.env.WHATSAPP_TOKEN || '',
-  WHATSAPP_PHONE_NUMBER_ID: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
-  WHATSAPP_VERIFY_TOKEN: process.env.WHATSAPP_VERIFY_TOKEN || '',
+  // WhatsApp via Evolution API
+  EVOLUTION_API_URL: process.env.EVOLUTION_API_URL || '',
+  EVOLUTION_API_KEY: process.env.EVOLUTION_API_KEY || '',
+  WHATSAPP_DEFAULT_INSTANCE: process.env.WHATSAPP_DEFAULT_INSTANCE || 'vraisavis-default',
+  WHATSAPP_WEBHOOK_SECRET: process.env.WHATSAPP_WEBHOOK_SECRET || '',
   
   // Twilio SMS
   TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID || '',
