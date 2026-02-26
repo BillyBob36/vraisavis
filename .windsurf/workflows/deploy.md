@@ -11,6 +11,7 @@ description: Déployer l'API et/ou le Frontend VraisAvis via l'API Coolify
 ## UUIDs des applications Coolify
 - **API** : `x840o4o8gwgccsoscs0gckok` (port 3001, Dockerfile: `/apps/api/Dockerfile`)
 - **Web Dashboard** : `y4cokwkkcks8k4k8wcw440cc` (port 3000, Dockerfile: `/apps/web/Dockerfile`)
+- **Evolution API (WhatsApp)** : `xck88kk4880ocoss4wgoswsk` (port 8080, Docker image: `atendai/evolution-api:v2.2.3`, domaine: `evolution.vraisavis.fr`)
 
 ## Étapes
 
