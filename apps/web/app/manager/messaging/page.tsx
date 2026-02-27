@@ -22,6 +22,9 @@ export default function MessagingPage() {
   const [saving, setSaving] = useState(false);
   const [telegramLink, setTelegramLink] = useState<string | null>(null);
   const [linkLoading, setLinkLoading] = useState(false);
+  const [whatsappCode, setWhatsappCode] = useState<string | null>(null);
+  const [waLinkLoading, setWaLinkLoading] = useState(false);
+  const [waUnlinkLoading, setWaUnlinkLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchSettings = useCallback(async () => {
@@ -116,6 +119,51 @@ export default function MessagingPage() {
     }
   };
 
+  const generateWhatsappCode = async () => {
+    const token = getToken();
+    if (!token) return;
+    setWaLinkLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/v1/manager/messaging/whatsapp-link`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setWhatsappCode(data.code);
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Erreur lors de la génération du code' });
+    } finally {
+      setWaLinkLoading(false);
+    }
+  };
+
+  const unlinkWhatsapp = async () => {
+    const token = getToken();
+    if (!token) return;
+    setWaUnlinkLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/v1/manager/messaging/whatsapp`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'WhatsApp délié' });
+        setWhatsappCode(null);
+        await fetchSettings();
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Erreur lors de la déconnexion' });
+    } finally {
+      setWaUnlinkLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[60vh]">
@@ -201,14 +249,80 @@ export default function MessagingPage() {
           >
             <div className="text-2xl mb-2">💬</div>
             <p className="font-semibold text-gray-900">WhatsApp</p>
-            <p className="text-xs text-gray-500 mt-1">Bientôt disponible</p>
+            <p className="text-xs text-gray-500 mt-1">Simple et rapide</p>
             {settings?.whatsappVerified && (
               <span className="inline-block mt-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                ✓ Vérifié
+                ✓ Lié
               </span>
             )}
           </button>
         </div>
+      </div>
+
+      {/* WhatsApp Setup */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">Configuration WhatsApp</h2>
+
+        {settings?.whatsappVerified ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
+              <span className="text-green-600 text-lg">✅</span>
+              <p className="text-sm font-medium text-green-800">
+                Votre WhatsApp est lié{settings.whatsappNumber ? ` (${settings.whatsappNumber})` : ''}. Vous pouvez discuter avec votre assistant IA directement sur WhatsApp.
+              </p>
+            </div>
+            <button
+              onClick={unlinkWhatsapp}
+              disabled={waUnlinkLoading}
+              className="text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
+            >
+              {waUnlinkLoading ? 'Déconnexion...' : 'Délier mon WhatsApp'}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Liez votre WhatsApp pour discuter avec votre assistant IA et recevoir les bilans quotidiens.
+            </p>
+
+            {whatsappCode ? (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-700 font-medium">
+                  Envoyez ce code sur WhatsApp au numéro du bot :
+                </p>
+                <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                  <code className="flex-1 text-sm font-mono text-gray-800 break-all">{whatsappCode}</code>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(whatsappCode); setMessage({ type: 'success', text: 'Code copié !' }); }}
+                    className="shrink-0 text-xs px-2 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600"
+                  >
+                    Copier
+                  </button>
+                </div>
+                <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+                  <li>Ouvrez WhatsApp sur votre téléphone</li>
+                  <li>Envoyez le code ci-dessus au numéro lié à votre bot VraisAvis</li>
+                  <li>Votre compte sera lié automatiquement</li>
+                </ol>
+                <p className="text-xs text-gray-400">Ce code expire dans 10 minutes</p>
+                <button
+                  onClick={() => setWhatsappCode(null)}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  ← Recommencer
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={generateWhatsappCode}
+                disabled={waLinkLoading}
+                className="w-full py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                {waLinkLoading ? 'Génération...' : '💬 Lier mon WhatsApp'}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Telegram Setup */}
