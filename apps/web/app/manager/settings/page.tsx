@@ -233,6 +233,7 @@ export default function SettingsPage() {
   const [telegramLink, setTelegramLink] = useState<string | null>(null);
   const [linkLoading, setLinkLoading] = useState(false);
   const [whatsappCode, setWhatsappCode] = useState<string | null>(null);
+  const [botPhone, setBotPhone] = useState<string | null>(null);
   const [waLinkLoading, setWaLinkLoading] = useState(false);
   const [waUnlinkLoading, setWaUnlinkLoading] = useState(false);
 
@@ -340,6 +341,7 @@ export default function SettingsPage() {
       if (res.ok) {
         const data = await res.json();
         setWhatsappCode(data.code);
+        if (data.botPhone) setBotPhone(data.botPhone);
       }
     } catch {
       toast({ title: 'Erreur génération code', variant: 'destructive' });
@@ -740,9 +742,22 @@ export default function SettingsPage() {
                             Copier
                           </button>
                         </div>
+                        {botPhone && (
+                          <p className="text-sm text-gray-700">
+                            Numéro du bot : <strong>+{botPhone}</strong>
+                            <a
+                              href={`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode || '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-2 text-green-600 hover:text-green-700 underline text-xs"
+                            >
+                              Ouvrir la conversation ↗
+                            </a>
+                          </p>
+                        )}
                         <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
                           <li>Ouvrez WhatsApp sur votre téléphone</li>
-                          <li>Envoyez le code ci-dessus au numéro lié à votre bot VraisAvis</li>
+                          <li>Envoyez le code ci-dessus {botPhone ? `au +${botPhone}` : 'au numéro du bot VraisAvis'}</li>
                           <li>Votre compte sera lié automatiquement</li>
                         </ol>
                         <p className="text-xs text-gray-400">Ce code expire dans 10 minutes</p>

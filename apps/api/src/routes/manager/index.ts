@@ -7,6 +7,7 @@ import { config } from '../../config/env.js';
 import { notifyClient } from '../../services/notifications/sender.js';
 import { backfillFeedbacks } from '../../services/feedback-ai/index.js';
 import { stripe } from '../../services/stripe.js';
+import { getBotPhoneNumber } from '../../services/messaging/whatsapp.js';
 
 const updateRestaurantSchema = z.object({
   name: z.string().min(2).optional(),
@@ -787,7 +788,9 @@ export async function managerRoutes(fastify: FastifyInstance) {
       },
     });
 
-    return reply.send({ code });
+    const botPhone = await getBotPhoneNumber();
+
+    return reply.send({ code, botPhone });
   });
 
   // Unlink WhatsApp

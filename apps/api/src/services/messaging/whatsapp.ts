@@ -170,6 +170,29 @@ export async function deleteWhatsAppInstance(instanceName: string): Promise<bool
 }
 
 /**
+ * Get the phone number of the default bot instance.
+ * Returns e.g. "33699812057" from ownerJid "33699812057@s.whatsapp.net"
+ */
+export async function getBotPhoneNumber(): Promise<string | null> {
+  if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) return null;
+
+  const instance = config.WHATSAPP_DEFAULT_INSTANCE || 'vraisavis-bot';
+
+  try {
+    const res = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
+      headers: evoHeaders(),
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as Array<{ name?: string; ownerJid?: string; connectionStatus?: string }>;
+    const found = data.find((i) => i.name === instance);
+    if (!found?.ownerJid) return null;
+    return found.ownerJid.replace(/@.*$/, '');
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Check if a phone number is on WhatsApp.
  */
 export async function isOnWhatsApp(
