@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import QRCode from 'qrcode';
 import { apiFetch, getToken } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -234,6 +235,8 @@ export default function SettingsPage() {
   const [linkLoading, setLinkLoading] = useState(false);
   const [whatsappCode, setWhatsappCode] = useState<string | null>(null);
   const [botPhone, setBotPhone] = useState<string | null>(null);
+  const [waMode, setWaMode] = useState<'choice' | 'mobile' | 'desktop'>('choice');
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [waLinkLoading, setWaLinkLoading] = useState(false);
   const [waUnlinkLoading, setWaUnlinkLoading] = useState(false);
 
@@ -342,6 +345,8 @@ export default function SettingsPage() {
         const data = await res.json();
         setWhatsappCode(data.code);
         if (data.botPhone) setBotPhone(data.botPhone);
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+        setWaMode(isMobile ? 'mobile' : 'desktop');
       }
     } catch {
       toast({ title: 'Erreur génération code', variant: 'destructive' });
@@ -349,6 +354,21 @@ export default function SettingsPage() {
       setWaLinkLoading(false);
     }
   };
+
+  const generateQr = useCallback(async (url: string) => {
+    try {
+      const dataUrl = await QRCode.toDataURL(url, { width: 240, margin: 2, color: { dark: '#111827', light: '#ffffff' } });
+      setQrDataUrl(dataUrl);
+    } catch {
+      setQrDataUrl(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (waMode === 'desktop' && whatsappCode && botPhone) {
+      generateQr(`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode)}`);
+    }
+  }, [waMode, whatsappCode, botPhone, generateQr]);
 
   const unlinkWhatsapp = async () => {
     const token = getToken();
@@ -730,38 +750,72 @@ export default function SettingsPage() {
                     <p className="text-sm text-gray-600">
                       Liez votre WhatsApp pour discuter avec votre assistant IA et recevoir les bilans quotidiens.
                     </p>
-                    {whatsappCode ? (
-                      <div className="space-y-3">
-                        <p className="text-sm text-gray-700 font-medium">Envoyez ce code sur WhatsApp au numéro du bot :</p>
-                        <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl">
-                          <code className="flex-1 text-sm font-mono text-gray-800 break-all">{whatsappCode}</code>
+                    {whatsappCode && botPhone ? (
+                      <div className="space-y-4">
+                        {/* Mode switcher */}
+                        <div className="grid grid-cols-2 gap-3">
                           <button
-                            onClick={() => { navigator.clipboard.writeText(whatsappCode); toast({ title: 'Code copié !' }); }}
-                            className="shrink-0 text-xs px-2 py-1 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600"
+                            onClick={() => setWaMode('mobile')}
+                            className={`p-4 rounded-xl border-2 text-left transition-all ${
+                              waMode === 'mobile' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
                           >
-                            Copier
+                            <div className="text-xl mb-1">👆</div>
+                            <p className="text-sm font-semibold text-gray-900 leading-tight">J&apos;utilise actuellement le téléphone que je veux lier</p>
+                            <p className="text-xs text-gray-500 mt-1">Ouvre WhatsApp directement avec le message prêt à envoyer</p>
+                          </button>
+                          <button
+                            onClick={() => setWaMode('desktop')}
+                            className={`p-4 rounded-xl border-2 text-left transition-all ${
+                              waMode === 'desktop' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                            }`}
+                          >
+                            <div className="text-xl mb-1">🖥️</div>
+                            <p className="text-sm font-semibold text-gray-900 leading-tight">Je suis sur ordinateur</p>
+                            <p className="text-xs text-gray-500 mt-1">Affiche un QR code à scanner avec le téléphone à lier</p>
                           </button>
                         </div>
-                        {botPhone && (
-                          <p className="text-sm text-gray-700">
-                            Numéro du bot : <strong>+{botPhone}</strong>
+
+                        {/* Option A — lien direct */}
+                        {waMode === 'mobile' && (
+                          <div className="space-y-3">
                             <a
-                              href={`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode || '')}`}
+                              href={`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode)}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="ml-2 text-green-600 hover:text-green-700 underline text-xs"
+                              className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
                             >
-                              Ouvrir la conversation ↗
+                              <span>💬</span> Ouvrir WhatsApp et envoyer le code
                             </a>
-                          </p>
+                            <p className="text-xs text-gray-400 text-center">Le message sera pré-rempli — il suffit d&apos;envoyer</p>
+                          </div>
                         )}
-                        <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
-                          <li>Ouvrez WhatsApp sur votre téléphone</li>
-                          <li>Envoyez le code ci-dessus {botPhone ? `au +${botPhone}` : 'au numéro du bot VraisAvis'}</li>
-                          <li>Votre compte sera lié automatiquement</li>
-                        </ol>
-                        <p className="text-xs text-gray-400">Ce code expire dans 10 minutes</p>
-                        <button onClick={() => setWhatsappCode(null)} className="text-xs text-gray-400 hover:text-gray-600">← Recommencer</button>
+
+                        {/* Option B — QR code */}
+                        {waMode === 'desktop' && (
+                          <div className="flex flex-col items-center space-y-3">
+                            {qrDataUrl ? (
+                              <>
+                                <img src={qrDataUrl} alt="QR code WhatsApp" className="w-48 h-48 rounded-xl border border-gray-200" />
+                                <p className="text-sm text-gray-600 text-center">
+                                  Scannez ce QR code avec votre téléphone pour ouvrir WhatsApp avec le message prêt à envoyer
+                                </p>
+                              </>
+                            ) : (
+                              <div className="w-48 h-48 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center">
+                                <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <p className="text-xs text-gray-400 text-center">Ce code expire dans 10 minutes</p>
+                        <button
+                          onClick={() => { setWhatsappCode(null); setBotPhone(null); setQrDataUrl(null); setWaMode('choice'); }}
+                          className="text-xs text-gray-400 hover:text-gray-600 block mx-auto"
+                        >
+                          ← Recommencer
+                        </button>
                       </div>
                     ) : (
                       <button
