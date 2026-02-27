@@ -125,7 +125,10 @@ export default function MessagingPage() {
 
   const generateWhatsappCode = async () => {
     const token = getToken();
-    if (!token) return;
+    if (!token) {
+      setMessage({ type: 'error', text: 'Session expirée, veuillez vous reconnecter' });
+      return;
+    }
     setWaLinkLoading(true);
 
     try {
@@ -140,9 +143,12 @@ export default function MessagingPage() {
         if (data.botPhone) setBotPhone(data.botPhone);
         const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
         setWaMode(isMobile ? 'mobile' : 'desktop');
+      } else {
+        const err = await res.text();
+        setMessage({ type: 'error', text: `Erreur serveur (${res.status}): ${err}` });
       }
-    } catch {
-      setMessage({ type: 'error', text: 'Erreur lors de la génération du code' });
+    } catch (e) {
+      setMessage({ type: 'error', text: `Erreur réseau: ${String(e)}` });
     } finally {
       setWaLinkLoading(false);
     }
@@ -307,7 +313,7 @@ export default function MessagingPage() {
               Liez votre WhatsApp pour discuter avec votre assistant IA et recevoir les bilans quotidiens.
             </p>
 
-            {whatsappCode && botPhone ? (
+            {whatsappCode ? (
               <div className="space-y-4">
                 {/* Mode switcher */}
                 <div className="grid grid-cols-2 gap-3">
