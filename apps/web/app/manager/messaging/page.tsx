@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getToken } from '@/lib/api';
-import QRCode from 'qrcode';
+import { QRCodeSVG } from 'qrcode.react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -26,7 +26,6 @@ export default function MessagingPage() {
   const [whatsappCode, setWhatsappCode] = useState<string | null>(null);
   const [botPhone, setBotPhone] = useState<string | null>(null);
   const [waMode, setWaMode] = useState<'choice' | 'mobile' | 'desktop'>('choice');
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [waLinkLoading, setWaLinkLoading] = useState(false);
   const [waUnlinkLoading, setWaUnlinkLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -153,21 +152,6 @@ export default function MessagingPage() {
       setWaLinkLoading(false);
     }
   };
-
-  const generateQr = useCallback(async (url: string) => {
-    try {
-      const dataUrl = await QRCode.toDataURL(url, { width: 240, margin: 2, color: { dark: '#111827', light: '#ffffff' } });
-      setQrDataUrl(dataUrl);
-    } catch {
-      setQrDataUrl(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (waMode === 'desktop' && whatsappCode && botPhone) {
-      generateQr(`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode)}`);
-    }
-  }, [waMode, whatsappCode, botPhone, generateQr]);
 
   const unlinkWhatsapp = async () => {
     const token = getToken();
@@ -355,26 +339,25 @@ export default function MessagingPage() {
                 )}
 
                 {/* Option B — QR code */}
-                {waMode === 'desktop' && (
+                {waMode === 'desktop' && botPhone && (
                   <div className="flex flex-col items-center space-y-3">
-                    {qrDataUrl ? (
-                      <>
-                        <img src={qrDataUrl} alt="QR code WhatsApp" className="w-48 h-48 rounded-xl border border-gray-200" />
-                        <p className="text-sm text-gray-600 text-center">
-                          Scannez ce QR code avec votre téléphone pour ouvrir WhatsApp avec le message prêt à envoyer
-                        </p>
-                      </>
-                    ) : (
-                      <div className="w-48 h-48 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                      </div>
-                    )}
+                    <div className="p-3 bg-white rounded-xl border border-gray-200 inline-block">
+                      <QRCodeSVG
+                        value={`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode ?? '')}`}
+                        size={192}
+                        fgColor="#111827"
+                        bgColor="#ffffff"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 text-center">
+                      Scannez ce QR code avec votre téléphone pour ouvrir WhatsApp avec le message prêt à envoyer
+                    </p>
                   </div>
                 )}
 
                 <p className="text-xs text-gray-400 text-center">Ce code expire dans 10 minutes</p>
                 <button
-                  onClick={() => { setWhatsappCode(null); setBotPhone(null); setQrDataUrl(null); setWaMode('choice'); }}
+                  onClick={() => { setWhatsappCode(null); setBotPhone(null); setWaMode('choice'); }}
                   className="text-xs text-gray-400 hover:text-gray-600 block mx-auto"
                 >
                   ← Recommencer
