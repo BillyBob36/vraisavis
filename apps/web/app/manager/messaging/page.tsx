@@ -339,11 +339,13 @@ export default function MessagingPage() {
                 )}
 
                 {/* Option B — QR code */}
-                {waMode === 'desktop' && botPhone && (
+                {waMode === 'desktop' && (
                   <div className="flex flex-col items-center space-y-3">
                     <div className="p-3 bg-white rounded-xl border border-gray-200 inline-block">
                       <QRCodeSVG
-                        value={`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode ?? '')}`}
+                        value={botPhone
+                          ? `https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode ?? '')}`
+                          : (whatsappCode ?? '')}
                         size={192}
                         fgColor="#111827"
                         bgColor="#ffffff"
