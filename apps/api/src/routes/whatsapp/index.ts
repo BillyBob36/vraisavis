@@ -101,6 +101,8 @@ export async function whatsappRoutes(fastify: FastifyInstance) {
 
     const payload = request.body as EvoWebhookPayload;
 
+    console.log(`[WhatsApp] webhook received: event=${payload?.event} instance=${payload?.instance}`);
+
     if (!payload?.event || !payload?.instance) {
       return reply.status(200).send({ ok: true });
     }
@@ -108,6 +110,7 @@ export async function whatsappRoutes(fastify: FastifyInstance) {
     // Handle different event types
     switch (payload.event) {
       case 'messages.upsert':
+        console.log(`[WhatsApp] messages.upsert fromMe=${payload.data?.key?.fromMe} jid=${payload.data?.key?.remoteJid} text=${JSON.stringify(payload.data?.message?.conversation)}`);
         await handleIncomingMessage(payload);
         break;
 
