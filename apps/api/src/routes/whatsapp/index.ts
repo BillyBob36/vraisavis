@@ -25,10 +25,12 @@ interface EvoWebhookPayload {
       fromMe: boolean;
       id: string;
       participant?: string;
+      senderPn?: string;
     };
     pushName?: string;
     sender?: string;
     participant?: string;
+    senderPn?: string;
     message?: {
       conversation?: string;
       extendedTextMessage?: {
@@ -275,31 +277,57 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
 
   const firstName = data.pushName || '';
 
-  // Resolve @lid to real phone number (e.g. "56019627548810@lid" → "306998120577")
-  const phone = await resolveJidToPhone(remoteJid, instance);
-  console.log(`[WhatsApp] resolved phone=${phone} (remoteJid=${remoteJid}) text="${text}"`);
+  // Resolve @lid JID using senderPn (official field from Evolution/Baileys)
+  // senderPn contains the real phone number when WhatsApp sends a @lid JID
+  let sendTo: string;
+  if (remoteJid.endsWith('@lid')) {
+    const senderPn = data.key?.senderPn || data.senderPn;
+    if (senderPn) {
+      sendTo = `${senderPn}@s.whatsapp.net`;
+      console.log(`[WhatsApp] @lid resolved via senderPn: ${remoteJid} → ${sendTo}`);
+    } else {
+      // No senderPn available — store @lid and ask user to add bot to contacts
+      sendTo = remoteJid;
+      console.log(`[WhatsApp] @lid with no senderPn: ${remoteJid} — asking user to add contact`);
+    }
+  } else {
+    sendTo = remoteJid;
+  }
+
+  // Extract plain number for DB lookups (strip @domain)
+  const phone = sendTo.replace(/@.*$/, '');
+  console.log(`[WhatsApp] sendTo=${sendTo} phone=${phone} text="${text}"`);
 
   // Handle link command
   if (text.startsWith('walink_')) {
-    await handleLinkAccount(phone, text.trim(), firstName, instance);
+    // If @lid with no senderPn, we can't store a usable number — ask to add contact
+    if (remoteJid.endsWith('@lid') && sendTo === remoteJid) {
+      await sendWhatsAppMessage(
+        remoteJid,
+        `⚠️ Pour lier votre compte, veuillez d'abord **ajouter ce numéro à vos contacts WhatsApp**, puis renvoyez le code de liaison.`,
+        instance,
+      );
+      return;
+    }
+    await handleLinkAccount(sendTo, text.trim(), firstName, instance);
     return;
   }
 
-  // Find manager by resolved phone or JID
-  const manager = await findManagerByWhatsApp(phone);
+  // If @lid with no senderPn and not a link command, try finding by @lid stored or ask to add contact
+  const manager = await findManagerByWhatsApp(sendTo);
 
   // Handle /start or "Bonjour" as intro
   if (text === '/start' || text.toLowerCase() === 'bonjour' || text.toLowerCase() === 'start') {
     if (manager) {
       const restaurantName = manager.managedRestaurants[0]?.name || 'votre restaurant';
       await sendWhatsAppMessage(
-        phone,
+        sendTo,
         `👋 Bonjour ${manager.name} !\n\nJe suis votre assistant IA pour *${restaurantName}*.\n\nVous pouvez me demander :\n• 📊 Les avis du jour/semaine/mois\n• 🎁 Gérer vos lots (lister, ajouter, supprimer)\n• 📈 Les statistiques\n\nEssayez par exemple : "Quels sont les avis du jour ?"`,
         instance,
       );
     } else {
       await sendWhatsAppMessage(
-        phone,
+        sendTo,
         `👋 Bienvenue sur VraisAvis !\n\nPour lier ce WhatsApp à votre compte, allez dans votre tableau de bord → Paramètres → Messagerie, puis cliquez sur "Lier WhatsApp" et envoyez le code ici.`,
         instance,
       );
@@ -310,7 +338,7 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
   // Handle /help
   if (text === '/help' || text.toLowerCase() === 'aide') {
     await sendWhatsAppMessage(
-      phone,
+      sendTo,
       `🤖 *Commandes disponibles :*\n\n• "Avis du jour" — Voir les avis d'aujourd'hui\n• "Avis de la semaine" — Voir les avis de la semaine\n• "Mes lots" — Lister les lots de la machine à sous\n• "Stats" — Statistiques générales\n• "Ajouter un lot [nom]" — Ajouter un nouveau lot\n• "Supprimer le lot [nom]" — Désactiver un lot\n\nOu posez n'importe quelle question en langage naturel !`,
       instance,
     );
@@ -320,7 +348,7 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
   // Regular message → AI agent
   if (!manager) {
     await sendWhatsAppMessage(
-      phone,
+      sendTo,
       `❌ Ce numéro n'est pas lié à un compte VraisAvis.\n\nAllez dans votre tableau de bord → Paramètres → Messagerie pour lier votre WhatsApp.`,
       instance,
     );
@@ -329,12 +357,12 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
 
   const restaurant = manager.managedRestaurants[0];
   if (!restaurant) {
-    await sendWhatsAppMessage(phone, '❌ Aucun restaurant actif trouvé sur votre compte.', instance);
+    await sendWhatsAppMessage(sendTo, '❌ Aucun restaurant actif trouvé sur votre compte.', instance);
     return;
   }
 
   // Show typing indicator
-  await sendWhatsAppTypingAction(phone, instance);
+  await sendWhatsAppTypingAction(sendTo, instance);
 
   // Process through AI agent
   try {
@@ -345,11 +373,11 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
       'WHATSAPP',
     );
 
-    await sendWhatsAppMessage(phone, response, instance);
+    await sendWhatsAppMessage(sendTo, response, instance);
   } catch (err) {
     console.error('[WhatsApp] Agent processing error:', err);
     await sendWhatsAppMessage(
-      phone,
+      sendTo,
       '❌ Désolé, le service est momentanément indisponible. Réessayez dans quelques minutes.',
       instance,
     );
