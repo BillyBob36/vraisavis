@@ -370,29 +370,42 @@ export default function MessagingPage() {
                 {/* Option B — QR code */}
                 {waMode === 'desktop' && (
                   <div className="flex flex-col items-center space-y-3">
-                    <div className="p-3 bg-white rounded-xl border border-gray-200 inline-block">
-                      <QRCodeSVG
-                        value={botPhone
-                          ? `https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode ?? '')}`
-                          : (whatsappCode ?? '')}
-                        size={192}
-                        fgColor="#111827"
-                        bgColor="#ffffff"
-                      />
-                    </div>
-                    <div className="space-y-1 text-center">
-                      <p className="text-sm text-gray-700 font-medium">
-                        📸 Ouvrez l’<strong>appareil photo</strong> de votre téléphone et scannez ce QR
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        WhatsApp s’ouvrira automatiquement avec le message pré-rempli
-                      </p>
-                      <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                        <p className="text-xs text-amber-700">
-                          ⚠️ Ne pas utiliser le scanner QR <em>dans</em> WhatsApp (Appareils connectés) — utiliser l’appareil photo normal du téléphone
-                        </p>
+                    {botPhone ? (
+                      <>
+                        <div className="p-3 bg-white rounded-xl border border-gray-200 inline-block">
+                          <QRCodeSVG
+                            value={`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode ?? '')}`}
+                            size={192}
+                            fgColor="#111827"
+                            bgColor="#ffffff"
+                          />
+                        </div>
+                        <div className="space-y-1 text-center">
+                          <p className="text-sm text-gray-700 font-medium">
+                            📸 Ouvrez l’<strong>appareil photo</strong> de votre téléphone et scannez ce QR
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            WhatsApp s’ouvrira automatiquement avec le message pré-rempli
+                          </p>
+                          <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                            <p className="text-xs text-amber-700">
+                              ⚠️ Ne pas utiliser le scanner QR <em>dans</em> WhatsApp (Appareils connectés) — utiliser l’appareil photo normal du téléphone
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-full space-y-2">
+                        <p className="text-sm text-gray-700">Copiez ce code et envoyez-le au bot WhatsApp :</p>
+                        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                          <code className="flex-1 text-sm font-mono text-gray-800 break-all">{whatsappCode}</code>
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(whatsappCode ?? ''); setMessage({ type: 'success', text: 'Code copié !' }); }}
+                            className="shrink-0 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                          >Copier</button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 

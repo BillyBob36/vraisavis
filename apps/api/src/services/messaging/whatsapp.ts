@@ -176,7 +176,7 @@ export async function deleteWhatsAppInstance(instanceName: string): Promise<bool
 export async function getBotPhoneNumber(): Promise<string | null> {
   if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) return null;
 
-  const instance = config.WHATSAPP_DEFAULT_INSTANCE || 'vraisavis-bot';
+  const preferredInstance = config.WHATSAPP_DEFAULT_INSTANCE || 'vraisavis-bot';
 
   try {
     const res = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
@@ -184,7 +184,14 @@ export async function getBotPhoneNumber(): Promise<string | null> {
     });
     if (!res.ok) return null;
     const data = await res.json() as Array<{ name?: string; ownerJid?: string; connectionStatus?: string }>;
-    const found = data.find((i) => i.name === instance);
+
+    // First try the configured instance name
+    let found = data.find((i) => i.name === preferredInstance && i.ownerJid);
+    // Fallback: any open/connected instance with an ownerJid
+    if (!found) {
+      found = data.find((i) => i.ownerJid && (i.connectionStatus === 'open' || i.connectionStatus === 'connected'));
+    }
+
     if (!found?.ownerJid) return null;
     return found.ownerJid.replace(/@.*$/, '');
   } catch {
