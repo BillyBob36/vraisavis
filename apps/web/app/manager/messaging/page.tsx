@@ -52,6 +52,29 @@ export default function MessagingPage() {
 
   useEffect(() => { fetchSettings(); }, [fetchSettings]);
 
+  // Poll WhatsApp link status while code is displayed
+  useEffect(() => {
+    if (!whatsappCode) return;
+    const token = getToken();
+    if (!token) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/manager/messaging/whatsapp-status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.linked) {
+          clearInterval(interval);
+          setWhatsappCode(null);
+          await fetchSettings();
+          setMessage({ type: 'success', text: '✅ WhatsApp lié avec succès !' });
+        }
+      } catch { /* ignore */ }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [whatsappCode, fetchSettings]);
+
   const saveSettings = async (updates: Partial<MessagingSettings>) => {
     const token = getToken();
     if (!token) return;

@@ -271,6 +271,29 @@ export default function SettingsPage() {
     }
   }, []);
 
+  // Poll WhatsApp link status while code is displayed
+  useEffect(() => {
+    if (!whatsappCode) return;
+    const token = getToken();
+    if (!token) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/manager/messaging/whatsapp-status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.linked) {
+          clearInterval(interval);
+          setWhatsappCode(null);
+          await loadMessaging();
+          toast({ title: '✅ WhatsApp lié avec succès !' });
+        }
+      } catch { /* ignore */ }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [whatsappCode, loadMessaging, toast]);
+
   const saveMsgSettings = async (updates: Partial<MessagingSettings>) => {
     const token = getToken();
     if (!token) return;

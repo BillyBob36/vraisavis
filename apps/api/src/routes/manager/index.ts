@@ -797,6 +797,18 @@ export async function managerRoutes(fastify: FastifyInstance) {
     return reply.send({ code, botPhone });
   });
 
+  // Check WhatsApp link status (used for polling after code display)
+  fastify.get('/messaging/whatsapp-status', async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = await prisma.user.findUnique({
+      where: { id: request.user.id },
+      select: { whatsappNumber: true, whatsappVerified: true },
+    });
+    return reply.send({
+      linked: !!(user?.whatsappVerified && user?.whatsappNumber),
+      whatsappNumber: user?.whatsappNumber ?? null,
+    });
+  });
+
   // Unlink WhatsApp
   fastify.delete('/messaging/whatsapp', async (request: FastifyRequest, reply: FastifyReply) => {
     await prisma.user.update({
