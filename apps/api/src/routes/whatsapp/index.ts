@@ -107,8 +107,11 @@ export async function whatsappRoutes(fastify: FastifyInstance) {
       return reply.status(200).send({ ok: true });
     }
 
+    // Normalize event name: Evolution v2 sends MESSAGES_UPSERT or messages.upsert
+    const eventNorm = payload.event?.toLowerCase().replace(/_/g, '.');
+
     // Handle different event types
-    switch (payload.event) {
+    switch (eventNorm) {
       case 'messages.upsert':
         console.log(`[WhatsApp] messages.upsert fromMe=${payload.data?.key?.fromMe} jid=${payload.data?.key?.remoteJid} text=${JSON.stringify(payload.data?.message?.conversation)}`);
         await handleIncomingMessage(payload);
@@ -119,8 +122,6 @@ export async function whatsappRoutes(fastify: FastifyInstance) {
         break;
 
       case 'qrcode.updated':
-        // QR code updates are handled by polling from the frontend
-        // We just log it for now
         console.log(`[WhatsApp] QR code updated for instance ${payload.instance}`);
         break;
 
