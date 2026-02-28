@@ -23,8 +23,11 @@ interface EvoWebhookPayload {
       remoteJid: string;
       fromMe: boolean;
       id: string;
+      participant?: string;
     };
     pushName?: string;
+    sender?: string;
+    participant?: string;
     message?: {
       conversation?: string;
       extendedTextMessage?: {
@@ -269,11 +272,17 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
   const remoteJid = data.key?.remoteJid;
   if (!remoteJid || remoteJid.includes('@g.us')) return; // Ignore group messages
 
+  // Log full data for debugging @lid resolution
+  console.log(`[WhatsApp] full data keys: ${Object.keys(data).join(', ')}`);
+  console.log(`[WhatsApp] key.participant=${data.key?.participant} sender=${data.sender} participant=${data.participant}`);
+
   // Use full JID (including @lid or @s.whatsapp.net) for sending replies
-  const jid = remoteJid;
+  // If @lid, try to resolve to real @s.whatsapp.net JID via participant/sender fields
+  const senderJid = data.key?.participant || data.sender || data.participant || remoteJid;
+  const jid = senderJid.includes('@') ? senderJid : remoteJid;
   const firstName = data.pushName || '';
 
-  console.log(`[WhatsApp] messages.upsert jid=${jid} text="${text}"`);
+  console.log(`[WhatsApp] resolved jid=${jid} (remoteJid=${remoteJid}) text="${text}"`);
 
   // Handle link command
   if (text.startsWith('walink_')) {
