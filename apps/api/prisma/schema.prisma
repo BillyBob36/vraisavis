@@ -83,6 +83,7 @@ model User {
   whatsappNumber     String?            @map("whatsapp_number")
   whatsappVerified   Boolean            @default(false) @map("whatsapp_verified")
   messagingOptIn     Boolean            @default(false) @map("messaging_opt_in")
+  summaryHour        Int                @default(22) @map("summary_hour")
 
   // Relations
   managedRestaurants     Restaurant[]            @relation("RestaurantManager")

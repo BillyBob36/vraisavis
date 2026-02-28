@@ -14,6 +14,7 @@ interface MessagingSettings {
   whatsappNumber: string | null;
   whatsappVerified: boolean;
   messagingOptIn: boolean;
+  summaryHour: number;
 }
 
 export default function MessagingPage() {
@@ -185,9 +186,9 @@ export default function MessagingPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-8">
+    <div className="px-4 py-6 sm:px-6 max-w-2xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Messagerie & Assistant IA</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Messagerie & Assistant IA</h1>
         <p className="text-sm text-gray-500 mt-1">
           Configurez votre assistant IA pour gérer votre restaurant depuis Telegram ou WhatsApp.
         </p>
@@ -202,17 +203,17 @@ export default function MessagingPage() {
       )}
 
       {/* Opt-in */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
             <p className="font-medium text-gray-800">Recevoir les bilans quotidiens</p>
-            <p className="text-sm text-gray-500">Résumé des avis envoyé chaque soir à 22h</p>
+            <p className="text-sm text-gray-500">Résumé des avis envoyé chaque soir</p>
           </div>
           <button
             onClick={() => saveSettings({ messagingOptIn: !settings?.messagingOptIn })}
             disabled={saving}
-            className={`relative w-12 h-6 rounded-full transition-colors ${
+            className={`relative shrink-0 w-12 h-6 rounded-full transition-colors ${
               settings?.messagingOptIn ? 'bg-blue-600' : 'bg-gray-300'
             }`}
           >
@@ -221,10 +222,25 @@ export default function MessagingPage() {
             }`} />
           </button>
         </div>
+        {settings?.messagingOptIn && (
+          <div className="flex items-center gap-3 pt-1">
+            <label className="text-sm text-gray-600 shrink-0">Heure d&apos;envoi :</label>
+            <select
+              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={settings?.summaryHour ?? 22}
+              onChange={(e) => saveSettings({ summaryHour: parseInt(e.target.value) })}
+              disabled={saving}
+            >
+              {Array.from({ length: 24 }, (_, h) => (
+                <option key={h} value={h}>{String(h).padStart(2, '0')}h00</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Provider Selection */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">Canal de messagerie</h2>
         <p className="text-sm text-gray-500">Choisissez comment communiquer avec votre assistant.</p>
 
@@ -272,7 +288,7 @@ export default function MessagingPage() {
       </div>
 
       {/* WhatsApp Setup */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">Configuration WhatsApp</h2>
 
         {settings?.whatsappVerified ? (
@@ -326,14 +342,27 @@ export default function MessagingPage() {
                 {/* Option A — lien direct */}
                 {waMode === 'mobile' && (
                   <div className="space-y-3">
-                    <a
-                      href={`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
-                    >
-                      <span>💬</span> Ouvrir WhatsApp et envoyer le code
-                    </a>
+                    {botPhone ? (
+                      <a
+                        href={`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
+                      >
+                        <span>💬</span> Ouvrir WhatsApp et envoyer le code
+                      </a>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-700">Copiez ce code et envoyez-le au bot WhatsApp :</p>
+                        <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                          <code className="flex-1 text-sm font-mono text-gray-800 break-all">{whatsappCode}</code>
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(whatsappCode ?? ''); setMessage({ type: 'success', text: 'Code copié !' }); }}
+                            className="shrink-0 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                          >Copier</button>
+                        </div>
+                      </div>
+                    )}
                     <p className="text-xs text-gray-400 text-center">Le message sera pré-rempli — il suffit d&apos;envoyer</p>
                   </div>
                 )}
@@ -379,7 +408,7 @@ export default function MessagingPage() {
       </div>
 
       {/* Telegram Setup */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">Configuration Telegram</h2>
 
         {settings?.telegramLinked ? (

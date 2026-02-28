@@ -175,12 +175,12 @@ export default function ContractsPage() {
   };
 
   if (loading) {
-    return <div className="p-8">Chargement...</div>;
+    return <div className="p-4 sm:p-8">Chargement...</div>;
   }
 
   if (showForm) {
     return (
-      <div className="p-8 max-w-4xl mx-auto">
+      <div className="p-4 sm:p-8 max-w-4xl mx-auto">
         <Card>
           <CardHeader>
             <CardTitle>{editingTemplate ? 'Modifier' : 'Créer'} un template de contrat</CardTitle>
@@ -454,13 +454,14 @@ export default function ContractsPage() {
                 />
               </div>
 
-              <div className="flex gap-2">
-                <Button type="submit">
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit" className="flex-1 sm:flex-none">
                   {editingTemplate ? 'Modifier' : 'Créer'} le template
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
+                  className="flex-1 sm:flex-none"
                   onClick={() => {
                     setShowForm(false);
                     setEditingTemplate(null);
@@ -477,26 +478,26 @@ export default function ContractsPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Templates de contrats</h1>
-        <Button onClick={() => setShowForm(true)}>Créer un template</Button>
+    <div className="p-4 sm:p-8">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold">Templates de contrats</h1>
+        <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">Créer un template</Button>
       </div>
 
       <div className="grid gap-4">
         {templates.map((template) => (
           <Card key={template.id}>
             <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle>
+              <div className="flex flex-wrap justify-between items-start gap-3">
+                <div className="min-w-0">
+                  <CardTitle className="text-base sm:text-lg">
                     {template.type === 'CGU_CGV' ? 'CGU/CGV Restaurant' : 'Contrat Apporteur d\'Affaires'}
                   </CardTitle>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 mt-1 truncate">
                     Version {template.version} • {template.companyName}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 shrink-0">
                   <Button variant="outline" size="sm" onClick={() => handleEdit(template)}>
                     Modifier
                   </Button>

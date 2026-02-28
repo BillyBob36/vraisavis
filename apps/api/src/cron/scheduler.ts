@@ -14,11 +14,11 @@ export function startCronJobs(): void {
     const minutes = now.getMinutes();
     const dayOfWeek = now.getDay(); // 0 = Sunday
 
-    // Daily summaries at 22:00 (between 22:00 and 22:04)
-    if (hours === 22 && minutes < 5) {
-      console.log('🔄 Running daily summary generation...');
+    // Daily summaries: run at XX:00-XX:04 for each hour, filtered by manager's summaryHour
+    if (minutes < 5) {
+      console.log(`🔄 Running daily summary generation for hour ${hours}...`);
       try {
-        await generateDailySummaries();
+        await generateDailySummaries(hours);
         console.log('✅ Daily summaries generated');
       } catch (err) {
         console.error('❌ Daily summary error:', err);

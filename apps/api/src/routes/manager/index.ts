@@ -686,6 +686,7 @@ export async function managerRoutes(fastify: FastifyInstance) {
         whatsappNumber: true,
         whatsappVerified: true,
         messagingOptIn: true,
+        summaryHour: true,
       },
     });
 
@@ -700,6 +701,7 @@ export async function managerRoutes(fastify: FastifyInstance) {
       whatsappNumber: user.whatsappNumber,
       whatsappVerified: user.whatsappVerified,
       messagingOptIn: user.messagingOptIn,
+      summaryHour: user.summaryHour ?? 22,
     });
   });
 
@@ -707,6 +709,7 @@ export async function managerRoutes(fastify: FastifyInstance) {
     const schema = z.object({
       preferredMessaging: z.enum(['TELEGRAM', 'WHATSAPP']).nullable().optional(),
       messagingOptIn: z.boolean().optional(),
+      summaryHour: z.number().int().min(0).max(23).optional(),
       phone: z.string().optional(),
     });
 
@@ -718,6 +721,7 @@ export async function managerRoutes(fastify: FastifyInstance) {
     const data: Record<string, unknown> = {};
     if (body.data.preferredMessaging !== undefined) data.preferredMessaging = body.data.preferredMessaging;
     if (body.data.messagingOptIn !== undefined) data.messagingOptIn = body.data.messagingOptIn;
+    if (body.data.summaryHour !== undefined) data.summaryHour = body.data.summaryHour;
     if (body.data.phone !== undefined) data.phone = body.data.phone;
 
     await prisma.user.update({

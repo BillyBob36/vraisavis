@@ -6,15 +6,20 @@ import { sendMessageToManager } from '../messaging/router.js';
  * Generate daily summaries for all active restaurants.
  * Called by the nightly cron job at 22h.
  */
-export async function generateDailySummaries(): Promise<void> {
+export async function generateDailySummaries(targetHour?: number): Promise<void> {
   const today = new Date();
   const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const endOfDay = new Date(startOfDay);
   endOfDay.setDate(endOfDay.getDate() + 1);
 
-  // Get all active restaurants
+  const hourFilter = targetHour ?? 22;
+
+  // Get all active restaurants whose manager chose this summary hour
   const restaurants = await prisma.restaurant.findMany({
-    where: { status: 'ACTIVE' },
+    where: {
+      status: 'ACTIVE',
+      manager: { summaryHour: hourFilter },
+    },
     include: { manager: true },
   });
 

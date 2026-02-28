@@ -20,6 +20,7 @@ interface MessagingSettings {
   whatsappNumber: string | null;
   whatsappVerified: boolean;
   messagingOptIn: boolean;
+  summaryHour: number;
 }
 
 interface Restaurant {
@@ -418,9 +419,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-1 sm:px-0">
       <div>
-        <h1 className="text-3xl font-bold">Paramètres</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Paramètres</h1>
         <p className="text-muted-foreground">Configurez votre restaurant</p>
       </div>
 
@@ -648,16 +649,16 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle>Notifications</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-800">Recevoir les bilans quotidiens</p>
-                    <p className="text-sm text-gray-500">Résumé des avis envoyé chaque soir à 22h</p>
+                    <p className="text-sm text-gray-500">Résumé des avis envoyé chaque soir</p>
                   </div>
                   <button
                     onClick={() => saveMsgSettings({ messagingOptIn: !msgSettings?.messagingOptIn })}
                     disabled={msgSaving}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${
+                    className={`relative shrink-0 w-12 h-6 rounded-full transition-colors ${
                       msgSettings?.messagingOptIn ? 'bg-blue-600' : 'bg-gray-300'
                     }`}
                   >
@@ -666,6 +667,21 @@ export default function SettingsPage() {
                     }`} />
                   </button>
                 </div>
+                {msgSettings?.messagingOptIn && (
+                  <div className="flex items-center gap-3">
+                    <label className="text-sm text-gray-600 shrink-0">Heure d&apos;envoi :</label>
+                    <select
+                      className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={msgSettings?.summaryHour ?? 22}
+                      onChange={(e) => saveMsgSettings({ summaryHour: parseInt(e.target.value) })}
+                      disabled={msgSaving}
+                    >
+                      {Array.from({ length: 24 }, (_, h) => (
+                        <option key={h} value={h}>{String(h).padStart(2, '0')}h00</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -769,14 +785,27 @@ export default function SettingsPage() {
                         {/* Option A — lien direct */}
                         {waMode === 'mobile' && (
                           <div className="space-y-3">
-                            <a
-                              href={`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
-                            >
-                              <span>💬</span> Ouvrir WhatsApp et envoyer le code
-                            </a>
+                            {botPhone ? (
+                              <a
+                                href={`https://wa.me/${botPhone}?text=${encodeURIComponent(whatsappCode)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors"
+                              >
+                                <span>💬</span> Ouvrir WhatsApp et envoyer le code
+                              </a>
+                            ) : (
+                              <div className="space-y-2">
+                                <p className="text-sm text-gray-700">Copiez ce code et envoyez-le au bot WhatsApp :</p>
+                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                                  <code className="flex-1 text-sm font-mono text-gray-800 break-all">{whatsappCode}</code>
+                                  <button
+                                    onClick={() => { navigator.clipboard.writeText(whatsappCode ?? ''); toast({ title: 'Code copié !' }); }}
+                                    className="shrink-0 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                  >Copier</button>
+                                </div>
+                              </div>
+                            )}
                             <p className="text-xs text-gray-400 text-center">Le message sera pré-rempli — il suffit d&apos;envoyer</p>
                           </div>
                         )}
