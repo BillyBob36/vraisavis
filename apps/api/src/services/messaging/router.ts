@@ -60,20 +60,33 @@ export async function findManagerByTelegramChatId(chatId: string) {
 }
 
 /**
- * Identify a manager from a WhatsApp phone number.
+ * Identify a manager from a WhatsApp JID or phone number.
+ * Supports full JIDs like "56019627548810@lid" or "33612345678@s.whatsapp.net"
+ * and plain numbers for backward compat.
  */
-export async function findManagerByWhatsApp(phoneNumber: string) {
+export async function findManagerByWhatsApp(jidOrPhone: string) {
+  const include = {
+    managedRestaurants: {
+      where: { status: 'ACTIVE' as const },
+      take: 1,
+    },
+  };
+
+  // Try exact match first (full JID stored)
+  const exact = await prisma.user.findFirst({
+    where: { whatsappNumber: jidOrPhone, whatsappVerified: true },
+    include,
+  });
+  if (exact) return exact;
+
+  // Fallback: strip the @domain part and search by number prefix
+  const stripped = jidOrPhone.replace(/@.*$/, '');
   return prisma.user.findFirst({
     where: {
-      whatsappNumber: phoneNumber,
+      whatsappNumber: { startsWith: stripped },
       whatsappVerified: true,
     },
-    include: {
-      managedRestaurants: {
-        where: { status: 'ACTIVE' },
-        take: 1,
-      },
-    },
+    include,
   });
 }
 
