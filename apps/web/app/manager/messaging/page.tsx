@@ -335,7 +335,7 @@ export default function MessagingPage() {
                   >
                     <div className="text-xl mb-1">🖥️</div>
                     <p className="text-sm font-semibold text-gray-900 leading-tight">Je suis sur ordinateur</p>
-                    <p className="text-xs text-gray-500 mt-1">Affiche un QR code à scanner avec le téléphone à lier</p>
+                    <p className="text-xs text-gray-500 mt-1">QR code à scanner avec l’appareil photo du téléphone</p>
                   </button>
                 </div>
 
@@ -380,9 +380,19 @@ export default function MessagingPage() {
                         bgColor="#ffffff"
                       />
                     </div>
-                    <p className="text-sm text-gray-600 text-center">
-                      Scannez ce QR code avec votre téléphone pour ouvrir WhatsApp avec le message prêt à envoyer
-                    </p>
+                    <div className="space-y-1 text-center">
+                      <p className="text-sm text-gray-700 font-medium">
+                        📸 Ouvrez l’<strong>appareil photo</strong> de votre téléphone et scannez ce QR
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        WhatsApp s’ouvrira automatiquement avec le message pré-rempli
+                      </p>
+                      <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        <p className="text-xs text-amber-700">
+                          ⚠️ Ne pas utiliser le scanner QR <em>dans</em> WhatsApp (Appareils connectés) — utiliser l’appareil photo normal du téléphone
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
