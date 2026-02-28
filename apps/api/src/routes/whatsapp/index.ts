@@ -44,6 +44,28 @@ interface EvoWebhookPayload {
   };
 }
 
+// Dedupe incoming messages to avoid double replies when Evolution sends duplicate events.
+// Keyed by instance + message id, kept only for a short window.
+const RECENT_MSG_TTL_MS = 10_000;
+const recentMessageIds = new Map<string, number>();
+
+function shouldProcessMessage(instance: string, messageId?: string): boolean {
+  if (!messageId) return true;
+  const key = `${instance}:${messageId}`;
+  const now = Date.now();
+  const last = recentMessageIds.get(key);
+  if (last && now - last < RECENT_MSG_TTL_MS) return false;
+  recentMessageIds.set(key, now);
+
+  // Opportunistic cleanup
+  if (recentMessageIds.size > 1000) {
+    for (const [k, t] of recentMessageIds) {
+      if (now - t > RECENT_MSG_TTL_MS) recentMessageIds.delete(k);
+    }
+  }
+  return true;
+}
+
 /**
  * Extract the phone number from a WhatsApp JID.
  * "33612345678@s.whatsapp.net" → "33612345678"
@@ -234,6 +256,9 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
   // Skip messages from ourselves
   if (data.key?.fromMe) return;
 
+  // Dedupe (Evolution can emit duplicates during sync)
+  if (!shouldProcessMessage(instance, data.key?.id)) return;
+
   const text = extractText(data);
   if (!text) return;
 
@@ -300,14 +325,23 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
   await sendWhatsAppTypingAction(phone, instance);
 
   // Process through AI agent
-  const response = await processAgentMessage(
-    manager.id,
-    restaurant.id,
-    text,
-    'WHATSAPP',
-  );
+  try {
+    const response = await processAgentMessage(
+      manager.id,
+      restaurant.id,
+      text,
+      'WHATSAPP',
+    );
 
-  await sendWhatsAppMessage(phone, response, instance);
+    await sendWhatsAppMessage(phone, response, instance);
+  } catch (err) {
+    console.error('[WhatsApp] Agent processing error:', err);
+    await sendWhatsAppMessage(
+      phone,
+      '❌ Désolé, le service est momentanément indisponible. Réessayez dans quelques minutes.',
+      instance,
+    );
+  }
 }
 
 /**
