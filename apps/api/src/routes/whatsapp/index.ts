@@ -276,9 +276,9 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
   if (!remoteJid || remoteJid.includes('@g.us')) return; // Ignore group messages
 
   const firstName = data.pushName || '';
+  const msgKey = data.key ? { remoteJid: data.key.remoteJid, id: data.key.id, fromMe: false } : undefined;
 
   // Resolve @lid JID using senderPn (official field from Evolution/Baileys)
-  // senderPn contains the real phone number when WhatsApp sends a @lid JID
   let sendTo: string;
   if (remoteJid.endsWith('@lid')) {
     const senderPn = data.key?.senderPn || data.senderPn;
@@ -286,78 +286,55 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
       sendTo = `${senderPn}@s.whatsapp.net`;
       console.log(`[WhatsApp] @lid resolved via senderPn: ${remoteJid} → ${sendTo}`);
     } else {
-      // No senderPn available — store @lid and ask user to add bot to contacts
+      // No senderPn — reply to @lid directly using quoted context for Signal session
       sendTo = remoteJid;
-      console.log(`[WhatsApp] @lid with no senderPn: ${remoteJid} — asking user to add contact`);
+      console.log(`[WhatsApp] @lid no senderPn, replying to @lid with quoted: ${remoteJid}`);
     }
   } else {
     sendTo = remoteJid;
   }
 
-  // Extract plain number for DB lookups (strip @domain)
+  // For DB lookups strip @domain; for @lid use the lid number itself
   const phone = sendTo.replace(/@.*$/, '');
   console.log(`[WhatsApp] sendTo=${sendTo} phone=${phone} text="${text}"`);
 
+  // Helper: send reply (uses quoted key for @lid to reuse Signal session)
+  const reply = (text: string) => sendWhatsAppMessage(sendTo, text, instance, msgKey);
+
   // Handle link command
   if (text.startsWith('walink_')) {
-    // If @lid with no senderPn, we can't store a usable number — ask to add contact
-    if (remoteJid.endsWith('@lid') && sendTo === remoteJid) {
-      await sendWhatsAppMessage(
-        remoteJid,
-        `⚠️ Pour lier votre compte, veuillez d'abord **ajouter ce numéro à vos contacts WhatsApp**, puis renvoyez le code de liaison.`,
-        instance,
-      );
-      return;
-    }
-    await handleLinkAccount(sendTo, text.trim(), firstName, instance);
+    await handleLinkAccount(sendTo, text.trim(), firstName, instance, msgKey);
     return;
   }
 
-  // If @lid with no senderPn and not a link command, try finding by @lid stored or ask to add contact
   const manager = await findManagerByWhatsApp(sendTo);
 
   // Handle /start or "Bonjour" as intro
   if (text === '/start' || text.toLowerCase() === 'bonjour' || text.toLowerCase() === 'start') {
     if (manager) {
       const restaurantName = manager.managedRestaurants[0]?.name || 'votre restaurant';
-      await sendWhatsAppMessage(
-        sendTo,
-        `👋 Bonjour ${manager.name} !\n\nJe suis votre assistant IA pour *${restaurantName}*.\n\nVous pouvez me demander :\n• 📊 Les avis du jour/semaine/mois\n• 🎁 Gérer vos lots (lister, ajouter, supprimer)\n• 📈 Les statistiques\n\nEssayez par exemple : "Quels sont les avis du jour ?"`,
-        instance,
-      );
+      await reply(`👋 Bonjour ${manager.name} !\n\nJe suis votre assistant IA pour *${restaurantName}*.\n\nVous pouvez me demander :\n• 📊 Les avis du jour/semaine/mois\n• 🎁 Gérer vos lots (lister, ajouter, supprimer)\n• 📈 Les statistiques\n\nEssayez par exemple : "Quels sont les avis du jour ?"`);
     } else {
-      await sendWhatsAppMessage(
-        sendTo,
-        `👋 Bienvenue sur VraisAvis !\n\nPour lier ce WhatsApp à votre compte, allez dans votre tableau de bord → Paramètres → Messagerie, puis cliquez sur "Lier WhatsApp" et envoyez le code ici.`,
-        instance,
-      );
+      await reply(`👋 Bienvenue sur VraisAvis !\n\nPour lier ce WhatsApp à votre compte, allez dans votre tableau de bord → Paramètres → Messagerie, puis cliquez sur "Lier WhatsApp" et envoyez le code ici.`);
     }
     return;
   }
 
   // Handle /help
   if (text === '/help' || text.toLowerCase() === 'aide') {
-    await sendWhatsAppMessage(
-      sendTo,
-      `🤖 *Commandes disponibles :*\n\n• "Avis du jour" — Voir les avis d'aujourd'hui\n• "Avis de la semaine" — Voir les avis de la semaine\n• "Mes lots" — Lister les lots de la machine à sous\n• "Stats" — Statistiques générales\n• "Ajouter un lot [nom]" — Ajouter un nouveau lot\n• "Supprimer le lot [nom]" — Désactiver un lot\n\nOu posez n'importe quelle question en langage naturel !`,
-      instance,
-    );
+    await reply(`🤖 *Commandes disponibles :*\n\n• "Avis du jour" — Voir les avis d'aujourd'hui\n• "Avis de la semaine" — Voir les avis de la semaine\n• "Mes lots" — Lister les lots de la machine à sous\n• "Stats" — Statistiques générales\n• "Ajouter un lot [nom]" — Ajouter un nouveau lot\n• "Supprimer le lot [nom]" — Désactiver un lot\n\nOu posez n'importe quelle question en langage naturel !`);
     return;
   }
 
   // Regular message → AI agent
   if (!manager) {
-    await sendWhatsAppMessage(
-      sendTo,
-      `❌ Ce numéro n'est pas lié à un compte VraisAvis.\n\nAllez dans votre tableau de bord → Paramètres → Messagerie pour lier votre WhatsApp.`,
-      instance,
-    );
+    await reply(`❌ Ce numéro n'est pas lié à un compte VraisAvis.\n\nAllez dans votre tableau de bord → Paramètres → Messagerie pour lier votre WhatsApp.`);
     return;
   }
 
   const restaurant = manager.managedRestaurants[0];
   if (!restaurant) {
-    await sendWhatsAppMessage(sendTo, '❌ Aucun restaurant actif trouvé sur votre compte.', instance);
+    await reply('❌ Aucun restaurant actif trouvé sur votre compte.');
     return;
   }
 
@@ -366,21 +343,11 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
 
   // Process through AI agent
   try {
-    const response = await processAgentMessage(
-      manager.id,
-      restaurant.id,
-      text,
-      'WHATSAPP',
-    );
-
-    await sendWhatsAppMessage(sendTo, response, instance);
+    const response = await processAgentMessage(manager.id, restaurant.id, text, 'WHATSAPP');
+    await reply(response);
   } catch (err) {
     console.error('[WhatsApp] Agent processing error:', err);
-    await sendWhatsAppMessage(
-      sendTo,
-      '❌ Désolé, le service est momentanément indisponible. Réessayez dans quelques minutes.',
-      instance,
-    );
+    await reply('❌ Désolé, le service est momentanément indisponible. Réessayez dans quelques minutes.');
   }
 }
 
@@ -392,7 +359,10 @@ async function handleLinkAccount(
   linkCode: string,
   firstName: string,
   instanceName: string,
+  msgKey?: { remoteJid: string; id: string; fromMe: boolean },
 ) {
+  const reply = (text: string) => sendWhatsAppMessage(phone, text, instanceName, msgKey);
+
   const verification = await prisma.messagingVerification.findFirst({
     where: {
       code: linkCode,
@@ -403,11 +373,7 @@ async function handleLinkAccount(
   });
 
   if (!verification) {
-    await sendWhatsAppMessage(
-      phone,
-      '❌ Code de liaison invalide ou expiré. Veuillez en générer un nouveau depuis votre tableau de bord.',
-      instanceName,
-    );
+    await reply('❌ Code de liaison invalide ou expiré. Veuillez en générer un nouveau depuis votre tableau de bord.');
     return;
   }
 
@@ -435,11 +401,7 @@ async function handleLinkAccount(
 
   const restaurantName = manager?.managedRestaurants[0]?.name || 'votre restaurant';
 
-  await sendWhatsAppMessage(
-    phone,
-    `✅ Compte lié avec succès !\n\n👋 Bonjour ${firstName || manager?.name || ''} ! Je suis votre assistant IA pour *${restaurantName}*.\n\nDemandez-moi par exemple :\n• "Quels sont les avis du jour ?"\n• "Mes lots"\n• "Stats de la semaine"`,
-    instanceName,
-  );
+  await reply(`✅ Compte lié avec succès !\n\n👋 Bonjour ${firstName || manager?.name || ''} ! Je suis votre assistant IA pour *${restaurantName}*.\n\nDemandez-moi par exemple :\n• "Quels sont les avis du jour ?"\n• "Mes lots"\n• "Stats de la semaine"`);
 }
 
 /**

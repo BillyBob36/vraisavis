@@ -24,20 +24,24 @@ export async function sendWhatsAppMessage(
   to: string,
   text: string,
   instanceName?: string,
+  quotedKey?: { remoteJid: string; id: string; fromMe: boolean },
 ): Promise<boolean> {
   if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) return false;
 
   const instance = instanceName || config.WHATSAPP_DEFAULT_INSTANCE || 'vraisavis-default';
 
+  const body: Record<string, unknown> = { number: to, text, delay: 1000 };
+
+  // For @lid JIDs, pass quoted context so Baileys uses the existing Signal session
+  if (quotedKey) {
+    body.quoted = { key: quotedKey };
+  }
+
   try {
     const res = await fetch(`${EVOLUTION_API_URL}/message/sendText/${instance}`, {
       method: 'POST',
       headers: evoHeaders(),
-      body: JSON.stringify({
-        number: to,
-        text,
-        delay: 1000,
-      }),
+      body: JSON.stringify(body),
     });
     if (!res.ok) {
       const errText = await res.text();
