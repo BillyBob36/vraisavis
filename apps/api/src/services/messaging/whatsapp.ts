@@ -30,7 +30,9 @@ export async function sendWhatsAppMessage(
 
   const instance = instanceName || config.WHATSAPP_DEFAULT_INSTANCE || 'vraisavis-default';
 
-  const body: Record<string, unknown> = { number: to, text, delay: 1000 };
+  // No delay for @lid JIDs — Evolution v2.3.7 may reject @lid with delay > 0
+  const delay = to.endsWith('@lid') ? 0 : 1000;
+  const body: Record<string, unknown> = { number: to, text, delay };
 
   // For @lid JIDs, pass quoted context so Baileys uses the existing Signal session
   if (quotedKey) {
