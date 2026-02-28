@@ -8,6 +8,7 @@ import {
   getWhatsAppQRCode,
   getWhatsAppConnectionState,
   deleteWhatsAppInstance,
+  resolveJidToPhone,
 } from '../../services/messaging/whatsapp.js';
 import { findManagerByWhatsApp } from '../../services/messaging/router.js';
 import { processAgentMessage } from '../../services/ai-agent/agent.js';
@@ -272,39 +273,33 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
   const remoteJid = data.key?.remoteJid;
   if (!remoteJid || remoteJid.includes('@g.us')) return; // Ignore group messages
 
-  // Log full data for debugging @lid resolution
-  console.log(`[WhatsApp] full data keys: ${Object.keys(data).join(', ')}`);
-  console.log(`[WhatsApp] key.participant=${data.key?.participant} sender=${data.sender} participant=${data.participant}`);
-
-  // Use full JID (including @lid or @s.whatsapp.net) for sending replies
-  // If @lid, try to resolve to real @s.whatsapp.net JID via participant/sender fields
-  const senderJid = data.key?.participant || data.sender || data.participant || remoteJid;
-  const jid = senderJid.includes('@') ? senderJid : remoteJid;
   const firstName = data.pushName || '';
 
-  console.log(`[WhatsApp] resolved jid=${jid} (remoteJid=${remoteJid}) text="${text}"`);
+  // Resolve @lid to real phone number (e.g. "56019627548810@lid" → "306998120577")
+  const phone = await resolveJidToPhone(remoteJid, instance);
+  console.log(`[WhatsApp] resolved phone=${phone} (remoteJid=${remoteJid}) text="${text}"`);
 
   // Handle link command
   if (text.startsWith('walink_')) {
-    await handleLinkAccount(jid, text.trim(), firstName, instance);
+    await handleLinkAccount(phone, text.trim(), firstName, instance);
     return;
   }
 
-  // Find manager by full JID (supports both @s.whatsapp.net and @lid)
-  const manager = await findManagerByWhatsApp(jid);
+  // Find manager by resolved phone or JID
+  const manager = await findManagerByWhatsApp(phone);
 
   // Handle /start or "Bonjour" as intro
   if (text === '/start' || text.toLowerCase() === 'bonjour' || text.toLowerCase() === 'start') {
     if (manager) {
       const restaurantName = manager.managedRestaurants[0]?.name || 'votre restaurant';
       await sendWhatsAppMessage(
-        jid,
+        phone,
         `👋 Bonjour ${manager.name} !\n\nJe suis votre assistant IA pour *${restaurantName}*.\n\nVous pouvez me demander :\n• 📊 Les avis du jour/semaine/mois\n• 🎁 Gérer vos lots (lister, ajouter, supprimer)\n• 📈 Les statistiques\n\nEssayez par exemple : "Quels sont les avis du jour ?"`,
         instance,
       );
     } else {
       await sendWhatsAppMessage(
-        jid,
+        phone,
         `👋 Bienvenue sur VraisAvis !\n\nPour lier ce WhatsApp à votre compte, allez dans votre tableau de bord → Paramètres → Messagerie, puis cliquez sur "Lier WhatsApp" et envoyez le code ici.`,
         instance,
       );
@@ -315,7 +310,7 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
   // Handle /help
   if (text === '/help' || text.toLowerCase() === 'aide') {
     await sendWhatsAppMessage(
-      jid,
+      phone,
       `🤖 *Commandes disponibles :*\n\n• "Avis du jour" — Voir les avis d'aujourd'hui\n• "Avis de la semaine" — Voir les avis de la semaine\n• "Mes lots" — Lister les lots de la machine à sous\n• "Stats" — Statistiques générales\n• "Ajouter un lot [nom]" — Ajouter un nouveau lot\n• "Supprimer le lot [nom]" — Désactiver un lot\n\nOu posez n'importe quelle question en langage naturel !`,
       instance,
     );
@@ -325,7 +320,7 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
   // Regular message → AI agent
   if (!manager) {
     await sendWhatsAppMessage(
-      jid,
+      phone,
       `❌ Ce numéro n'est pas lié à un compte VraisAvis.\n\nAllez dans votre tableau de bord → Paramètres → Messagerie pour lier votre WhatsApp.`,
       instance,
     );
@@ -334,12 +329,12 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
 
   const restaurant = manager.managedRestaurants[0];
   if (!restaurant) {
-    await sendWhatsAppMessage(jid, '❌ Aucun restaurant actif trouvé sur votre compte.', instance);
+    await sendWhatsAppMessage(phone, '❌ Aucun restaurant actif trouvé sur votre compte.', instance);
     return;
   }
 
   // Show typing indicator
-  await sendWhatsAppTypingAction(jid, instance);
+  await sendWhatsAppTypingAction(phone, instance);
 
   // Process through AI agent
   try {
@@ -350,11 +345,11 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
       'WHATSAPP',
     );
 
-    await sendWhatsAppMessage(jid, response, instance);
+    await sendWhatsAppMessage(phone, response, instance);
   } catch (err) {
     console.error('[WhatsApp] Agent processing error:', err);
     await sendWhatsAppMessage(
-      jid,
+      phone,
       '❌ Désolé, le service est momentanément indisponible. Réessayez dans quelques minutes.',
       instance,
     );
@@ -365,7 +360,7 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
  * Handle WhatsApp link account flow.
  */
 async function handleLinkAccount(
-  jid: string,
+  phone: string,
   linkCode: string,
   firstName: string,
   instanceName: string,
@@ -381,18 +376,18 @@ async function handleLinkAccount(
 
   if (!verification) {
     await sendWhatsAppMessage(
-      jid,
+      phone,
       '❌ Code de liaison invalide ou expiré. Veuillez en générer un nouveau depuis votre tableau de bord.',
       instanceName,
     );
     return;
   }
 
-  // Store the full JID (e.g. 56019627548810@lid or 33612345678@s.whatsapp.net)
+  // Store resolved phone number
   await prisma.user.update({
     where: { id: verification.managerId },
     data: {
-      whatsappNumber: jid,
+      whatsappNumber: phone,
       whatsappVerified: true,
       preferredMessaging: 'WHATSAPP',
       messagingOptIn: true,
@@ -413,7 +408,7 @@ async function handleLinkAccount(
   const restaurantName = manager?.managedRestaurants[0]?.name || 'votre restaurant';
 
   await sendWhatsAppMessage(
-    jid,
+    phone,
     `✅ Compte lié avec succès !\n\n👋 Bonjour ${firstName || manager?.name || ''} ! Je suis votre assistant IA pour *${restaurantName}*.\n\nDemandez-moi par exemple :\n• "Quels sont les avis du jour ?"\n• "Mes lots"\n• "Stats de la semaine"`,
     instanceName,
   );

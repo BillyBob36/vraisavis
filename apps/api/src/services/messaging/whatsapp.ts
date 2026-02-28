@@ -51,6 +51,47 @@ export async function sendWhatsAppMessage(
 }
 
 /**
+ * Resolve a WhatsApp JID (including @lid) to a real phone number via Evolution API.
+ * "@lid" JIDs cannot be used directly for sending — we need the real number.
+ * Returns the stripped number (e.g. "306998120577") or the stripped JID as fallback.
+ */
+export async function resolveJidToPhone(
+  jid: string,
+  instanceName?: string,
+): Promise<string> {
+  // If it's already a plain @s.whatsapp.net JID, just strip the domain
+  if (jid.includes('@s.whatsapp.net')) {
+    return jid.replace(/@.*$/, '');
+  }
+
+  // For @lid or unknown formats, try to resolve via Evolution API
+  const stripped = jid.replace(/@.*$/, '');
+  if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) return stripped;
+
+  const instance = instanceName || config.WHATSAPP_DEFAULT_INSTANCE || 'vraisavis-bot';
+
+  try {
+    const res = await fetch(`${EVOLUTION_API_URL}/chat/whatsappNumbers/${instance}`, {
+      method: 'POST',
+      headers: evoHeaders(),
+      body: JSON.stringify({ numbers: [stripped] }),
+    });
+    if (!res.ok) return stripped;
+
+    const data = await res.json() as Array<{ exists?: boolean; jid?: string; number?: string }>;
+    const found = data.find((d) => d.exists && d.number);
+    if (found?.number) {
+      console.log(`[WhatsApp] Resolved @lid ${jid} → ${found.number}`);
+      return found.number;
+    }
+  } catch (err) {
+    console.error('[WhatsApp] resolveJidToPhone error:', err);
+  }
+
+  return stripped;
+}
+
+/**
  * Send typing indicator (composing) via Evolution API.
  */
 export async function sendWhatsAppTypingAction(
