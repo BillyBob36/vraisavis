@@ -14,6 +14,7 @@ import {
 } from '@/lib/templates/types';
 import ClassicTemplate from '@/components/client/templates/ClassicTemplate';
 import GlassTemplate from '@/components/client/templates/GlassTemplate';
+import { I18nProvider } from '@/lib/i18n/context';
 
 // Simple fingerprint based on browser characteristics
 async function generateFingerprint(): Promise<string> {
@@ -472,11 +473,11 @@ export default function ClientExperiencePage() {
   };
 
   // Render the appropriate template
-  switch (restaurant.clientTemplate) {
-    case 'glass':
-      return <GlassTemplate {...templateProps} />;
-    case 'classic':
-    default:
-      return <ClassicTemplate {...templateProps} />;
-  }
+  const TemplateComponent = restaurant.clientTemplate === 'glass' ? GlassTemplate : ClassicTemplate;
+
+  return (
+    <I18nProvider>
+      <TemplateComponent {...templateProps} />
+    </I18nProvider>
+  );
 }

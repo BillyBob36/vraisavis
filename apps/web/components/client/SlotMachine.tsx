@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { SlotSymbol, SLOT_SYMBOLS, Prize } from '@/lib/templates/types';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface SlotMachineProps {
   isSpinning: boolean;
@@ -139,6 +140,7 @@ export default function SlotMachine({
     return strip[displayIndex[reelIdx] % strip.length];
   };
 
+  const { t } = useTranslation();
   const isGlass = variant === 'glass';
 
   return (
@@ -156,7 +158,7 @@ export default function SlotMachine({
           <h3 className={`text-base font-black tracking-wider ${
             isGlass ? 'text-white' : 'text-yellow-900'
           }`}>
-            🎰 MACHINE À SOUS 🎰
+            {t.slotTitle}
           </h3>
         </div>
 
@@ -194,7 +196,7 @@ export default function SlotMachine({
             <p className={`text-lg font-black animate-bounce ${
               isGlass ? 'text-yellow-300' : 'text-yellow-900'
             }`}>
-              🎉 GAGNÉ ! 🎉
+              {t.slotWin}
             </p>
           </div>
         )}
@@ -205,7 +207,7 @@ export default function SlotMachine({
             <p className={`text-sm font-semibold animate-pulse ${
               isGlass ? 'text-white/80' : 'text-yellow-900'
             }`}>
-              🎰 En cours...
+              {t.slotSpinning}
             </p>
           </div>
         )}
@@ -221,7 +223,7 @@ export default function SlotMachine({
               : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 shadow-sm'
           }`}
         >
-          🏆 Voir les lots à gagner
+          {t.slotSeePrizes}
         </button>
       )}
 
@@ -248,7 +250,7 @@ export default function SlotMachine({
             <h4 className={`text-sm font-bold mb-3 text-center ${
               isGlass ? 'text-white/90' : 'text-gray-800'
             }`}>
-              🏆 Lots à gagner
+              {t.slotPrizesTitle}
             </h4>
 
             <div className={`space-y-2 max-h-60 overflow-y-auto pr-1 ${isGlass ? 'custom-scrollbar-glass' : 'custom-scrollbar-classic'}`}>
@@ -283,7 +285,7 @@ export default function SlotMachine({
                   : 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg hover:shadow-2xl'
               }`}
             >
-              🎰 Jouer !
+              {t.slotPlay}
             </button>
           </div>
         </div>
