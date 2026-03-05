@@ -25,15 +25,17 @@ const updateVendorSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+const emptyToNull = (val: unknown) => (val === '' ? null : val);
+
 const updateRestaurantSchema = z.object({
   status: z.enum(['PENDING', 'ACTIVE', 'SUSPENDED']).optional(),
   name: z.string().min(2).optional(),
   address: z.string().min(5).optional(),
-  phone: z.string().optional(),
+  phone: z.preprocess(emptyToNull, z.string().nullable().optional()),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   geoRadius: z.number().int().min(10).max(1000).optional(),
-  googleReviewUrl: z.string().url().nullable().optional(),
+  googleReviewUrl: z.preprocess(emptyToNull, z.string().url().nullable().optional()),
 });
 
 const createPlanSchema = z.object({
