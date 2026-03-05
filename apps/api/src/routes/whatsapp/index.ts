@@ -50,18 +50,18 @@ interface EvoWebhookPayload {
   };
 }
 
-// Dedupe incoming messages to avoid double replies when Evolution sends duplicate events.
-// Keyed by instance + message id, kept only for a short window.
-const RECENT_MSG_TTL_MS = 10_000;
+// Dedupe incoming messages to avoid double replies when Evolution sends duplicate events
+// (global webhook + instance webhook both fire for the same message).
+// Keyed by message id only, kept for a short window.
+const RECENT_MSG_TTL_MS = 30_000;
 const recentMessageIds = new Map<string, number>();
 
-function shouldProcessMessage(instance: string, messageId?: string): boolean {
+function shouldProcessMessage(messageId?: string): boolean {
   if (!messageId) return true;
-  const key = `${instance}:${messageId}`;
   const now = Date.now();
-  const last = recentMessageIds.get(key);
+  const last = recentMessageIds.get(messageId);
   if (last && now - last < RECENT_MSG_TTL_MS) return false;
-  recentMessageIds.set(key, now);
+  recentMessageIds.set(messageId, now);
 
   // Opportunistic cleanup
   if (recentMessageIds.size > 1000) {
@@ -267,7 +267,7 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
   if (data.key?.fromMe) return;
 
   // Dedupe (Evolution can emit duplicates during sync)
-  if (!shouldProcessMessage(instance, data.key?.id)) return;
+  if (!shouldProcessMessage(data.key?.id)) return;
 
   const text = extractText(data);
   if (!text) return;
