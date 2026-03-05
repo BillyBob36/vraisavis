@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getToken } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 import ReactMarkdown from 'react-markdown';
 
@@ -198,7 +198,7 @@ export default function VendorContractsPage() {
 
   if (selectedContract) {
     return (
-      <div className="p-8 max-w-4xl mx-auto">
+      <div className="p-4 sm:p-8 max-w-4xl mx-auto overflow-x-hidden">
         <Button
           variant="outline"
           onClick={() => setSelectedContract(null)}
@@ -219,7 +219,7 @@ export default function VendorContractsPage() {
             </p>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm max-w-none mb-6 p-6 bg-gray-50 border rounded-lg max-h-[500px] overflow-y-auto prose-headings:text-gray-900 prose-h1:text-xl prose-h1:border-b prose-h1:pb-2 prose-h2:text-lg prose-h3:text-base prose-blockquote:border-l-4 prose-blockquote:border-amber-400 prose-blockquote:bg-amber-50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:text-amber-800 prose-hr:my-4 prose-strong:text-gray-900 prose-li:my-0.5">
+            <div className="prose prose-sm max-w-none mb-6 p-4 sm:p-6 bg-gray-50 border rounded-lg max-h-[500px] overflow-y-auto overflow-x-hidden break-words prose-headings:text-gray-900 prose-h1:text-xl prose-h1:border-b prose-h1:pb-2 prose-h2:text-lg prose-h3:text-base prose-blockquote:border-l-4 prose-blockquote:border-amber-400 prose-blockquote:bg-amber-50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:text-amber-800 prose-hr:my-4 prose-strong:text-gray-900 prose-li:my-0.5 [&_*]:max-w-full [&_a]:break-all">
               <ReactMarkdown>
                 {selectedContract.template.contractContent}
               </ReactMarkdown>
@@ -370,7 +370,7 @@ export default function VendorContractsPage() {
             )}
 
             {selectedContract.status === 'SIGNED' && (
-              <div className="border-t pt-6">
+              <div className="border-t pt-6 space-y-4">
                 <div className="bg-green-50 border border-green-200 p-4 rounded-lg space-y-1">
                   <p className="font-semibold text-green-800">✓ Contrat signé</p>
                   <p className="text-sm text-green-700">
@@ -386,14 +386,35 @@ export default function VendorContractsPage() {
                     <p className="text-sm text-green-700">SIRET : {selectedContract.vendorSIRET}</p>
                   )}
                 </div>
-                <Button
-                  className="mt-4"
-                  onClick={() => {
-                    window.open(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.vraisavis.fr'}/api/v1/vendor/contracts/${selectedContract.id}/pdf`, '_blank');
-                  }}
-                >
-                  Télécharger le PDF signé
-                </Button>
+
+                {/* Bloc signature électronique visible - conformément au règlement eIDAS */}
+                <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-4 space-y-2">
+                  <p className="font-semibold text-blue-900 text-sm">🔒 Signature électronique simple (eIDAS)</p>
+                  <div className="bg-white border border-blue-300 rounded p-3 space-y-1 text-sm">
+                    <p className="font-bold text-gray-900 italic">&ldquo;Lu et approuvé, bon pour accord&rdquo;</p>
+                    <p className="text-gray-700 font-semibold">{selectedContract.vendorName}</p>
+                    <p className="text-gray-500 text-xs">
+                      Signé électroniquement le {new Date(selectedContract.signedAt!).toLocaleString('fr-FR')}
+                    </p>
+                    <p className="text-gray-400 text-xs break-all">Identifiant contrat : {selectedContract.id}</p>
+                  </div>
+                  <p className="text-xs text-blue-700">
+                    Cette signature électronique simple a été recueillie conformément au règlement (UE) n° 910/2014 (eIDAS).
+                    L’horodatage, l’adresse IP et la trace numérique sont conservés et garantissent l’intégrité de cet engagement.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const token = getToken();
+                      window.open(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.vraisavis.fr'}/api/v1/vendor/contracts/${selectedContract.id}/pdf?token=${token}`, '_blank');
+                    }}
+                  >
+                    📄 Télécharger le PDF signé
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -419,7 +440,7 @@ export default function VendorContractsPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <h1 className="text-3xl font-bold mb-6">Mes contrats</h1>
 
       <div className="grid gap-4">
@@ -462,9 +483,18 @@ export default function VendorContractsPage() {
                   </div>
                 )}
                 {contract.status === 'SIGNED' && (
-                  <div className="mt-4">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <Button variant="outline" onClick={() => handleViewContract(contract)}>
                       Consulter le contrat signé
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        const token = getToken();
+                        window.open(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.vraisavis.fr'}/api/v1/vendor/contracts/${contract.id}/pdf?token=${token}`, '_blank');
+                      }}
+                    >
+                      📄 Télécharger PDF
                     </Button>
                   </div>
                 )}

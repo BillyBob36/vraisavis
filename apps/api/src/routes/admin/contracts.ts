@@ -184,8 +184,27 @@ export async function contractRoutes(fastify: FastifyInstance) {
   });
 
   // Générer et télécharger le PDF d'un contrat signé
-  fastify.get('/contracts/:id/pdf', async (request: FastifyRequest<{ Params: { id: string }; Querystring: { token?: string } }>, reply: FastifyReply) => {
+  // preHandler: [] overrides the global requireSuperAdmin hook so we can auth via query string token
+  fastify.get('/contracts/:id/pdf', { preHandler: [] }, async (request: FastifyRequest<{ Params: { id: string }; Querystring: { token?: string } }>, reply: FastifyReply) => {
     const { id } = request.params;
+    const { token } = request.query as { token?: string };
+
+    // Auth: accept token from query string (window.open can't send headers)
+    try {
+      if (token) {
+        const decoded = fastify.jwt.verify(token) as any;
+        if (!decoded || decoded.role !== 'SUPER_ADMIN') {
+          return reply.status(403).send({ error: true, message: 'Accès interdit' });
+        }
+      } else {
+        await request.jwtVerify();
+        if (!request.user || request.user.role !== 'SUPER_ADMIN') {
+          return reply.status(403).send({ error: true, message: 'Accès interdit' });
+        }
+      }
+    } catch {
+      return reply.status(401).send({ error: true, message: 'Non autorisé' });
+    }
 
     const contract = await prisma.vendorContract.findUnique({
       where: { id },

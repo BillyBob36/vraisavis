@@ -177,9 +177,29 @@ export async function vendorContractRoutes(fastify: FastifyInstance) {
   });
 
   // Télécharger le PDF du contrat signé
-  fastify.get('/contracts/:id/pdf', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  // preHandler: [] overrides the global requireVendor hook so we can auth via query string token
+  fastify.get('/contracts/:id/pdf', { preHandler: [] }, async (request: FastifyRequest<{ Params: { id: string }; Querystring: { token?: string } }>, reply: FastifyReply) => {
     const { id } = request.params;
-    const vendorId = request.user.id;
+    const { token } = request.query as { token?: string };
+
+    let vendorId: string;
+    try {
+      if (token) {
+        const decoded = fastify.jwt.verify(token) as any;
+        if (!decoded || decoded.type !== 'vendor') {
+          return reply.status(403).send({ error: true, message: 'Accès interdit' });
+        }
+        vendorId = decoded.id;
+      } else {
+        await request.jwtVerify();
+        if (!request.user || request.user.type !== 'vendor') {
+          return reply.status(403).send({ error: true, message: 'Accès interdit' });
+        }
+        vendorId = request.user.id;
+      }
+    } catch {
+      return reply.status(401).send({ error: true, message: 'Non autorisé' });
+    }
 
     const contract = await prisma.vendorContract.findFirst({
       where: { id, vendorId },
