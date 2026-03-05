@@ -186,13 +186,13 @@ export async function vendorContractRoutes(fastify: FastifyInstance) {
     try {
       if (token) {
         const decoded = fastify.jwt.verify(token) as any;
-        if (!decoded || decoded.type !== 'vendor') {
+        if (!decoded || decoded.role !== 'VENDOR') {
           return reply.status(403).send({ error: true, message: 'Accès interdit' });
         }
         vendorId = decoded.id;
       } else {
         await request.jwtVerify();
-        if (!request.user || request.user.type !== 'vendor') {
+        if (!request.user || request.user.role !== 'VENDOR') {
           return reply.status(403).send({ error: true, message: 'Accès interdit' });
         }
         vendorId = request.user.id;

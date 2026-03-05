@@ -97,7 +97,7 @@ export async function contractRoutes(fastify: FastifyInstance) {
   });
 
   // Envoyer un contrat à un vendeur
-  fastify.post('/contracts/send', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/send', async (request: FastifyRequest, reply: FastifyReply) => {
     const body = sendContractSchema.safeParse(request.body);
     if (!body.success) {
       return reply.status(400).send({ error: true, message: 'Données invalides' });
@@ -140,7 +140,7 @@ export async function contractRoutes(fastify: FastifyInstance) {
   });
 
   // Liste des contrats envoyés
-  fastify.get('/contracts', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
     const contracts = await prisma.vendorContract.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -165,7 +165,7 @@ export async function contractRoutes(fastify: FastifyInstance) {
   });
 
   // Détails d'un contrat
-  fastify.get('/contracts/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+  fastify.get('/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const { id } = request.params;
 
     const contract = await prisma.vendorContract.findUnique({
@@ -185,7 +185,7 @@ export async function contractRoutes(fastify: FastifyInstance) {
 
   // Générer et télécharger le PDF d'un contrat signé
   // preHandler: [] overrides the global requireSuperAdmin hook so we can auth via query string token
-  fastify.get('/contracts/:id/pdf', { preHandler: [] }, async (request: FastifyRequest<{ Params: { id: string }; Querystring: { token?: string } }>, reply: FastifyReply) => {
+  fastify.get('/:id/pdf', { preHandler: [] }, async (request: FastifyRequest<{ Params: { id: string }; Querystring: { token?: string } }>, reply: FastifyReply) => {
     const { id } = request.params;
     const { token } = request.query as { token?: string };
 
