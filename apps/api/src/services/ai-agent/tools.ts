@@ -661,7 +661,59 @@ export async function analyserTendances(
 
   // Single period: just show top themes
   if (Object.keys(currentThemes).length === 0) {
-    return `Aucun thème identifié pour la période "${params.period}". Les avis n'ont peut-être pas encore été analysés par l'IA.`;
+    // Fallback: extract themes in-memory from raw feedback text
+    const rawFeedbacks = await prisma.feedback.findMany({
+      where: {
+        restaurantId,
+        createdAt: { gte: s1, lt: e1 },
+        excludedByRules: { equals: [] },
+        ...(sentiment === 'negative' ? { negativeText: { not: '' }, NOT: { negativeText: null } } : {}),
+        ...(params.service ? { serviceType: params.service } : {}),
+      },
+      select: { positiveText: true, negativeText: true },
+      take: 500,
+    });
+    if (rawFeedbacks.length === 0) {
+      return `Aucun avis trouvé pour la période "${params.period}".`;
+    }
+    const fallbackCounts: Record<string, number> = {};
+    for (const fb of rawFeedbacks) {
+      const text = `${fb.positiveText} ${fb.negativeText ?? ''}`.toLowerCase();
+      const KEYWORDS: Record<string, string[]> = {
+        attente: ['attente', 'attendre', 'long', 'lent', 'rapide', 'minutes', 'délai'],
+        service: ['service', 'serveur', 'serveuse', 'personnel', 'staff'],
+        nourriture: ['plat', 'cuisine', 'nourriture', 'goût', 'saveur', 'cuisson', 'cuit', 'frais', 'fade', 'recette'],
+        prix: ['prix', 'cher', 'coût', 'tarif', 'addition'],
+        ambiance: ['ambiance', 'atmosphère', 'musique', 'décor', 'cadre'],
+        propreté: ['propre', 'propreté', 'sale', 'hygiène'],
+        quantité: ['quantité', 'portion', 'copieux', 'insuffisant'],
+        température: ['froid', 'chaud', 'tiède', 'température'],
+        accueil: ['accueil', 'bienvenue', 'sourire', 'aimable', 'sympathique'],
+        carte: ['carte', 'menu', 'choix', 'variété', 'option'],
+        boisson: ['boisson', 'vin', 'bière', 'cocktail', 'café'],
+        dessert: ['dessert', 'gâteau', 'tarte', 'glace', 'sucré'],
+        bruit: ['bruit', 'bruyant', 'calme', 'sonore'],
+        propreté_toilettes: ['toilette', 'wc', 'sanitaire'],
+      };
+      for (const [theme, keywords] of Object.entries(KEYWORDS)) {
+        if (keywords.some(kw => text.includes(kw))) {
+          fallbackCounts[theme] = (fallbackCounts[theme] ?? 0) + 1;
+        }
+      }
+    }
+    if (Object.keys(fallbackCounts).length === 0) {
+      return `${rawFeedbacks.length} avis trouvés pour "${params.period}" mais aucun thème extrait.`;
+    }
+    const sentimentLabel = sentiment === 'negative' ? 'négatifs' : sentiment === 'positive' ? 'positifs' : 'tous';
+    const sorted2 = Object.entries(fallbackCounts).sort((a, b) => b[1] - a[1]);
+    const maxVal = sorted2[0][1];
+    const lines2: string[] = [`📊 Top thèmes ${sentimentLabel} (${params.period}, ${rawFeedbacks.length} avis) :` ];
+    for (const [theme, count] of sorted2.slice(0, 10)) {
+      const pct = ((count / rawFeedbacks.length) * 100).toFixed(0);
+      const bar = '█'.repeat(Math.max(1, Math.round(count / maxVal * 10)));
+      lines2.push(`  ${bar} ${theme} : ${count} (${pct}%)`);
+    }
+    return lines2.join('\n');
   }
 
   const sentimentLabel = sentiment === 'negative' ? 'négatifs' : sentiment === 'positive' ? 'positifs' : 'tous';
