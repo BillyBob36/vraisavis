@@ -20,6 +20,11 @@ declare module '@fastify/jwt' {
 
 export async function authenticate(request: FastifyRequest, reply: FastifyReply) {
   try {
+    // Support token in query string for routes opened via window.open (e.g. PDF download)
+    const queryToken = (request.query as any)?.token;
+    if (queryToken && !request.headers.authorization) {
+      request.headers.authorization = `Bearer ${queryToken}`;
+    }
     await request.jwtVerify();
   } catch (err) {
     return reply.status(401).send({ error: true, message: 'Non autorisé' });
