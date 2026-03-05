@@ -529,11 +529,10 @@ export default function GlassTemplate(props: TemplateProps) {
         <div className="w-full sm:max-w-md relative z-10">
           <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl text-center space-y-6 flex flex-col justify-center sm:block">
             <div className="text-5xl">🎉</div>
-            <h2 className="text-2xl font-black text-white">{t.claimTitle}</h2>
-            <p className="text-sm text-white/50">{t.claimPrizeLabel}</p>
+            <h2 className="text-xl font-bold text-white">{t.claimTitle}</h2>
 
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-yellow-400/30">
-              <p className="text-2xl font-black text-yellow-300">{prizeName}</p>
+              <p className="text-3xl font-black text-yellow-300">{prizeName}</p>
               {prizeDesc && <p className="text-sm text-white/50 mt-2">{prizeDesc}</p>}
             </div>
 
@@ -558,6 +557,22 @@ export default function GlassTemplate(props: TemplateProps) {
               </button>
               <p className="text-xs text-white/40">{t.claimLaterDesc}</p>
             </div>
+
+            {showGoogleReview && (
+              <>
+                <div className="w-12 h-0.5 bg-white/10 mx-auto" />
+                <div className="space-y-3">
+                  <p className="text-sm text-white/60 leading-snug">{t.claimGoogleDesc}</p>
+                  <button
+                    onClick={onGoogleReview}
+                    className="w-full py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-lg rounded-2xl shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all border border-white/10"
+                  >
+                    {t.claimGoogleBtn}
+                  </button>
+                  <p className="text-xs text-white/40">{t.googleReviewPaste}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

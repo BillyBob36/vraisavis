@@ -59,12 +59,13 @@ export const en: Translations = {
   slotPlay: '🎰 Play!',
 
   // Claim - choice
-  claimTitle: 'Your prize',
-  claimPrizeLabel: 'Congratulations! You won:',
+  claimTitle: 'Congratulations! You won:',
   claimNowBtn: '🎁 Collect now',
   claimNowDesc: 'Show your screen to the server',
   claimLaterBtn: '📝 Collect later',
   claimLaterDesc: 'Get a code to come back for it',
+  claimGoogleBtn: '⭐ Copy your review to Google',
+  claimGoogleDesc: 'Your comment warms our hearts! Give us a boost by posting it on Google',
 
   // Claim - now (server validation)
   claimNowTitle: 'Show to the server',

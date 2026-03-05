@@ -498,11 +498,10 @@ export default function ClassicTemplate(props: TemplateProps) {
         <div className="w-full sm:max-w-md">
           <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-2xl p-6 sm:p-8 text-center space-y-6 flex flex-col justify-center sm:block">
             <div className="text-5xl">🎉</div>
-            <h2 className="text-2xl font-black text-gray-900">{t.claimTitle}</h2>
-            <p className="text-sm text-gray-500">{t.claimPrizeLabel}</p>
+            <h2 className="text-xl font-bold text-gray-900">{t.claimTitle}</h2>
 
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border-2 border-yellow-200">
-              <p className="text-2xl font-black text-orange-600">{prizeName}</p>
+              <p className="text-3xl font-black text-orange-600">{prizeName}</p>
               {prizeDesc && <p className="text-sm text-gray-500 mt-2">{prizeDesc}</p>}
             </div>
 
@@ -527,6 +526,22 @@ export default function ClassicTemplate(props: TemplateProps) {
               </button>
               <p className="text-xs text-gray-400">{t.claimLaterDesc}</p>
             </div>
+
+            {showGoogleReview && (
+              <>
+                <div className="w-12 h-0.5 bg-gray-200 mx-auto" />
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-500 leading-snug">{t.claimGoogleDesc}</p>
+                  <button
+                    onClick={onGoogleReview}
+                    className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-bold text-lg rounded-2xl shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  >
+                    {t.claimGoogleBtn}
+                  </button>
+                  <p className="text-xs text-gray-400">{t.googleReviewPaste}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -60,11 +60,12 @@ export interface Translations {
 
   // Claim - choice
   claimTitle: string;
-  claimPrizeLabel: string;
   claimNowBtn: string;
   claimNowDesc: string;
   claimLaterBtn: string;
   claimLaterDesc: string;
+  claimGoogleBtn: string;
+  claimGoogleDesc: string;
 
   // Claim - now (server validation)
   claimNowTitle: string;
