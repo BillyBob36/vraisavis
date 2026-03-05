@@ -67,6 +67,10 @@ export interface Translations {
   claimGoogleBtn: string;
   claimGoogleDesc: string;
 
+  // Already played
+  alreadyPlayedTitle: string;
+  alreadyPlayedBack: string;
+
   // Claim - now (server validation)
   claimNowTitle: string;
   claimWarning: string;

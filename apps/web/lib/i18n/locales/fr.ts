@@ -68,8 +68,10 @@ export const fr: Translations = {
   claimGoogleDesc: 'Votre commentaire nous fait chaud au cœur ! Donnez-nous un coup de pouce en le publiant sur Google',
 
   // Claim - now (server validation)
-  claimNowTitle: 'Présentez au serveur',
-  claimWarning: '⚠️ Attention ! Si vous appuyez sans responsable, votre lot sera perdu.',
+  claimNowTitle: 'Présentez cet écran au serveur',
+  claimWarning: '⚠️ Attention ! Si vous appuyez sur le bouton ci-dessous en l\'absence d\'un responsable, votre lot sera perdu.',
+  alreadyPlayedTitle: 'Vous avez déjà participé !',
+  alreadyPlayedBack: '← Retour à l\'accueil',
   claimHoldDefault: 'Maintenir 2s pour valider',
   claimHoldProgress: 'Maintenez...',
   claimHoldValidating: 'Validation...',

@@ -25,12 +25,34 @@ export default function ClassicTemplate(props: TemplateProps) {
     redeemCode, onRedeemCodeChange, onRedeemSubmit,
     isRedeeming, redeemResult, redeemError, onGoToRedeem,
     showGoogleReview, onGoogleReview,
+    canPlay, canPlayMessage,
   } = props;
 
   const { t, locale, setLocale } = useTranslation();
   const [claimMode, setClaimMode] = useState<'choice' | 'now' | 'later'>('choice');
 
   const showContactFields = wantNotifyOwn || wantNotifyOthers;
+
+  // Already played screen
+  if (step === 'intro' && !canPlay) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 flex items-start sm:items-center justify-center p-0 sm:p-4">
+        <div className="w-full sm:max-w-md">
+          <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-xl p-6 sm:p-8 text-center space-y-6 flex flex-col justify-center sm:block">
+            <div className="text-6xl">⏳</div>
+            <h2 className="text-2xl font-black text-gray-900">{t.alreadyPlayedTitle}</h2>
+            <p className="text-gray-500 text-sm leading-relaxed">{canPlayMessage}</p>
+            <button
+              onClick={onBack}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold rounded-2xl shadow-md hover:bg-orange-600 active:scale-[0.98] transition-all"
+            >
+              {t.alreadyPlayedBack}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Language selector component
   const LanguageSelector = () => (
@@ -512,7 +534,6 @@ export default function ClassicTemplate(props: TemplateProps) {
               >
                 {t.claimNowBtn}
               </button>
-              <p className="text-xs text-gray-400">{t.claimNowDesc}</p>
             </div>
 
             <div className="w-12 h-0.5 bg-gray-200 mx-auto" />
@@ -524,7 +545,6 @@ export default function ClassicTemplate(props: TemplateProps) {
               >
                 {t.claimLaterBtn}
               </button>
-              <p className="text-xs text-gray-400">{t.claimLaterDesc}</p>
             </div>
 
             {showGoogleReview && (

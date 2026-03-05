@@ -168,7 +168,6 @@ export default function ClientExperiencePage() {
 
     // When clicking 'C'est parti' (intro → positive), check if can play
     if (step === 'intro' && !canPlay) {
-      setError(canPlayMessage);
       return;
     }
 
@@ -470,6 +469,9 @@ export default function ClientExperiencePage() {
     // Google review
     showGoogleReview,
     onGoogleReview: handleGoogleReview,
+    // Already played guard
+    canPlay,
+    canPlayMessage,
   };
 
   // Render the appropriate template

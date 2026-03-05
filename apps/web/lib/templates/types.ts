@@ -98,6 +98,9 @@ export interface TemplateProps {
   // Google review
   showGoogleReview: boolean;
   onGoogleReview: () => void;
+  // Already played guard
+  canPlay: boolean;
+  canPlayMessage: string;
 }
 
 // 24 slot symbols for supporting 20+ prizes
