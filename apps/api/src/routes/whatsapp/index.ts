@@ -322,7 +322,20 @@ async function handleIncomingMessage(payload: EvoWebhookPayload) {
 
   // Handle /help
   if (text === '/help' || text.toLowerCase() === 'aide') {
-    await reply(`🤖 *Commandes disponibles :*\n\n• "Avis du jour" — Voir les avis d'aujourd'hui\n• "Avis de la semaine" — Voir les avis de la semaine\n• "Mes lots" — Lister les lots de la machine à sous\n• "Stats" — Statistiques générales\n• "Ajouter un lot [nom]" — Ajouter un nouveau lot\n• "Supprimer le lot [nom]" — Désactiver un lot\n\nOu posez n'importe quelle question en langage naturel !`);
+    await reply(`🤖 *Commandes disponibles :*\n\n• "Avis du jour" — Voir les avis d'aujourd'hui\n• "Avis de la semaine" — Voir les avis de la semaine\n• "Mes lots" — Lister les lots de la machine à sous\n• "Stats" — Statistiques générales\n• "Ajouter un lot [nom]" — Ajouter un nouveau lot\n• "Supprimer le lot [nom]" — Désactiver un lot\n• "Bilan à 20h" — Changer l'heure du bilan journalier\n\nOu posez n'importe quelle question en langage naturel !`);
+    return;
+  }
+
+  // Handle summary hour change: "bilan à Xh", "bilan à X:00", "résumé à Xh", etc.
+  const summaryHourMatch = text.toLowerCase().match(/(?:bilan|r[ée]sum[ée]|rapport)\s+[àa]\s+(\d{1,2})(?:h|:\d{2})?/);
+  if (summaryHourMatch && manager) {
+    const newHour = parseInt(summaryHourMatch[1], 10);
+    if (newHour >= 0 && newHour <= 23) {
+      await prisma.user.update({ where: { id: manager.id }, data: { summaryHour: newHour } });
+      await reply(`✅ Bilan journalier programmé à *${newHour}h00* chaque jour.`);
+    } else {
+      await reply(`❌ Heure invalide. Indiquez une heure entre 0 et 23. Ex: "Bilan à 21h"`);
+    }
     return;
   }
 
