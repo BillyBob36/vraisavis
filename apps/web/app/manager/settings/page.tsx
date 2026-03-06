@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+
 import { useToast } from '@/components/ui/use-toast';
 import { Save, Bot, Loader2, Search, MapPin, X } from 'lucide-react';
+import { LocationPicker } from '@/components/ui/location-picker';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -28,6 +29,8 @@ interface Restaurant {
   name: string;
   address: string;
   phone: string | null;
+  latitude: number;
+  longitude: number;
   welcomeMessage: string | null;
   thankYouMessage: string | null;
   clientTemplate: string;
@@ -417,8 +420,8 @@ export default function SettingsPage() {
           name: restaurant.name,
           address: restaurant.address,
           phone: restaurant.phone,
-          welcomeMessage: restaurant.welcomeMessage,
-          thankYouMessage: restaurant.thankYouMessage,
+          latitude: restaurant.latitude,
+          longitude: restaurant.longitude,
           clientTemplate: restaurant.clientTemplate,
           googleReviewUrl: restaurant.googleReviewUrl || null,
           geoRadius: restaurant.geoRadius,
@@ -482,33 +485,24 @@ export default function SettingsPage() {
                 required
               />
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Messages personnalisés</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="welcomeMessage">Message de bienvenue</Label>
-              <Textarea
-                id="welcomeMessage"
-                value={restaurant.welcomeMessage || ''}
-                onChange={(e) => setRestaurant({ ...restaurant, welcomeMessage: e.target.value })}
-                placeholder="Bienvenue ! Donnez-nous votre avis..."
-                rows={2}
+            <div className="space-y-2 pt-2">
+              <Label>Localisation sur la carte</Label>
+              <LocationPicker
+                initialAddress={restaurant.address}
+                initialLatitude={restaurant.latitude || 48.8566}
+                initialLongitude={restaurant.longitude || 2.3522}
+                onLocationSelect={(location) => {
+                  setRestaurant({
+                    ...restaurant,
+                    address: location.address,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                  });
+                }}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="thankYouMessage">Message de remerciement</Label>
-              <Textarea
-                id="thankYouMessage"
-                value={restaurant.thankYouMessage || ''}
-                onChange={(e) => setRestaurant({ ...restaurant, thankYouMessage: e.target.value })}
-                placeholder="Merci pour votre participation !"
-                rows={2}
-              />
+              <p className="text-xs text-muted-foreground">
+                Cliquez sur la carte ou faites glisser le marqueur pour ajuster la position
+              </p>
             </div>
           </CardContent>
         </Card>

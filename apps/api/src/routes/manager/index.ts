@@ -13,6 +13,8 @@ const updateRestaurantSchema = z.object({
   name: z.string().min(2).optional(),
   address: z.string().min(5).optional(),
   phone: z.string().nullable().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
   geoRadius: z.number().int().min(10).max(1000).optional(),
   serviceHours: z.object({
     lunch: z.object({ start: z.string(), end: z.string() }),
