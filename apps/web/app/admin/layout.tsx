@@ -14,7 +14,8 @@ import {
   LogOut,
   Menu,
   X,
-  FileText
+  FileText,
+  Ticket
 } from 'lucide-react';
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
   { href: '/admin/vendors', label: 'Vendeurs', icon: Users },
   { href: '/admin/contracts', label: 'Contrats', icon: FileText },
   { href: '/admin/subscriptions', label: 'Abonnements', icon: CreditCard },
+  { href: '/admin/promo-codes', label: 'Codes promo', icon: Ticket },
   { href: '/admin/settings', label: 'Paramètres', icon: Settings },
 ];
 
