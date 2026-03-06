@@ -51,6 +51,35 @@ export async function adminRoutes(fastify: FastifyInstance) {
   // Middleware pour toutes les routes admin
   fastify.addHook('preHandler', requireSuperAdmin);
 
+  // Config status (real check of env vars)
+  fastify.get('/config-status', async (request: FastifyRequest, reply: FastifyReply) => {
+    const { config } = await import('../../config/env.js');
+    return reply.send({
+      stripe: {
+        configured: !!(config.STRIPE_SECRET_KEY && config.STRIPE_PRICE_ID && config.STRIPE_WEBHOOK_SECRET),
+        hasSecretKey: !!config.STRIPE_SECRET_KEY,
+        hasPriceId: !!config.STRIPE_PRICE_ID,
+        hasWebhookSecret: !!config.STRIPE_WEBHOOK_SECRET,
+        isLive: config.STRIPE_SECRET_KEY.startsWith('sk_live_'),
+      },
+      email: {
+        configured: !!config.RESEND_API_KEY,
+        provider: 'Resend',
+        fromEmail: config.FROM_EMAIL,
+      },
+      whatsapp: {
+        configured: !!(config.EVOLUTION_API_URL && config.EVOLUTION_API_KEY),
+      },
+      openai: {
+        configured: !!config.OPENAI_API_KEY,
+        model: config.OPENAI_MODEL,
+      },
+      telegram: {
+        configured: !!config.TELEGRAM_BOT_TOKEN,
+      },
+    });
+  });
+
   // Dashboard
   fastify.get('/dashboard', async (request: FastifyRequest, reply: FastifyReply) => {
     const [

@@ -13,8 +13,23 @@ interface Restaurant {
   name: string;
 }
 
+interface ConfigStatus {
+  stripe: { configured: boolean; hasSecretKey: boolean; hasPriceId: boolean; hasWebhookSecret: boolean; isLive: boolean };
+  email: { configured: boolean; provider: string; fromEmail: string };
+  whatsapp: { configured: boolean };
+  openai: { configured: boolean; model: string };
+  telegram: { configured: boolean };
+}
+
+function StatusBadge({ ok, labelOk = 'Configuré', labelKo = 'Non configuré' }: { ok: boolean; labelOk?: string; labelKo?: string }) {
+  return ok
+    ? <span className="inline-flex items-center gap-1 text-sm font-medium text-green-700">✅ {labelOk}</span>
+    : <span className="inline-flex items-center gap-1 text-sm font-medium text-orange-600">⚠️ {labelKo}</span>;
+}
+
 export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
+  const [configStatus, setConfigStatus] = useState<ConfigStatus | null>(null);
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
@@ -32,6 +47,13 @@ export default function SettingsPage() {
   const [fpService, setFpService] = useState<'lunch' | 'dinner' | null>(null);
   const [fpDeleting, setFpDeleting] = useState(false);
   const [fpSearch, setFpSearch] = useState('');
+
+  useEffect(() => {
+    const token = getToken('SUPER_ADMIN') || getToken() || '';
+    apiFetch<ConfigStatus>('/api/v1/admin/config-status', { token })
+      .then(setConfigStatus)
+      .catch(() => {});
+  }, []);
 
   const openFpModal = async () => {
     setFpModalOpen(true);
@@ -299,35 +321,86 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Configuration Stripe</CardTitle>
+            <CardTitle>Intégrations & Services</CardTitle>
             <CardDescription>
-              Configurez vos clés Stripe pour les paiements
+              Statut en temps réel des variables d&apos;environnement configurées sur le serveur
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground mb-4">
-              Les clés Stripe sont configurées via les variables d&apos;environnement sur le serveur.
-            </p>
-            <p className="text-sm">
-              Statut: <span className="text-orange-600">Non configuré</span>
-            </p>
-          </CardContent>
-        </Card>
+            {!configStatus ? (
+              <p className="text-sm text-muted-foreground">Chargement...</p>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-3">
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Configuration Email</CardTitle>
-            <CardDescription>
-              Configuration SMTP pour les emails transactionnels
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              La configuration email est gérée via les variables d&apos;environnement.
-            </p>
-            <p className="text-sm">
-              Statut: <span className="text-orange-600">Non configuré</span>
-            </p>
+                  {/* Stripe */}
+                  <div className="flex items-start justify-between p-3 rounded-lg border">
+                    <div>
+                      <p className="font-medium text-sm">💳 Stripe</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {configStatus.stripe.configured
+                          ? `Mode ${configStatus.stripe.isLive ? '🟢 Live (production)' : '🟡 Test'}`
+                          : [
+                              !configStatus.stripe.hasSecretKey && 'STRIPE_SECRET_KEY manquante',
+                              !configStatus.stripe.hasPriceId && 'STRIPE_PRICE_ID manquante',
+                              !configStatus.stripe.hasWebhookSecret && 'STRIPE_WEBHOOK_SECRET manquante',
+                            ].filter(Boolean).join(' · ')
+                        }
+                      </p>
+                    </div>
+                    <StatusBadge ok={configStatus.stripe.configured} />
+                  </div>
+
+                  {/* Email / Resend */}
+                  <div className="flex items-start justify-between p-3 rounded-lg border">
+                    <div>
+                      <p className="font-medium text-sm">📧 Email (Resend)</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {configStatus.email.configured
+                          ? `Expéditeur : ${configStatus.email.fromEmail}`
+                          : 'RESEND_API_KEY manquante'
+                        }
+                      </p>
+                    </div>
+                    <StatusBadge ok={configStatus.email.configured} />
+                  </div>
+
+                  {/* WhatsApp */}
+                  <div className="flex items-start justify-between p-3 rounded-lg border">
+                    <div>
+                      <p className="font-medium text-sm">💬 WhatsApp (Evolution API)</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {configStatus.whatsapp.configured ? 'Evolution API connectée' : 'EVOLUTION_API_URL / KEY manquantes'}
+                      </p>
+                    </div>
+                    <StatusBadge ok={configStatus.whatsapp.configured} />
+                  </div>
+
+                  {/* OpenAI */}
+                  <div className="flex items-start justify-between p-3 rounded-lg border">
+                    <div>
+                      <p className="font-medium text-sm">🤖 OpenAI (Agent IA)</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {configStatus.openai.configured ? `Modèle : ${configStatus.openai.model}` : 'OPENAI_API_KEY manquante'}
+                      </p>
+                    </div>
+                    <StatusBadge ok={configStatus.openai.configured} />
+                  </div>
+
+                  {/* Telegram */}
+                  <div className="flex items-start justify-between p-3 rounded-lg border">
+                    <div>
+                      <p className="font-medium text-sm">✈️ Telegram Bot</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {configStatus.telegram.configured ? '@VraisAvis_bot connecté' : 'TELEGRAM_BOT_TOKEN manquant'}
+                      </p>
+                    </div>
+                    <StatusBadge ok={configStatus.telegram.configured} />
+                  </div>
+
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
