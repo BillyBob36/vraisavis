@@ -479,7 +479,8 @@ export async function signalerAmelioration(
 
     if (notifiable.length > 0) {
       response += `\n\n📬 ${notifiable.length} client(s) souhaitent être prévenus des améliorations.`;
-      response += `\n💡 Voulez-vous les notifier ? Dites "oui, notifier" et je m'en occupe. (ID: ${improvement.id})`;
+      response += `\n\n✅ Amélioration enregistrée — ID: \`${improvement.id}\``;
+      response += `\n\n👉 Pour notifier ces clients, confirme en disant "oui, notifier". J'utiliserai l'ID ci-dessus automatiquement.`;
     } else {
       response += `\n\nℹ️ Aucun client n'a demandé à être notifié pour ces commentaires.`;
     }

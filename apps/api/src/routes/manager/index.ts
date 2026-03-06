@@ -1138,120 +1138,124 @@ Réponds UNIQUEMENT avec le tableau JSON, rien d'autre.`,
   fastify.post('/improvements/:id/notify', async (request: FastifyRequest<{
     Params: { id: string }
   }>, reply: FastifyReply) => {
-    const restaurant = await getManagerRestaurant(request.user.id);
-    if (!restaurant) {
-      return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
-    }
-
-    const { id } = request.params;
-
-    const improvement = await prisma.improvement.findFirst({
-      where: { id, restaurantId: restaurant.id },
-    });
-
-    if (!improvement) {
-      return reply.status(404).send({ error: true, message: 'Amélioration non trouvée' });
-    }
-
-    if (improvement.status === 'NOTIFIED') {
-      return reply.status(400).send({ error: true, message: 'Les clients ont déjà été notifiés pour cette amélioration' });
-    }
-
-    const feedbackIds = improvement.matchedFeedbackIds as string[];
-
-    // Get unique fingerprints that want notifications
-    const feedbacks = await prisma.feedback.findMany({
-      where: { id: { in: feedbackIds } },
-      include: {
-        fingerprint: {
-          select: {
-            id: true,
-            wantNotifyOwn: true,
-            wantNotifyOthers: true,
-            contactEmail: true,
-            contactPhone: true,
-          },
-        },
-      },
-    });
-
-    // Deduplicate by fingerprint ID
-    type NotifyFB = typeof feedbacks[number];
-    const seen = new Set<string>();
-    const uniqueFingerprints = feedbacks
-      .filter((f: NotifyFB) => {
-        if (seen.has(f.fingerprintId)) return false;
-        seen.add(f.fingerprintId);
-        return (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
-               (f.fingerprint.contactEmail || f.fingerprint.contactPhone);
-      })
-      .map((f: NotifyFB) => f.fingerprint);
-
-    let notifiedCount = 0;
-    const notifications: Array<{
-      fingerprintId: string;
-      channel: string;
-      destination: string;
-      success: boolean;
-    }> = [];
-
-    for (const fp of uniqueFingerprints) {
-      const result = await notifyClient(
-        restaurant.name,
-        improvement.description,
-        fp.contactEmail,
-        fp.contactPhone,
-      );
-
-      if (result.emailSent) {
-        notifications.push({
-          fingerprintId: fp.id,
-          channel: 'email',
-          destination: fp.contactEmail!,
-          success: true,
-        });
-        notifiedCount++;
+    try {
+      const restaurant = await getManagerRestaurant(request.user.id);
+      if (!restaurant) {
+        return reply.status(404).send({ error: true, message: 'Restaurant non trouvé' });
       }
 
-      if (result.whatsappSent) {
-        notifications.push({
-          fingerprintId: fp.id,
-          channel: 'whatsapp',
-          destination: fp.contactPhone!,
-          success: true,
-        });
-        notifiedCount++;
-      }
-    }
+      const { id } = request.params;
 
-    // Save notifications
-    if (notifications.length > 0) {
-      await prisma.improvementNotification.createMany({
-        data: notifications.map(n => ({
-          improvementId: improvement.id,
-          fingerprintId: n.fingerprintId,
-          channel: n.channel,
-          destination: n.destination,
-          success: n.success,
-        })),
+      const improvement = await prisma.improvement.findFirst({
+        where: { id, restaurantId: restaurant.id },
       });
+
+      if (!improvement) {
+        return reply.status(404).send({ error: true, message: 'Amélioration non trouvée' });
+      }
+
+      if (improvement.status === 'NOTIFIED') {
+        return reply.send({ success: true, notifiedCount: improvement.notifiedCount, message: `Notifications déjà envoyées (${improvement.notifiedCount} client(s))` });
+      }
+
+      const feedbackIds = Array.isArray(improvement.matchedFeedbackIds)
+        ? improvement.matchedFeedbackIds as string[]
+        : [];
+
+      // Get unique fingerprints that want notifications
+      const feedbacks = feedbackIds.length > 0
+        ? await prisma.feedback.findMany({
+            where: { id: { in: feedbackIds } },
+            include: {
+              fingerprint: {
+                select: {
+                  id: true,
+                  wantNotifyOwn: true,
+                  wantNotifyOthers: true,
+                  contactEmail: true,
+                  contactPhone: true,
+                },
+              },
+            },
+          })
+        : [];
+
+      // Deduplicate by fingerprint ID
+      type NotifyFB = typeof feedbacks[number];
+      const seen = new Set<string>();
+      const uniqueFingerprints = feedbacks
+        .filter((f: NotifyFB) => {
+          if (seen.has(f.fingerprintId)) return false;
+          seen.add(f.fingerprintId);
+          return (f.fingerprint.wantNotifyOwn || f.fingerprint.wantNotifyOthers) &&
+                 (f.fingerprint.contactEmail || f.fingerprint.contactPhone);
+        })
+        .map((f: NotifyFB) => f.fingerprint);
+
+      let notifiedCount = 0;
+      const notifications: Array<{
+        fingerprintId: string;
+        channel: string;
+        destination: string;
+        success: boolean;
+      }> = [];
+
+      for (const fp of uniqueFingerprints) {
+        try {
+          const result = await notifyClient(
+            restaurant.name,
+            improvement.description,
+            fp.contactEmail,
+            fp.contactPhone,
+          );
+
+          if (result.emailSent) {
+            notifications.push({ fingerprintId: fp.id, channel: 'email', destination: fp.contactEmail!, success: true });
+            notifiedCount++;
+          }
+
+          if (result.whatsappSent) {
+            notifications.push({ fingerprintId: fp.id, channel: 'whatsapp', destination: fp.contactPhone!, success: true });
+            notifiedCount++;
+          }
+        } catch (notifyErr) {
+          console.error(`Notify client error for fp ${fp.id}:`, notifyErr);
+        }
+      }
+
+      // Save notifications (ignore FK errors)
+      if (notifications.length > 0) {
+        try {
+          await prisma.improvementNotification.createMany({
+            data: notifications.map(n => ({
+              improvementId: improvement.id,
+              fingerprintId: n.fingerprintId,
+              channel: n.channel,
+              destination: n.destination,
+              success: n.success,
+            })),
+            skipDuplicates: true,
+          });
+        } catch (createErr) {
+          console.error('ImprovementNotification createMany error:', createErr);
+        }
+      }
+
+      // Always mark as NOTIFIED
+      await prisma.improvement.update({
+        where: { id: improvement.id },
+        data: { status: 'NOTIFIED', notifiedAt: new Date(), notifiedCount },
+      });
+
+      const msg = notifiedCount > 0
+        ? `${notifiedCount} client(s) notifié(s) ✅`
+        : `Aucun client n'avait demandé à être notifié pour cette amélioration.`;
+
+      return reply.send({ success: true, notifiedCount, message: msg });
+    } catch (err) {
+      console.error('POST /improvements/:id/notify error:', err);
+      return reply.status(500).send({ error: true, message: 'Erreur lors de l\'envoi des notifications' });
     }
-
-    // Update improvement status
-    await prisma.improvement.update({
-      where: { id: improvement.id },
-      data: {
-        status: 'NOTIFIED',
-        notifiedAt: new Date(),
-        notifiedCount,
-      },
-    });
-
-    return reply.send({
-      success: true,
-      notifiedCount,
-      message: `${notifiedCount} notification(s) envoyée(s)`,
-    });
   });
 
   // === BACKFILL AI ===

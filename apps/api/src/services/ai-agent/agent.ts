@@ -1,7 +1,7 @@
 import { config } from '../../config/env.js';
 import { consulterAvis, gererLots, stats, signalerAmelioration, analyserTendances } from './tools.js';
 import { gererExclusions } from './exclusions.js';
-import { getOrCreateSession, appendToSession } from '../messaging/router.js';
+import { getOrCreateSession, appendToSession, setPendingImprovementId, getPendingImprovementId } from '../messaging/router.js';
 
 function getSystemPrompt(): string {
   const now = new Date();
@@ -55,7 +55,7 @@ Règles générales :
 - Si le manager parle de lots/cadeaux/prix/machine à sous, utilise gerer_lots
 - Si le manager demande des chiffres/stats globaux, utilise la fonction stats
 - Si le manager signale une amélioration, utilise signaler_amelioration avec action=analyze
-- Si le manager confirme vouloir notifier les clients, utilise signaler_amelioration avec action=notify et l'improvementId
+- Si le manager confirme vouloir notifier les clients (dit "oui", "oui notifier", "notifie", "go", "oui, notifier" ou toute confirmation), tu DOIS immédiatement appeler signaler_amelioration avec action=notify. Cherche l'improvementId dans ta réponse précédente (il apparaît après "ID: " entre backticks). NE REDEMANDE JAMAIS confirmation si le manager a déjà dit "oui" une fois. NE réponds JAMAIS en texte pour dire que tu vas notifier — APPELLE L'OUTIL DIRECTEMENT sans délai.
 - Si le manager veut exclure un type d'avis (ex: "je ne veux plus voir les avis qui parlent de X"), utilise gerer_exclusions avec action=create
 - Si le manager demande de lister, désactiver ou supprimer des exclusions, utilise gerer_exclusions
 - Si le manager demande de voir les avis exclus, utilise gerer_exclusions avec action=show_excluded
@@ -260,6 +260,23 @@ export async function processAgentMessage(
   ];
 
   try {
+    // --- Short-circuit: if user is confirming a notification and we have a pending improvement ---
+    const confirmPatterns = /^(oui|yes|ok|notifie|notifier|go|envoie|envoyer|confirme|d'accord|oui,?\s*notifier|oui\s*notifie|yes\s*notify)$/i;
+    if (confirmPatterns.test(userMessage.trim())) {
+      const pendingId = await getPendingImprovementId(session.id);
+      if (pendingId) {
+        // Directly execute the notify tool without asking LLM
+        const notifyResult = await signalerAmelioration(restaurantId, 'notify', { improvementId: pendingId });
+        // Clear the pending ID
+        await setPendingImprovementId(session.id, null);
+        await appendToSession(session.id, [
+          { role: 'user', content: userMessage, timestamp: new Date().toISOString() },
+          { role: 'assistant', content: notifyResult, timestamp: new Date().toISOString() },
+        ]);
+        return notifyResult;
+      }
+    }
+
     let response = await callAzureOpenAI(messages);
     
     // Handle tool calls (may need multiple rounds)
@@ -294,6 +311,12 @@ export async function processAgentMessage(
     }
 
     const assistantText = response.content || 'Désolé, je n\'ai pas pu traiter votre demande.';
+
+    // If the assistant text contains an improvementId, store it for the confirmation flow
+    const idMatch = assistantText.match(/ID:\s*`([^`]+)`/);
+    if (idMatch?.[1]) {
+      await setPendingImprovementId(session.id, idMatch[1]);
+    }
 
     // Save to session history
     await appendToSession(session.id, [

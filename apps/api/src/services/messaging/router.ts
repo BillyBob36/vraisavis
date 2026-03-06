@@ -121,6 +121,45 @@ export async function getOrCreateSession(
 }
 
 /**
+ * Store a pending improvementId on the session (for notify confirmation flow).
+ */
+export async function setPendingImprovementId(
+  sessionId: string,
+  improvementId: string | null,
+): Promise<void> {
+  await prisma.messagingSession.update({
+    where: { id: sessionId },
+    data: { lastMessageAt: new Date() },
+  });
+  // Store as a special entry in conversationHistory metadata slot
+  const session = await prisma.messagingSession.findUnique({ where: { id: sessionId } });
+  if (!session) return;
+  const history = Array.isArray(session.conversationHistory) ? session.conversationHistory as Array<Record<string, string>> : [];
+  // Remove any existing __meta__ entry
+  const filtered = history.filter((m) => m.__type !== '__meta__');
+  if (improvementId) {
+    filtered.push({ __type: '__meta__', pendingImprovementId: improvementId });
+  }
+  await prisma.messagingSession.update({
+    where: { id: sessionId },
+    data: { conversationHistory: JSON.parse(JSON.stringify(filtered)) },
+  });
+}
+
+/**
+ * Retrieve the pending improvementId from the session (if any).
+ */
+export async function getPendingImprovementId(
+  sessionId: string,
+): Promise<string | null> {
+  const session = await prisma.messagingSession.findUnique({ where: { id: sessionId } });
+  if (!session) return null;
+  const history = Array.isArray(session.conversationHistory) ? session.conversationHistory as Array<Record<string, string>> : [];
+  const meta = history.find((m) => m.__type === '__meta__');
+  return meta?.pendingImprovementId || null;
+}
+
+/**
  * Append messages to a session's conversation history.
  * Keeps only the last 20 messages to avoid bloat.
  */

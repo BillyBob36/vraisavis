@@ -153,7 +153,7 @@ export default function ImprovementsPage() {
               </div>
 
               {notifyResult && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700">
+                <div className={`rounded-lg p-3 text-sm ${notifyResult.startsWith('Erreur') ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'}`}>
                   {notifyResult}
                 </div>
               )}
