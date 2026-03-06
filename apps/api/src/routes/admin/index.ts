@@ -578,12 +578,12 @@ export async function adminRoutes(fastify: FastifyInstance) {
   fastify.post('/promo-codes', async (request: FastifyRequest, reply: FastifyReply) => {
     const body = z.object({
       code: z.string().min(3).max(30).transform(v => v.toUpperCase()),
-      trialDays: z.number().int().min(1).max(365).default(30),
-      maxUses: z.number().int().min(1).default(1),
+      trialDays: z.coerce.number().int().min(1).max(365).default(30),
+      maxUses: z.coerce.number().int().min(1).default(1),
       skipStripe: z.boolean().default(true),
-      description: z.string().optional(),
-      expiresAt: z.string().datetime().optional(),
-      recipientEmail: z.string().email().optional(),
+      description: z.string().nullable().optional(),
+      expiresAt: z.string().datetime().optional().nullable(),
+      recipientEmail: z.string().email().optional().nullable(),
     }).safeParse(request.body);
 
     if (!body.success) {
@@ -608,22 +608,23 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
     // Send emails (fire-and-forget)
     const recipientEmail = body.data.recipientEmail || null;
+    const description = body.data.description || null;
 
     sendPromoCodeCreatedToAdmin(
       config.ADMIN_EMAIL,
       promoCode.code,
       promoCode.trialDays,
-      promoCode.description,
+      description,
       recipientEmail,
-    ).catch(err => console.error('Admin promo email error:', err));
+    ).catch(() => {});
 
     if (recipientEmail) {
       sendPromoCodeToRestaurant(
         recipientEmail,
         promoCode.code,
         promoCode.trialDays,
-        promoCode.description,
-      ).catch(err => console.error('Restaurant promo email error:', err));
+        description,
+      ).catch(() => {});
     }
 
     return reply.status(201).send({ promoCode, emailSent: !!recipientEmail });
