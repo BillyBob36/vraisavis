@@ -22,12 +22,9 @@ export const config = {
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3002',
   WEB_URL: process.env.WEB_URL || 'http://localhost:3000',
   
-  // Email (prévu pour plus tard)
-  SMTP_HOST: process.env.SMTP_HOST || '',
-  SMTP_PORT: parseInt(process.env.SMTP_PORT || '587'),
-  SMTP_USER: process.env.SMTP_USER || '',
-  SMTP_PASS: process.env.SMTP_PASS || '',
-  FROM_EMAIL: process.env.FROM_EMAIL || 'noreply@vraisavis.fr',
+  // Email (Resend)
+  RESEND_API_KEY: process.env.RESEND_API_KEY || '',
+  FROM_EMAIL: process.env.FROM_EMAIL || 'VraisAvis <notifications@send.notifications.vraisavis.fr>',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'admin@vraisavis.fr',
   
   // Telegram
@@ -39,11 +36,6 @@ export const config = {
   EVOLUTION_API_KEY: process.env.EVOLUTION_API_KEY || '',
   WHATSAPP_DEFAULT_INSTANCE: process.env.WHATSAPP_DEFAULT_INSTANCE || 'vraisavis-default',
   WHATSAPP_WEBHOOK_SECRET: process.env.WHATSAPP_WEBHOOK_SECRET || '',
-  
-  // Twilio SMS
-  TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID || '',
-  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN || '',
-  TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER || '',
   
   // OpenAI Direct
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',

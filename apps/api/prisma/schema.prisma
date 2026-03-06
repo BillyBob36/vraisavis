@@ -77,6 +77,10 @@ model User {
   updatedAt    DateTime  @updatedAt
   lastLoginAt  DateTime?
 
+  // Password reset
+  resetToken     String?   @unique @map("reset_token")
+  resetTokenExp  DateTime? @map("reset_token_exp")
+
   // Messaging
   preferredMessaging MessagingProvider? @map("preferred_messaging")
   telegramChatId     String?            @unique @map("telegram_chat_id")
@@ -196,6 +200,11 @@ model Subscription {
   canceledAt           DateTime?
   stripeSubscriptionId String?            @unique
 
+  // Trial reminder tracking
+  trialReminder24hSent Boolean @default(false) @map("trial_reminder_24h_sent")
+  trialReminder48hSent Boolean @default(false) @map("trial_reminder_48h_sent")
+  paidStartEmailSent   Boolean @default(false) @map("paid_start_email_sent")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -204,6 +213,8 @@ model Subscription {
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
   planId       String
   plan         Plan       @relation(fields: [planId], references: [id])
+  promoCodeId  String?    @map("promo_code_id")
+  promoCode    PromoCode? @relation(fields: [promoCodeId], references: [id])
   payments     Payment[]
 
   @@map("subscriptions")
@@ -456,6 +467,28 @@ model ImprovementNotification {
   fingerprint   Fingerprint @relation(fields: [fingerprintId], references: [id])
 
   @@map("improvement_notifications")
+}
+
+// ============================================
+// PROMO CODES
+// ============================================
+
+model PromoCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  trialDays   Int       @default(30) @map("trial_days")
+  maxUses     Int       @default(10) @map("max_uses")
+  usedCount   Int       @default(0) @map("used_count")
+  skipStripe  Boolean   @default(true) @map("skip_stripe")
+  isActive    Boolean   @default(true) @map("is_active")
+  expiresAt   DateTime? @map("expires_at")
+  description String?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  subscriptions Subscription[]
+
+  @@map("promo_codes")
 }
 
 // ============================================

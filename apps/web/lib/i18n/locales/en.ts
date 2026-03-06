@@ -40,9 +40,9 @@ export const en: Translations = {
   contactPrivacy: '🔒 Your contact info stays <strong>strictly anonymous</strong>. The restaurant has no access to it. It is only used to send you an automatic alert if improvements related to your feedback are made.',
   contactEmail: 'Email',
   contactEmailPlaceholder: 'your@email.com',
-  contactPhone: 'Phone',
+  contactPhone: 'WhatsApp',
   contactPhoneOptional: '(optional)',
-  contactPhonePlaceholder: '+1 234 567 8900',
+  contactPhonePlaceholder: '+33 6 12 34 56 78',
   contactCta: 'Play the slot machine! 🎰',
 
   // Spin

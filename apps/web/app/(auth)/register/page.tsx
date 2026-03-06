@@ -112,15 +112,21 @@ function RegisterForm() {
     address: '',
     phone: '',
     referralCode: '',
+    promoCode: '',
     latitude: 0,
     longitude: 0,
   });
 
   useEffect(() => {
-    // Récupérer le code de parrainage depuis l'URL
+    // Récupérer le code de parrainage et/ou le code promo depuis l'URL
     const ref = searchParams.get('ref');
-    if (ref) {
-      setFormData(prev => ({ ...prev, referralCode: ref }));
+    const promo = searchParams.get('promo');
+    if (ref || promo) {
+      setFormData(prev => ({
+        ...prev,
+        ...(ref && { referralCode: ref }),
+        ...(promo && { promoCode: promo }),
+      }));
     }
   }, [searchParams]);
 
@@ -197,7 +203,7 @@ function RegisterForm() {
     setLoading(true);
 
     try {
-      const result = await apiFetch<{ message: string; clientSecret?: string; trialEndsAt?: string }>('/api/v1/auth/register', {
+      const result = await apiFetch<{ message: string; clientSecret?: string; trialEndsAt?: string; skipStripe?: boolean }>('/api/v1/auth/register', {
         method: 'POST',
         body: JSON.stringify({
           ...formData,
@@ -206,8 +212,15 @@ function RegisterForm() {
         }),
       });
 
-      // Si Stripe est configuré et qu'on a un clientSecret, aller à l'étape paiement
-      if (result.clientSecret && stripePromise) {
+      // Si skipStripe (promo code), rediriger directement
+      if (result.skipStripe) {
+        toast({
+          title: 'Compte créé avec succès !',
+          description: `Votre essai gratuit a commencé. Vérifiez votre email.`,
+        });
+        router.push('/login');
+      } else if (result.clientSecret && stripePromise) {
+        // Stripe configuré → étape paiement
         setClientSecret(result.clientSecret);
         setTrialEndsAt(result.trialEndsAt || null);
         setStep('payment');
@@ -497,6 +510,16 @@ function RegisterForm() {
                 />
               </div>
             )}
+            <div className="space-y-2">
+              <Label htmlFor="promoCode">Code promo <span className="text-muted-foreground font-normal">(optionnel)</span></Label>
+              <Input
+                id="promoCode"
+                name="promoCode"
+                placeholder="Ex: TESTJUIN2026"
+                value={formData.promoCode}
+                onChange={handleChange}
+              />
+            </div>
             <Button type="submit" className="w-full">
               Continuer →
             </Button>

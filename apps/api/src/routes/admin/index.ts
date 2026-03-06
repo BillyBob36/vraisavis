@@ -532,6 +532,95 @@ export async function adminRoutes(fastify: FastifyInstance) {
     return reply.send({ deleted: deleted.count, message: `${deleted.count} fingerprint(s) supprimé(s) (+ feedbacks et claims associés)` });
   });
 
+  // === PROMO CODES ===
+  fastify.get('/promo-codes', async (request: FastifyRequest, reply: FastifyReply) => {
+    const promoCodes = await prisma.promoCode.findMany({
+      include: {
+        _count: { select: { subscriptions: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return reply.send({ promoCodes });
+  });
+
+  fastify.post('/promo-codes', async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = z.object({
+      code: z.string().min(3).max(30).transform(v => v.toUpperCase()),
+      trialDays: z.number().int().min(1).max(365).default(30),
+      maxUses: z.number().int().min(1).default(10),
+      skipStripe: z.boolean().default(true),
+      description: z.string().optional(),
+      expiresAt: z.string().datetime().optional(),
+    }).safeParse(request.body);
+
+    if (!body.success) {
+      return reply.status(400).send({ error: true, message: 'Données invalides', details: body.error.errors });
+    }
+
+    const existing = await prisma.promoCode.findUnique({ where: { code: body.data.code } });
+    if (existing) {
+      return reply.status(409).send({ error: true, message: 'Ce code existe déjà' });
+    }
+
+    const promoCode = await prisma.promoCode.create({
+      data: {
+        code: body.data.code,
+        trialDays: body.data.trialDays,
+        maxUses: body.data.maxUses,
+        skipStripe: body.data.skipStripe,
+        description: body.data.description,
+        expiresAt: body.data.expiresAt ? new Date(body.data.expiresAt) : null,
+      },
+    });
+
+    return reply.status(201).send({ promoCode });
+  });
+
+  fastify.patch('/promo-codes/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    const { id } = request.params;
+    const body = z.object({
+      isActive: z.boolean().optional(),
+      maxUses: z.number().int().min(1).optional(),
+      description: z.string().optional(),
+      expiresAt: z.string().datetime().nullable().optional(),
+    }).safeParse(request.body);
+
+    if (!body.success) {
+      return reply.status(400).send({ error: true, message: 'Données invalides' });
+    }
+
+    const data: any = { ...body.data };
+    if (data.expiresAt !== undefined) {
+      data.expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
+    }
+
+    const promoCode = await prisma.promoCode.update({ where: { id }, data });
+    return reply.send({ promoCode });
+  });
+
+  fastify.delete('/promo-codes/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    const { id } = request.params;
+
+    const promo = await prisma.promoCode.findUnique({
+      where: { id },
+      include: { _count: { select: { subscriptions: true } } },
+    });
+
+    if (!promo) {
+      return reply.status(404).send({ error: true, message: 'Code promo non trouvé' });
+    }
+
+    if (promo._count.subscriptions > 0) {
+      // Désactiver plutôt que supprimer si utilisé
+      await prisma.promoCode.update({ where: { id }, data: { isActive: false } });
+      return reply.send({ message: `Code désactivé (utilisé ${promo._count.subscriptions} fois)` });
+    }
+
+    await prisma.promoCode.delete({ where: { id } });
+    return reply.send({ message: 'Code promo supprimé' });
+  });
+
   // Enregistrer les routes contracts
   await fastify.register(contractRoutes, { prefix: '/contracts' });
 }

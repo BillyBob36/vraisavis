@@ -1213,10 +1213,10 @@ Réponds UNIQUEMENT avec le tableau JSON, rien d'autre.`,
         notifiedCount++;
       }
 
-      if (result.smsSent) {
+      if (result.whatsappSent) {
         notifications.push({
           fingerprintId: fp.id,
-          channel: 'sms',
+          channel: 'whatsapp',
           destination: fp.contactPhone!,
           success: true,
         });

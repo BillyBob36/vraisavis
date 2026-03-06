@@ -1,98 +1,111 @@
+import { Resend } from 'resend';
 import { config } from '../../config/env.js';
-import nodemailer from 'nodemailer';
 
-let transporter: nodemailer.Transporter | null = null;
+let resendClient: Resend | null = null;
 
-function getEmailTransporter() {
-  if (!transporter && config.SMTP_HOST) {
-    transporter = nodemailer.createTransport({
-      host: config.SMTP_HOST,
-      port: config.SMTP_PORT,
-      secure: config.SMTP_PORT === 465,
-      auth: {
-        user: config.SMTP_USER,
-        pass: config.SMTP_PASS,
-      },
-    });
+function getResend(): Resend | null {
+  if (!resendClient && config.RESEND_API_KEY) {
+    resendClient = new Resend(config.RESEND_API_KEY);
   }
-  return transporter;
+  return resendClient;
 }
 
+/**
+ * Send email via Resend.
+ */
 export async function sendEmail(
   to: string,
   subject: string,
   html: string,
 ): Promise<boolean> {
-  const transport = getEmailTransporter();
-  if (!transport) {
-    console.warn('SMTP not configured, skipping email to', to);
+  const resend = getResend();
+  if (!resend) {
+    console.warn('📧 Resend not configured, skipping email to', to);
     return false;
   }
 
   try {
-    await transport.sendMail({
-      from: `VraisAvis <${config.FROM_EMAIL}>`,
-      to,
+    const { error } = await resend.emails.send({
+      from: config.FROM_EMAIL,
+      to: [to],
       subject,
       html,
     });
+
+    if (error) {
+      console.error('📧 Resend error:', error);
+      return false;
+    }
+
+    console.log(`📧 Email sent to ${to}: ${subject}`);
     return true;
   } catch (err) {
-    console.error('Email send error:', err);
+    console.error('📧 Email send error:', err);
     return false;
   }
 }
 
-export async function sendSMS(
-  to: string,
-  body: string,
+/**
+ * Send WhatsApp message via Evolution API (replaces SMS/Twilio).
+ * Phone should be in international format (e.g. 33612345678 or +33612345678).
+ */
+export async function sendWhatsApp(
+  phone: string,
+  text: string,
 ): Promise<boolean> {
-  if (!config.TWILIO_ACCOUNT_SID || !config.TWILIO_AUTH_TOKEN || !config.TWILIO_PHONE_NUMBER) {
-    console.warn('Twilio not configured, skipping SMS to', to);
+  if (!config.EVOLUTION_API_URL || !config.EVOLUTION_API_KEY) {
+    console.warn('📱 Evolution API not configured, skipping WhatsApp to', phone);
     return false;
   }
 
   try {
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${config.TWILIO_ACCOUNT_SID}/Messages.json`;
-    const auth = Buffer.from(`${config.TWILIO_ACCOUNT_SID}:${config.TWILIO_AUTH_TOKEN}`).toString('base64');
+    // Normalize phone to JID format
+    const cleaned = phone.replace(/[^0-9]/g, '');
+    const jid = `${cleaned}@s.whatsapp.net`;
 
-    const params = new URLSearchParams({
-      To: to,
-      From: config.TWILIO_PHONE_NUMBER,
-      Body: body,
-    });
+    const instanceName = 'vraisavis-bot';
+    const url = `${config.EVOLUTION_API_URL}/message/sendText/${instanceName}`;
 
     const res = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
+        'apikey': config.EVOLUTION_API_KEY,
       },
-      body: params.toString(),
+      body: JSON.stringify({
+        number: jid,
+        text,
+        delay: 0,
+      }),
     });
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.error('Twilio SMS error:', res.status, errorText);
+      console.error('📱 WhatsApp send error:', res.status, errorText);
       return false;
     }
 
+    console.log(`📱 WhatsApp sent to ${cleaned}`);
     return true;
   } catch (err) {
-    console.error('SMS send error:', err);
+    console.error('📱 WhatsApp send error:', err);
     return false;
   }
 }
 
+/**
+ * Notify a client about a restaurant improvement.
+ * Uses email (Resend) and/or WhatsApp (Evolution API).
+ */
 export async function notifyClient(
   restaurantName: string,
   improvement: string,
   contactEmail: string | null,
-  contactPhone: string | null,
-): Promise<{ emailSent: boolean; smsSent: boolean }> {
-  const result = { emailSent: false, smsSent: false };
+  contactWhatsApp: string | null,
+): Promise<{ emailSent: boolean; whatsappSent: boolean }> {
+  const result = { emailSent: false, whatsappSent: false };
 
-  const smsText = `${restaurantName} : Suite à vos remarques, nous avons apporté une amélioration — ${improvement}. Merci pour votre retour ! — VraisAvis`;
+  const whatsappText = `🍽️ *${restaurantName}*\n\nSuite à vos remarques, le restaurant a apporté une amélioration :\n\n✅ _${improvement}_\n\nMerci pour votre retour constructif, il a été entendu !\n\n— VraisAvis`;
 
   const emailHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
@@ -119,8 +132,8 @@ export async function notifyClient(
     );
   }
 
-  if (contactPhone) {
-    result.smsSent = await sendSMS(contactPhone, smsText);
+  if (contactWhatsApp) {
+    result.whatsappSent = await sendWhatsApp(contactWhatsApp, whatsappText);
   }
 
   return result;

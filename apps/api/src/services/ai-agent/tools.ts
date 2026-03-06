@@ -537,7 +537,7 @@ export async function signalerAmelioration(
         f.fingerprint.contactEmail,
         f.fingerprint.contactPhone,
       );
-      if (result.emailSent || result.smsSent) notifiedCount++;
+      if (result.emailSent || result.whatsappSent) notifiedCount++;
     }
 
     await prisma.improvement.update({

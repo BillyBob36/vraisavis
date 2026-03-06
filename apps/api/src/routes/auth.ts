@@ -1,11 +1,13 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import QRCode from 'qrcode';
 import { prisma } from '../lib/prisma.js';
 import { authenticate } from '../middleware/auth.js';
 import { config } from '../config/env.js';
 import { stripe } from '../services/stripe.js';
+import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/email/templates.js';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -20,6 +22,7 @@ const registerSchema = z.object({
   address: z.string().min(5),
   phone: z.string().optional(),
   referralCode: z.string().optional(),
+  promoCode: z.string().optional(),
   latitude: z.number(),
   longitude: z.number(),
   acceptCGU: z.boolean().refine(val => val === true, {
@@ -34,8 +37,8 @@ const updatePasswordSchema = z.object({
 });
 
 export async function authRoutes(fastify: FastifyInstance) {
-  // Login
-  fastify.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
+  // Login (stricter rate limit: 10/min)
+  fastify.post('/login', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request: FastifyRequest, reply: FastifyReply) => {
     const body = loginSchema.safeParse(request.body);
     if (!body.success) {
       return reply.status(400).send({ error: true, message: 'Données invalides', details: body.error.errors });
@@ -110,14 +113,14 @@ export async function authRoutes(fastify: FastifyInstance) {
     });
   });
 
-  // Register (créer un manager + restaurant)
-  fastify.post('/register', async (request: FastifyRequest, reply: FastifyReply) => {
+  // Register (strict rate limit: 5/min)
+  fastify.post('/register', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (request: FastifyRequest, reply: FastifyReply) => {
     const body = registerSchema.safeParse(request.body);
     if (!body.success) {
       return reply.status(400).send({ error: true, message: 'Données invalides', details: body.error.errors });
     }
 
-    const { email, password, name, restaurantName, address, phone, referralCode, latitude, longitude, cguVersion } = body.data;
+    const { email, password, name, restaurantName, address, phone, referralCode, promoCode, latitude, longitude, cguVersion } = body.data;
     
     // Récupérer l'IP du client pour l'acceptation CGU
     const clientIP = request.ip;
@@ -139,19 +142,39 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
     }
 
+    // Valider le code promo si fourni
+    let promoCodeRecord: { id: string; trialDays: number; skipStripe: boolean } | null = null;
+    if (promoCode) {
+      const promo = await prisma.promoCode.findUnique({ where: { code: promoCode } });
+      if (!promo || !promo.isActive) {
+        return reply.status(400).send({ error: true, message: 'Code promo invalide ou expiré' });
+      }
+      if (promo.usedCount >= promo.maxUses) {
+        return reply.status(400).send({ error: true, message: 'Code promo épuisé' });
+      }
+      if (promo.expiresAt && promo.expiresAt < new Date()) {
+        return reply.status(400).send({ error: true, message: 'Code promo expiré' });
+      }
+      promoCodeRecord = { id: promo.id, trialDays: promo.trialDays, skipStripe: promo.skipStripe };
+    }
+
     // Récupérer le plan Starter par défaut
     const starterPlan = await prisma.plan.findFirst({ where: { name: 'Starter', isActive: true } });
     if (!starterPlan) {
       return reply.status(500).send({ error: true, message: 'Configuration manquante' });
     }
 
-    // 1. Créer customer Stripe
+    // Determine trial duration
+    const trialDays = promoCodeRecord?.trialDays || 14;
+    const skipStripe = promoCodeRecord?.skipStripe || false;
+
+    // 1. Créer customer Stripe (skip si promo skipStripe)
     let stripeCustomerId: string | null = null;
     let stripeSubscriptionId: string | null = null;
     let clientSecret: string | null = null;
     let stripeTrialEnd: Date | null = null;
 
-    if (config.STRIPE_SECRET_KEY && config.STRIPE_PRICE_ID) {
+    if (!skipStripe && config.STRIPE_SECRET_KEY && config.STRIPE_PRICE_ID) {
       try {
         const customer = await stripe.customers.create({
           email,
@@ -164,7 +187,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         const subscription = await stripe.subscriptions.create({
           customer: customer.id,
           items: [{ price: config.STRIPE_PRICE_ID }],
-          trial_period_days: 14,
+          trial_period_days: trialDays,
           payment_behavior: 'default_incomplete',
           payment_settings: { save_default_payment_method: 'on_subscription' },
           expand: ['pending_setup_intent'],
@@ -184,13 +207,12 @@ export async function authRoutes(fastify: FastifyInstance) {
         }
       } catch (stripeErr: any) {
         console.error('Erreur Stripe lors de l\'inscription:', stripeErr.message);
-        // On continue sans Stripe — le resto fonctionnera en mode trial local
       }
     }
 
     // 2. Créer le manager + restaurant + subscription (trial)
     const now = new Date();
-    const trialEnd = stripeTrialEnd || new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const trialEnd = stripeTrialEnd || new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
 
     const user = await prisma.user.create({
       data: {
@@ -224,6 +246,7 @@ export async function authRoutes(fastify: FastifyInstance) {
                 currentPeriodStart: now,
                 currentPeriodEnd: trialEnd,
                 trialEndsAt: trialEnd,
+                promoCodeId: promoCodeRecord?.id || null,
               },
             },
           },
@@ -234,10 +257,18 @@ export async function authRoutes(fastify: FastifyInstance) {
       },
     });
 
-    // 3. Générer le QR code automatiquement
+    // 3. Incrémenter le compteur du code promo
+    if (promoCodeRecord) {
+      await prisma.promoCode.update({
+        where: { id: promoCodeRecord.id },
+        data: { usedCount: { increment: 1 } },
+      });
+    }
+
+    // 4. Générer le QR code automatiquement
     const restaurant = user.managedRestaurants[0];
     if (restaurant) {
-      const clientUrl = `${config.CLIENT_URL}/${restaurant.id}`;
+      const clientUrl = `${config.CLIENT_URL}/r/${restaurant.id}`;
       const qrCodeUrl = await QRCode.toDataURL(clientUrl, {
         width: 512,
         margin: 2,
@@ -249,6 +280,11 @@ export async function authRoutes(fastify: FastifyInstance) {
       });
     }
 
+    // 5. Envoyer l'email de bienvenue (fire-and-forget)
+    sendWelcomeEmail(email, name, restaurantName, trialDays).catch(err =>
+      console.error('Welcome email error:', err)
+    );
+
     return reply.status(201).send({
       message: 'Compte créé avec succès',
       user: {
@@ -258,6 +294,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       },
       clientSecret,
       trialEndsAt: trialEnd.toISOString(),
+      skipStripe,
     });
   });
 
@@ -372,15 +409,75 @@ export async function authRoutes(fastify: FastifyInstance) {
     return reply.send({ message: 'Mot de passe mis à jour' });
   });
 
-  // Forgot password - placeholder pour plus tard
-  fastify.post('/forgot-password', async (request: FastifyRequest, reply: FastifyReply) => {
-    // TODO: Implémenter avec envoi d'email
-    return reply.send({ message: 'Si cet email existe, un lien de réinitialisation a été envoyé' });
+  // Forgot password (strict rate limit: 3/min)
+  fastify.post('/forgot-password', { config: { rateLimit: { max: 3, timeWindow: '1 minute' } } }, async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = z.object({ email: z.string().email() }).safeParse(request.body);
+    if (!body.success) {
+      return reply.status(400).send({ error: true, message: 'Email invalide' });
+    }
+
+    const { email } = body.data;
+
+    // Always return success to prevent email enumeration
+    const successMsg = { message: 'Si cet email existe, un lien de réinitialisation a été envoyé' };
+
+    // Check users table
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Check vendors table
+      const vendor = await prisma.vendor.findUnique({ where: { email } });
+      if (!vendor) return reply.send(successMsg);
+      // Vendors don't have reset tokens in schema yet, just return success
+      return reply.send(successMsg);
+    }
+
+    // Generate token (URL-safe, 48 chars)
+    const resetToken = crypto.randomBytes(32).toString('base64url');
+    const resetTokenExp = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { resetToken, resetTokenExp },
+    });
+
+    const resetUrl = `${config.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    sendPasswordResetEmail(email, user.name, resetUrl).catch(err =>
+      console.error('Password reset email error:', err)
+    );
+
+    return reply.send(successMsg);
   });
 
-  // Reset password - placeholder pour plus tard
-  fastify.post('/reset-password', async (request: FastifyRequest, reply: FastifyReply) => {
-    // TODO: Implémenter avec token de réinitialisation
-    return reply.status(501).send({ error: true, message: 'Fonctionnalité à venir' });
+  // Reset password (rate limit: 5/min)
+  fastify.post('/reset-password', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = z.object({
+      token: z.string().min(1),
+      password: z.string().min(6),
+    }).safeParse(request.body);
+
+    if (!body.success) {
+      return reply.status(400).send({ error: true, message: 'Données invalides' });
+    }
+
+    const { token, password } = body.data;
+
+    const user = await prisma.user.findUnique({ where: { resetToken: token } });
+    if (!user || !user.resetTokenExp || user.resetTokenExp < new Date()) {
+      return reply.status(400).send({ error: true, message: 'Lien expiré ou invalide. Veuillez refaire une demande.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        resetToken: null,
+        resetTokenExp: null,
+      },
+    });
+
+    return reply.send({ message: 'Mot de passe mis à jour avec succès. Vous pouvez maintenant vous connecter.' });
   });
 }

@@ -94,6 +94,11 @@ export default function LoginPage() {
                 required
               />
             </div>
+            <div className="text-right">
+              <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary hover:underline">
+                Mot de passe oublié ?
+              </Link>
+            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Connexion...' : 'Se connecter'}
             </Button>
