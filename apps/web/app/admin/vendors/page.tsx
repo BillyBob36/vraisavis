@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { apiFetch, getToken } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Plus, X, FileText, Download, Trash2 } from 'lucide-react';
+import { Plus, X, FileText, Download, Trash2, Eye, EyeOff } from 'lucide-react';
 
 interface VendorContract {
   id: string;
@@ -39,6 +39,7 @@ export default function VendorsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -221,14 +222,25 @@ export default function VendorsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe {editingVendor && '(laisser vide pour ne pas changer)'}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  required={!editingVendor}
-                  minLength={6}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    required={!editingVendor}
+                    minLength={6}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Téléphone</Label>

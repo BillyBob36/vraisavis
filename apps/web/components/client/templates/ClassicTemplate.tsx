@@ -445,13 +445,13 @@ export default function ClassicTemplate(props: TemplateProps) {
                     onMouseDown={onHoldStart}
                     onMouseUp={onHoldEnd}
                     onMouseLeave={onHoldEnd}
-                    onTouchStart={onHoldStart}
+                    onTouchStart={(e) => { e.preventDefault(); onHoldStart(); }}
                     onTouchEnd={onHoldEnd}
                     disabled={isClaiming}
-                    className="w-full py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-lg rounded-2xl shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 relative overflow-hidden"
+                    className="w-full py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-lg rounded-2xl shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 relative overflow-hidden select-none"
                   >
                     <div className="absolute inset-0 bg-green-500 transition-none" style={{ width: `${holdProgress * 100}%` }} />
-                    <span className="relative z-10">
+                    <span className="relative z-10 select-none pointer-events-none">
                       {isClaiming ? t.claimHoldValidating : holdProgress > 0 && holdProgress < 1 ? t.claimHoldProgress : t.claimHoldDefault}
                     </span>
                   </button>
@@ -519,7 +519,7 @@ export default function ClassicTemplate(props: TemplateProps) {
       <div className="min-h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 flex items-start sm:items-center justify-center p-0 sm:p-4">
         <div className="w-full sm:max-w-md">
           <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-2xl p-6 sm:p-8 text-center space-y-6 flex flex-col justify-center sm:block">
-            <div className="text-5xl">🎉</div>
+            <div className="text-5xl">�</div>
             <h2 className="text-xl font-bold text-gray-900">{t.claimTitle}</h2>
 
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border-2 border-yellow-200">

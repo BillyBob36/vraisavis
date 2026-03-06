@@ -482,13 +482,13 @@ export default function GlassTemplate(props: TemplateProps) {
                     onMouseDown={onHoldStart}
                     onMouseUp={onHoldEnd}
                     onMouseLeave={onHoldEnd}
-                    onTouchStart={onHoldStart}
+                    onTouchStart={(e) => { e.preventDefault(); onHoldStart(); }}
                     onTouchEnd={onHoldEnd}
                     disabled={isClaiming}
-                    className="w-full py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-lg rounded-2xl shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 relative overflow-hidden border border-white/10"
+                    className="w-full py-4 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold text-lg rounded-2xl shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 relative overflow-hidden border border-white/10 select-none"
                   >
                     <div className="absolute inset-0 bg-green-500 transition-none" style={{ width: `${holdProgress * 100}%` }} />
-                    <span className="relative z-10">
+                    <span className="relative z-10 select-none pointer-events-none">
                       {isClaiming ? t.claimHoldValidating : holdProgress > 0 && holdProgress < 1 ? t.claimHoldProgress : t.claimHoldDefault}
                     </span>
                   </button>
@@ -552,7 +552,7 @@ export default function GlassTemplate(props: TemplateProps) {
 
         <div className="w-full sm:max-w-md relative z-10">
           <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl text-center space-y-6 flex flex-col justify-center sm:block">
-            <div className="text-5xl">🎉</div>
+            <div className="text-5xl">�</div>
             <h2 className="text-xl font-bold text-white">{t.claimTitle}</h2>
 
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-yellow-400/30">

@@ -59,7 +59,7 @@ export const en: Translations = {
   slotPlay: '🎰 Play!',
 
   // Claim - choice
-  claimTitle: 'Congratulations! You won:',
+  claimTitle: 'You won!',
   claimNowBtn: '🎁 Collect now',
   claimNowDesc: 'Show your screen to the server',
   claimLaterBtn: '📝 Collect later',
