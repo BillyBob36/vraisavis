@@ -28,6 +28,7 @@ const DEFAULT_FORM = {
   code: '',
   trialDays: 30,
   description: '',
+  recipientEmail: '',
 };
 
 function generateCode(): string {
@@ -67,7 +68,7 @@ export default function PromoCodesPage() {
 
     setCreating(true);
     try {
-      await apiFetch('/api/v1/admin/promo-codes', {
+      const result = await apiFetch<{ promoCode: PromoCode; emailSent: boolean }>('/api/v1/admin/promo-codes', {
         method: 'POST',
         token,
         body: JSON.stringify({
@@ -76,9 +77,13 @@ export default function PromoCodesPage() {
           maxUses: 1,
           skipStripe: true,
           description: form.description || null,
+          recipientEmail: form.recipientEmail.trim() || undefined,
         }),
       });
-      toast({ title: 'Code créé ✅', description: `Code ${form.code.toUpperCase()} créé (usage unique, ${form.trialDays}j)` });
+      const emailInfo = result.emailSent
+        ? ` · Email envoyé à ${form.recipientEmail.trim()}`
+        : '';
+      toast({ title: 'Code créé ✅', description: `Code ${form.code.toUpperCase()} créé (usage unique, ${form.trialDays}j)${emailInfo}` });
       setForm(DEFAULT_FORM);
       setShowForm(false);
       load();
@@ -193,6 +198,23 @@ export default function PromoCodesPage() {
                     value={form.description}
                     onChange={e => setForm({ ...form, description: e.target.value })}
                   />
+                </div>
+
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="recipientEmail">
+                    Email du restaurateur
+                    <span className="text-muted-foreground font-normal ml-1">(optionnel — envoie le code + instructions)</span>
+                  </Label>
+                  <Input
+                    id="recipientEmail"
+                    type="email"
+                    placeholder="chef@restaurant.fr"
+                    value={form.recipientEmail}
+                    onChange={e => setForm({ ...form, recipientEmail: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Si renseigné : le restaurateur reçoit un email avec le code et un lien d&apos;inscription pré-rempli. Vous recevez aussi une copie sur admin@vraisavis.fr.
+                  </p>
                 </div>
               </div>
 

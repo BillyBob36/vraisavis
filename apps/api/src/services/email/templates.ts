@@ -143,6 +143,80 @@ export async function sendPaidPeriodStartedEmail(email: string, name: string, re
   return sendEmail(email, `✅ Votre abonnement ${BRAND_NAME} est actif — ${restaurantName}`, html);
 }
 
+// ─── PROMO CODE CREATED — Admin notification ────────────────
+export async function sendPromoCodeCreatedToAdmin(
+  adminEmail: string,
+  code: string,
+  trialDays: number,
+  description: string | null,
+  recipientEmail: string | null,
+): Promise<boolean> {
+  const html = wrap(`
+    <h2 style="color: #111; margin: 0 0 16px;">🎟️ Nouveau code promo créé</h2>
+    <div style="background: #f0f9ff; border: 2px solid ${BRAND_COLOR}; padding: 16px; border-radius: 8px; text-align: center; margin: 16px 0;">
+      <p style="font-size: 28px; font-weight: 900; letter-spacing: 6px; color: ${BRAND_COLOR}; margin: 0; font-family: monospace;">${code}</p>
+      <p style="color: #374151; margin: 8px 0 0; font-size: 14px;">${trialDays} jours d'essai gratuit — usage unique — sans CB</p>
+    </div>
+    ${description ? `<p style="color: #6b7280; font-size: 13px;">Description : <em>${description}</em></p>` : ''}
+    ${recipientEmail ? `<p style="color: #374151; font-size: 13px;">📨 Email de confirmation envoyé à : <strong>${recipientEmail}</strong></p>` : '<p style="color: #9ca3af; font-size: 13px;">Aucun email destinataire renseigné.</p>'}
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+    <p style="font-size: 12px; color: #9ca3af;">
+      Gérez vos codes promo sur <a href="${DASHBOARD_URL}/admin/promo-codes" style="color: ${BRAND_COLOR};">app.vraisavis.fr/admin/promo-codes</a>
+    </p>
+  `);
+
+  return sendEmail(adminEmail, `🎟️ Code promo créé : ${code}`, html);
+}
+
+// ─── PROMO CODE — Email au restaurateur ─────────────────────
+export async function sendPromoCodeToRestaurant(
+  recipientEmail: string,
+  code: string,
+  trialDays: number,
+  description: string | null,
+): Promise<boolean> {
+  const registerUrl = `https://app.vraisavis.fr/register?promo=${code}`;
+
+  const html = wrap(`
+    <h2 style="color: #111; margin: 0 0 8px;">Votre accès offert à VraisAvis 🎉</h2>
+    <p style="color: #374151; line-height: 1.6;">
+      Bonjour,
+    </p>
+    <p style="color: #374151; line-height: 1.6;">
+      Vous avez été sélectionné(e) pour bénéficier d'un accès <strong>gratuit pendant ${trialDays} jours</strong> à <strong>VraisAvis</strong> — la plateforme qui transforme les avis clients en amélioration continue pour votre restaurant.
+    </p>
+    ${description ? `<p style="color: #6b7280; font-size: 13px; font-style: italic;">${description}</p>` : ''}
+    <div style="background: #f0f9ff; border: 2px solid ${BRAND_COLOR}; padding: 20px; border-radius: 10px; text-align: center; margin: 24px 0;">
+      <p style="font-size: 13px; color: #6b7280; margin: 0 0 8px;">Votre code d'accès :</p>
+      <p style="font-size: 30px; font-weight: 900; letter-spacing: 6px; color: ${BRAND_COLOR}; margin: 0; font-family: monospace;">${code}</p>
+      <p style="color: #374151; font-size: 12px; margin: 8px 0 0;">Usage unique • ${trialDays} jours gratuits • Sans carte bancaire</p>
+    </div>
+    <h3 style="color: #111; font-size: 15px; margin: 20px 0 12px;">Comment utiliser votre code ?</h3>
+    <ol style="color: #374151; line-height: 2; padding-left: 20px; margin: 0 0 20px;">
+      <li>Cliquez sur le bouton ci-dessous</li>
+      <li>Créez votre compte restaurant (nom, adresse, email, mot de passe)</li>
+      <li>Le champ <strong>"Code promo"</strong> est pré-rempli automatiquement</li>
+      <li>Validez — c'est tout ! Votre essai démarre immédiatement</li>
+    </ol>
+    <div style="text-align: center; margin: 24px 0;">
+      ${btn(registerUrl, 'Créer mon compte gratuitement →')}
+    </div>
+    <h3 style="color: #111; font-size: 15px; margin: 20px 0 10px;">Ce que vous obtenez :</h3>
+    <ul style="color: #374151; line-height: 1.9; padding-left: 20px; margin: 0 0 20px;">
+      <li>📊 <strong>Analyse IA</strong> de tous vos avis clients en temps réel</li>
+      <li>🤖 <strong>Assistant personnel</strong> disponible sur WhatsApp & Telegram</li>
+      <li>📈 <strong>Bilans quotidiens</strong> envoyés automatiquement</li>
+      <li>🎰 <strong>Jeu de fidélisation</strong> pour engager vos clients</li>
+      <li>💼 <strong>Programme d'affiliation</strong> : recommandez VraisAvis et générez des revenus passifs</li>
+    </ul>
+    <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
+      Ce code est valable pour une seule inscription. Si vous avez des questions, répondez directement à cet email.
+    </p>
+  `);
+
+  return sendEmail(recipientEmail, `🎟️ Votre accès gratuit ${trialDays}j à VraisAvis — Code : ${code}`, html);
+}
+
 // ─── PASSWORD RESET ─────────────────────────────────────────
 export async function sendPasswordResetEmail(email: string, name: string, resetUrl: string): Promise<boolean> {
   const html = wrap(`

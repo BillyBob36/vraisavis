@@ -24,7 +24,7 @@ export const config = {
   
   // Email (Resend)
   RESEND_API_KEY: process.env.RESEND_API_KEY || '',
-  FROM_EMAIL: process.env.FROM_EMAIL || 'VraisAvis <notifications@send.notifications.vraisavis.fr>',
+  FROM_EMAIL: process.env.FROM_EMAIL || 'VraisAvis <notifications@vraisavis.fr>',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'admin@vraisavis.fr',
   
   // Telegram

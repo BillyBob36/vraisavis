@@ -5,6 +5,8 @@ import { prisma } from '../../lib/prisma.js';
 import { requireSuperAdmin } from '../../middleware/auth.js';
 import { generateReferralCode } from '../../utils/helpers.js';
 import { contractRoutes } from './contracts.js';
+import { sendPromoCodeCreatedToAdmin, sendPromoCodeToRestaurant } from '../../services/email/templates.js';
+import { config } from '../../config/env.js';
 
 const createVendorSchema = z.object({
   email: z.string().email(),
@@ -577,10 +579,11 @@ export async function adminRoutes(fastify: FastifyInstance) {
     const body = z.object({
       code: z.string().min(3).max(30).transform(v => v.toUpperCase()),
       trialDays: z.number().int().min(1).max(365).default(30),
-      maxUses: z.number().int().min(1).default(10),
+      maxUses: z.number().int().min(1).default(1),
       skipStripe: z.boolean().default(true),
       description: z.string().optional(),
       expiresAt: z.string().datetime().optional(),
+      recipientEmail: z.string().email().optional(),
     }).safeParse(request.body);
 
     if (!body.success) {
@@ -598,12 +601,32 @@ export async function adminRoutes(fastify: FastifyInstance) {
         trialDays: body.data.trialDays,
         maxUses: body.data.maxUses,
         skipStripe: body.data.skipStripe,
-        description: body.data.description,
+        description: body.data.description || null,
         expiresAt: body.data.expiresAt ? new Date(body.data.expiresAt) : null,
       },
     });
 
-    return reply.status(201).send({ promoCode });
+    // Send emails (fire-and-forget)
+    const recipientEmail = body.data.recipientEmail || null;
+
+    sendPromoCodeCreatedToAdmin(
+      config.ADMIN_EMAIL,
+      promoCode.code,
+      promoCode.trialDays,
+      promoCode.description,
+      recipientEmail,
+    ).catch(err => console.error('Admin promo email error:', err));
+
+    if (recipientEmail) {
+      sendPromoCodeToRestaurant(
+        recipientEmail,
+        promoCode.code,
+        promoCode.trialDays,
+        promoCode.description,
+      ).catch(err => console.error('Restaurant promo email error:', err));
+    }
+
+    return reply.status(201).send({ promoCode, emailSent: !!recipientEmail });
   });
 
   fastify.patch('/promo-codes/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
