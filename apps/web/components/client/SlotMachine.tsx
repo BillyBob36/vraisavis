@@ -213,18 +213,31 @@ export default function SlotMachine({
         )}
       </div>
 
-      {/* Prize Legend Toggle Button */}
-      {prizes.length > 0 && !showLegend && (
-        <button
-          onClick={() => setShowLegend(true)}
-          className={`mt-3 mx-auto flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all active:scale-95 ${
-            isGlass
-              ? 'bg-white/10 backdrop-blur-lg border border-white/20 text-white/70 hover:bg-white/15'
-              : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 shadow-sm'
-          }`}
-        >
-          {t.slotSeePrizes}
-        </button>
+      {/* Play button when no prizes configured OR legend dismissed */}
+      {!spinning.some(Boolean) && !isSpinning && (
+        prizes.length === 0 ? (
+          <button
+            onClick={onSpin}
+            className={`w-full mt-4 py-3 rounded-xl text-base font-black transition-all active:scale-95 ${
+              isGlass
+                ? 'bg-gradient-to-r from-violet-500 to-pink-500 border border-white/20 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50'
+                : 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg hover:shadow-2xl'
+            }`}
+          >
+            {t.slotPlay}
+          </button>
+        ) : !showLegend ? (
+          <button
+            onClick={() => setShowLegend(true)}
+            className={`mt-3 mx-auto flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all active:scale-95 ${
+              isGlass
+                ? 'bg-white/10 backdrop-blur-lg border border-white/20 text-white/70 hover:bg-white/15'
+                : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 shadow-sm'
+            }`}
+          >
+            {t.slotSeePrizes}
+          </button>
+        ) : null
       )}
 
       {/* Prize Legend Overlay */}
