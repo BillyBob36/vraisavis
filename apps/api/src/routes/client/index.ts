@@ -97,9 +97,18 @@ export async function clientRoutes(fastify: FastifyInstance) {
       });
     }
 
-    // 3. Vérifier la géolocalisation (si fournie)
-    if (latitude !== undefined && longitude !== undefined) {
-      const distance = calculateDistance(latitude, longitude, restaurant.latitude, restaurant.longitude);
+    // 3. Vérifier la géolocalisation
+    const hasRestaurantGeo = restaurant.latitude !== null && restaurant.longitude !== null;
+    if (hasRestaurantGeo) {
+      if (latitude === undefined || longitude === undefined) {
+        return reply.send({
+          fingerprintId: null,
+          canPlay: false,
+          reason: 'geo_required',
+          message: 'Veuillez autoriser la géolocalisation pour participer',
+        });
+      }
+      const distance = calculateDistance(latitude, longitude, restaurant.latitude!, restaurant.longitude!);
       if (distance > restaurant.geoRadius) {
         return reply.send({
           fingerprintId: null,

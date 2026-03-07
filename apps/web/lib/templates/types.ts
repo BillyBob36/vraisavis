@@ -101,6 +101,9 @@ export interface TemplateProps {
   // Already played guard
   canPlay: boolean;
   canPlayMessage: string;
+  canPlayReason?: string;
+  geoRetrying?: boolean;
+  onRetryGeo?: () => void;
 }
 
 // 24 slot symbols for supporting 20+ prizes

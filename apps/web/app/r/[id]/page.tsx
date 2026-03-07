@@ -44,7 +44,7 @@ async function generateFingerprint(): Promise<string> {
 }
 
 // Get browser geolocation (returns null if denied or unavailable)
-function getGeolocation(): Promise<{ latitude: number; longitude: number } | null> {
+function getGeolocation(timeout = 8000): Promise<{ latitude: number; longitude: number } | null> {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
       resolve(null);
@@ -58,7 +58,7 @@ function getGeolocation(): Promise<{ latitude: number; longitude: number } | nul
         });
       },
       () => resolve(null),
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout, maximumAge: 0 }
     );
   });
 }
@@ -89,6 +89,8 @@ export default function ClientExperiencePage() {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [canPlay, setCanPlay] = useState(true);
   const [canPlayMessage, setCanPlayMessage] = useState('');
+  const [canPlayReason, setCanPlayReason] = useState<string | undefined>();
+  const [geoRetrying, setGeoRetrying] = useState(false);
   const spinResultRef = useRef<SpinResult | null>(null);
   const positiveRatingRef = useRef(0);
   const negativeRatingRef = useRef(0);
@@ -149,6 +151,7 @@ export default function ClientExperiencePage() {
 
         if (!fpData.canPlay) {
           setCanPlay(false);
+          setCanPlayReason(fpData.reason);
           setCanPlayMessage(fpData.message || 'Vous avez déjà participé pendant ce service');
         }
       } catch (err: any) {
@@ -323,6 +326,39 @@ export default function ClientExperiencePage() {
     }
   }, [redeemResult]);
 
+  const handleRetryGeo = useCallback(async () => {
+    setGeoRetrying(true);
+    try {
+      const geo = await getGeolocation(12000);
+      if (!geo) {
+        setCanPlayMessage('Géolocalisation refusée. Veuillez l\'autoriser dans les paramètres de votre navigateur.');
+        setGeoRetrying(false);
+        return;
+      }
+      const hash = await generateFingerprint();
+      const fpData = await apiFetch<{ fingerprintId: string | null; canPlay: boolean; reason?: string; message?: string }>(
+        '/api/v1/client/fingerprint',
+        {
+          method: 'POST',
+          body: JSON.stringify({ hash, restaurantId, latitude: geo.latitude, longitude: geo.longitude }),
+        }
+      );
+      setFingerprintId(fpData.fingerprintId);
+      if (fpData.canPlay) {
+        setCanPlay(true);
+        setCanPlayReason(undefined);
+        setCanPlayMessage('');
+      } else {
+        setCanPlayReason(fpData.reason);
+        setCanPlayMessage(fpData.message || 'Participation impossible');
+      }
+    } catch (err: any) {
+      setCanPlayMessage(err.message || 'Erreur');
+    } finally {
+      setGeoRetrying(false);
+    }
+  }, [restaurantId]);
+
   const handleGoToRedeem = useCallback(() => {
     setRedeemCode('');
     setRedeemError(null);
@@ -472,6 +508,9 @@ export default function ClientExperiencePage() {
     // Already played guard
     canPlay,
     canPlayMessage,
+    canPlayReason,
+    geoRetrying,
+    onRetryGeo: handleRetryGeo,
   };
 
   // Render the appropriate template

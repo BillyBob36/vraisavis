@@ -25,13 +25,41 @@ export default function GlassTemplate(props: TemplateProps) {
     redeemCode, onRedeemCodeChange, onRedeemSubmit,
     isRedeeming, redeemResult, redeemError, onGoToRedeem,
     showGoogleReview, onGoogleReview,
-    canPlay, canPlayMessage,
+    canPlay, canPlayMessage, canPlayReason, geoRetrying, onRetryGeo,
   } = props;
 
   const { t, locale, setLocale } = useTranslation();
   const [claimMode, setClaimMode] = useState<'choice' | 'now' | 'later'>('choice');
 
   const showContactFields = wantNotifyOwn || wantNotifyOthers;
+
+  // Geo required / too far screen
+  if (step === 'intro' && !canPlay && (canPlayReason === 'geo_required' || canPlayReason === 'too_far')) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 flex items-start sm:items-center justify-center p-0 sm:p-4 relative overflow-hidden">
+        <div className="absolute top-20 -left-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 -right-20 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="relative z-10 w-full sm:max-w-md">
+          <div className="min-h-screen sm:min-h-0 p-6 sm:p-8 sm:bg-white/10 sm:backdrop-blur-2xl sm:rounded-3xl sm:border sm:border-white/20 sm:shadow-2xl text-center space-y-6 flex flex-col justify-center sm:block">
+            <div className="text-6xl">{canPlayReason === 'too_far' ? '📍' : '🗺️'}</div>
+            <h2 className="text-2xl font-black text-white">
+              {canPlayReason === 'too_far' ? 'Trop loin du restaurant' : 'Géolocalisation requise'}
+            </h2>
+            <p className="text-white/60 text-sm leading-relaxed">{canPlayMessage}</p>
+            {canPlayReason === 'geo_required' && onRetryGeo && (
+              <button
+                onClick={onRetryGeo}
+                disabled={geoRetrying}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-2xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all border border-white/10 disabled:opacity-50"
+              >
+                {geoRetrying ? '⏳ Localisation...' : '📍 Autoriser la géolocalisation'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Already played screen
   if (step === 'intro' && !canPlay) {

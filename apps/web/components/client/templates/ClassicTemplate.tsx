@@ -25,13 +25,39 @@ export default function ClassicTemplate(props: TemplateProps) {
     redeemCode, onRedeemCodeChange, onRedeemSubmit,
     isRedeeming, redeemResult, redeemError, onGoToRedeem,
     showGoogleReview, onGoogleReview,
-    canPlay, canPlayMessage,
+    canPlay, canPlayMessage, canPlayReason, geoRetrying, onRetryGeo,
   } = props;
 
   const { t, locale, setLocale } = useTranslation();
   const [claimMode, setClaimMode] = useState<'choice' | 'now' | 'later'>('choice');
 
   const showContactFields = wantNotifyOwn || wantNotifyOthers;
+
+  // Geo required / too far screen
+  if (step === 'intro' && !canPlay && (canPlayReason === 'geo_required' || canPlayReason === 'too_far')) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 flex items-start sm:items-center justify-center p-0 sm:p-4">
+        <div className="w-full sm:max-w-md">
+          <div className="min-h-screen sm:min-h-0 bg-white sm:rounded-3xl sm:shadow-xl p-6 sm:p-8 text-center space-y-6 flex flex-col justify-center sm:block">
+            <div className="text-6xl">{canPlayReason === 'too_far' ? '📍' : '🗺️'}</div>
+            <h2 className="text-2xl font-black text-gray-900">
+              {canPlayReason === 'too_far' ? 'Trop loin du restaurant' : 'Géolocalisation requise'}
+            </h2>
+            <p className="text-gray-500 text-sm leading-relaxed">{canPlayMessage}</p>
+            {canPlayReason === 'geo_required' && onRetryGeo && (
+              <button
+                onClick={onRetryGeo}
+                disabled={geoRetrying}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold rounded-2xl shadow-md hover:bg-orange-600 active:scale-[0.98] transition-all disabled:opacity-50"
+              >
+                {geoRetrying ? '⏳ Localisation...' : '📍 Autoriser la géolocalisation'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Already played screen
   if (step === 'intro' && !canPlay) {
